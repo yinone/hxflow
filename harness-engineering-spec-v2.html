@@ -82,6 +82,49 @@ html.light .cs{color:var(--teal)}
 html.light .ce{color:var(--red)}
 html.light .cp{color:var(--be)}
 
+/* ── SIDEBAR NAV ── */
+.sidebar{
+  position:fixed;left:0;top:0;bottom:0;width:220px;z-index:900;
+  background:var(--bg2);border-right:1px solid var(--bdr);
+  overflow-y:auto;overflow-x:hidden;padding:20px 0;
+  transform:translateX(-100%);transition:transform .3s;
+  scrollbar-width:thin;scrollbar-color:var(--bdr2) transparent;
+}
+.sidebar::-webkit-scrollbar{width:4px}
+.sidebar::-webkit-scrollbar-track{background:transparent}
+.sidebar::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:2px}
+.sidebar.open{transform:translateX(0)}
+.sidebar-header{
+  padding:12px 16px 16px;font-family:var(--mono);font-size:10px;
+  letter-spacing:.15em;color:var(--gold);text-transform:uppercase;
+  border-bottom:1px solid var(--bdr);margin-bottom:8px;
+  display:flex;align-items:center;gap:8px;
+}
+.sidebar-header::before{content:'';display:block;width:16px;height:1px;background:var(--gold)}
+.sidebar a{
+  display:flex;align-items:baseline;gap:8px;
+  padding:7px 16px;font-size:12px;color:var(--txt3);
+  text-decoration:none;transition:all .15s;border-left:2px solid transparent;
+}
+.sidebar a:hover{color:var(--txt);background:var(--bg3)}
+.sidebar a.active{color:var(--gold);border-left-color:var(--gold);background:var(--goldt)}
+.sidebar .nav-num{font-family:var(--mono);font-size:9px;letter-spacing:.1em;min-width:42px;color:inherit;opacity:.6}
+.sidebar .nav-label{line-height:1.4}
+.sidebar .nav-group{font-family:var(--mono);font-size:9px;letter-spacing:.15em;color:var(--txt3);
+  padding:14px 16px 6px;text-transform:uppercase;opacity:.5}
+
+.sidebar-toggle{
+  position:fixed;left:16px;top:50%;z-index:901;transform:translateY(-50%);
+  width:32px;height:32px;border-radius:6px;border:1px solid var(--bdr2);
+  background:var(--bg2);color:var(--txt2);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .3s;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+}
+.sidebar-toggle:hover{background:var(--bg3);color:var(--txt);border-color:var(--gold)}
+.sidebar-toggle svg{width:16px;height:16px;transition:transform .3s}
+.sidebar.open ~ .sidebar-toggle{left:228px}
+.sidebar.open ~ .sidebar-toggle svg{transform:rotate(180deg)}
+
 /* ── THEME TOGGLE ── */
 .theme-toggle{
   position:fixed;top:24px;right:24px;z-index:999;
@@ -628,6 +671,32 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--txt3);letter-spacing
 <button class="theme-toggle" id="themeToggle" aria-label="切换主题">
   <svg id="iconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
   <svg id="iconSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+</button>
+
+<!-- SIDEBAR NAV -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-header">目录导航</div>
+  <div class="nav-group">核心流程</div>
+  <a href="#intro"><span class="nav-num">INTRO</span><span class="nav-label">什么是 Harness</span></a>
+  <a href="#phase1"><span class="nav-num">01</span><span class="nav-label">需求接入与意图锁定</span></a>
+  <a href="#phase2"><span class="nav-num">02</span><span class="nav-label">需求文档与执行计划</span></a>
+  <a href="#phase3"><span class="nav-num">03</span><span class="nav-label">上下文工程准备</span></a>
+  <a href="#phase4"><span class="nav-num">04</span><span class="nav-label">Agent 执行</span></a>
+  <a href="#phase5"><span class="nav-num">05</span><span class="nav-label">代码评审</span></a>
+  <a href="#phase6"><span class="nav-num">06</span><span class="nav-label">QA 与验收</span></a>
+  <a href="#phase7"><span class="nav-num">07</span><span class="nav-label">熵管理与清理</span></a>
+  <a href="#phase8"><span class="nav-num">08</span><span class="nav-label">MR 提交与 CI 监控</span></a>
+  <div class="nav-group">附录</div>
+  <a href="#arch"><span class="nav-num">附录 A</span><span class="nav-label">架构层级与黄金原则</span></a>
+  <a href="#workflow"><span class="nav-num">附录 B</span><span class="nav-label">日常工作流总图</span></a>
+  <a href="#commands"><span class="nav-num">附录 C</span><span class="nav-label">命令速查</span></a>
+  <a href="#hooks"><span class="nav-num">附录 D</span><span class="nav-label">Git Hooks 配置</span></a>
+  <a href="#skills"><span class="nav-num">附录 E</span><span class="nav-label">Skill 编写规范</span></a>
+  <a href="#prompts"><span class="nav-num">附录 F</span><span class="nav-label">提示词最佳实践</span></a>
+  <a href="#claude-code"><span class="nav-num">附录 G</span><span class="nav-label">Claude Code 指南</span></a>
+</nav>
+<button class="sidebar-toggle" id="sidebarToggle" aria-label="展开目录">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
 </button>
 
 <!-- HERO -->
@@ -3735,6 +3804,57 @@ phases.forEach(p => { p.classList.remove('vis'); obs.observe(p); });
       localStorage.setItem('theme', 'light');
     }
   });
+})();
+
+// Sidebar toggle + scroll spy
+(function() {
+  var sidebar = document.getElementById('sidebar');
+  var togBtn = document.getElementById('sidebarToggle');
+  var savedSb = localStorage.getItem('sidebar');
+  if (savedSb === 'open') sidebar.classList.add('open');
+
+  togBtn.addEventListener('click', function() {
+    sidebar.classList.toggle('open');
+    localStorage.setItem('sidebar', sidebar.classList.contains('open') ? 'open' : 'closed');
+  });
+
+  // click nav link on mobile: auto close
+  sidebar.querySelectorAll('a').forEach(function(a) {
+    a.addEventListener('click', function() {
+      if (window.innerWidth < 900) {
+        sidebar.classList.remove('open');
+        localStorage.setItem('sidebar', 'closed');
+      }
+    });
+  });
+
+  // scroll spy
+  var navLinks = sidebar.querySelectorAll('a[href^="#"]');
+  var sections = [];
+  navLinks.forEach(function(a) {
+    var id = a.getAttribute('href').slice(1);
+    var el = document.getElementById(id);
+    if (el) sections.push({ el: el, link: a });
+  });
+
+  function updateActive() {
+    var scrollY = window.scrollY + 120;
+    var current = null;
+    for (var i = 0; i < sections.length; i++) {
+      if (sections[i].el.offsetTop <= scrollY) current = sections[i];
+    }
+    navLinks.forEach(function(a) { a.classList.remove('active'); });
+    if (current) current.link.classList.add('active');
+  }
+
+  var ticking = false;
+  window.addEventListener('scroll', function() {
+    if (!ticking) {
+      requestAnimationFrame(function() { updateActive(); ticking = false; });
+      ticking = true;
+    }
+  });
+  updateActive();
 })();
 </script>
 </body>
