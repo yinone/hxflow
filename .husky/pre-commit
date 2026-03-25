@@ -1,6 +1,28 @@
 #!/bin/sh
 # .husky/pre-commit
-# 提交前门控：lint-staged + AGENTS.md 行数 + console.log 检测
+# 提交前门控：文档索引生成 + lint-staged + AGENTS.md 行数 + console.log 检测
+
+# ── 文档索引生成（每次提交前自动刷新 docs.json）────────────────
+echo "▸ 生成 docs.json..."
+npm run hx:scan-docs --silent
+
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "✗ docs.json 生成失败"
+  echo "  运行 npm run hx:scan-docs 查看详细错误"
+  exit 1
+fi
+
+git add docs.json
+
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "✗ docs.json 暂存失败"
+  echo "  请检查 Git 工作区权限后重试"
+  exit 1
+fi
+
+echo "  ✓ docs.json 已刷新并暂存"
 
 # ── lint-staged（只检查改动的文件）────────────────────────────
 echo "▸ 运行 lint-staged..."

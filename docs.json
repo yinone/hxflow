@@ -1,12 +1,5 @@
 [
   {
-    "name": "AGENTS",
-    "path": "AGENTS.md",
-    "type": "md",
-    "category": "根目录"
-  }
-,
-  {
     "name": "CLAUDE",
     "path": "CLAUDE.md",
     "type": "md",
@@ -21,156 +14,352 @@
   }
 ,
   {
-    "name": "golden-principles",
-    "path": "docs/golden-principles.md",
+    "name": "TODO",
+    "path": "TODO.md",
     "type": "md",
-    "category": "docs"
+    "category": "根目录"
   }
 ,
   {
-    "name": "map",
-    "path": "docs/map.md",
-    "type": "md",
-    "category": "docs"
+    "name": "hx.js",
+    "path": "coverage/bin/hx.js.html",
+    "type": "html",
+    "category": "coverage/bin"
   }
 ,
   {
-    "name": "_template",
-    "path": "docs/plans/_template.md",
-    "type": "md",
-    "category": "docs/plans"
+    "name": "hx.js",
+    "path": "coverage/lcov-report/bin/hx.js.html",
+    "type": "html",
+    "category": "coverage/lcov-report/bin"
   }
 ,
   {
-    "name": "quality-grades",
-    "path": "docs/quality-grades.md",
-    "type": "md",
-    "category": "docs"
-  }
-,
-  {
-    "name": "_template",
-    "path": "docs/requirement/_template.md",
-    "type": "md",
-    "category": "docs/requirement"
-  }
-,
-  {
-    "name": "harness-engineering-spec-v2",
-    "path": "harness-engineering-spec-v2.html",
+    "name": "harness-engineering-spec",
+    "path": "harness-engineering-spec.html",
     "type": "html",
     "category": "根目录"
   }
 ,
   {
-    "name": "README",
-    "path": "profiles/README.md",
+    "name": "hx-command-index",
+    "path": "hx-command-index.html",
+    "type": "html",
+    "category": "根目录"
+  }
+,
+  {
+    "name": "hx-config-reference",
+    "path": "hx-config-reference.html",
+    "type": "html",
+    "category": "根目录"
+  }
+,
+  {
+    "name": "hx-deep-dive",
+    "path": "hx-deep-dive.html",
+    "type": "html",
+    "category": "根目录"
+  }
+,
+  {
+    "name": "hx-guide",
+    "path": "hx-guide.html",
+    "type": "html",
+    "category": "根目录"
+  }
+,
+  {
+    "name": "hx-onboarding",
+    "path": "hx-onboarding.html",
+    "type": "html",
+    "category": "根目录"
+  }
+,
+  {
+    "name": "AGENTS",
+    "path": "src/agents/AGENTS.md",
     "type": "md",
-    "category": "profiles"
+    "category": "src/agents"
+  }
+,
+  {
+    "name": "hx-ctx",
+    "path": "src/agents/commands/hx-ctx.md",
+    "type": "md",
+    "category": "src/agents/commands"
+  }
+,
+  {
+    "name": "hx-doc",
+    "path": "src/agents/commands/hx-doc.md",
+    "type": "md",
+    "category": "src/agents/commands"
+  }
+,
+  {
+    "name": "hx-done",
+    "path": "src/agents/commands/hx-done.md",
+    "type": "md",
+    "category": "src/agents/commands"
+  }
+,
+  {
+    "name": "hx-entropy",
+    "path": "src/agents/commands/hx-entropy.md",
+    "type": "md",
+    "category": "src/agents/commands"
+  }
+,
+  {
+    "name": "hx-fix",
+    "path": "src/agents/commands/hx-fix.md",
+    "type": "md",
+    "category": "src/agents/commands"
+  }
+,
+  {
+    "name": "hx-gate",
+    "path": "src/agents/commands/hx-gate.md",
+    "type": "md",
+    "category": "src/agents/commands"
+  }
+,
+  {
+    "name": "hx-go",
+    "path": "src/agents/commands/hx-go.md",
+    "type": "md",
+    "category": "src/agents/commands"
+  }
+,
+  {
+    "name": "hx-mr",
+    "path": "src/agents/commands/hx-mr.md",
+    "type": "md",
+    "category": "src/agents/commands"
+  }
+,
+  {
+    "name": "hx-plan",
+    "path": "src/agents/commands/hx-plan.md",
+    "type": "md",
+    "category": "src/agents/commands"
+  }
+,
+  {
+    "name": "hx-review",
+    "path": "src/agents/commands/hx-review.md",
+    "type": "md",
+    "category": "src/agents/commands"
+  }
+,
+  {
+    "name": "hx-run-all",
+    "path": "src/agents/commands/hx-run-all.md",
+    "type": "md",
+    "category": "src/agents/commands"
+  }
+,
+  {
+    "name": "hx-run",
+    "path": "src/agents/commands/hx-run.md",
+    "type": "md",
+    "category": "src/agents/commands"
+  }
+,
+  {
+    "name": "SKILL",
+    "path": "src/agents/skills/gitlab/SKILL.md",
+    "type": "md",
+    "category": "src/agents/skills/gitlab"
+  }
+,
+  {
+    "name": "SKILL",
+    "path": "src/agents/skills/wushuang-devops/SKILL.md",
+    "type": "md",
+    "category": "src/agents/skills/wushuang-devops"
+  }
+,
+  {
+    "name": "golden-principles",
+    "path": "src/docs/golden-principles.md",
+    "type": "md",
+    "category": "src/docs"
+  }
+,
+  {
+    "name": "map",
+    "path": "src/docs/map.md",
+    "type": "md",
+    "category": "src/docs"
+  }
+,
+  {
+    "name": "_template",
+    "path": "src/docs/plans/_template.md",
+    "type": "md",
+    "category": "src/docs/plans"
+  }
+,
+  {
+    "name": "quality-grades",
+    "path": "src/docs/quality-grades.md",
+    "type": "md",
+    "category": "src/docs"
+  }
+,
+  {
+    "name": "_template",
+    "path": "src/docs/requirement/_template.md",
+    "type": "md",
+    "category": "src/docs/requirement"
   }
 ,
   {
     "name": "README",
-    "path": "profiles/backend/README.md",
+    "path": "src/profiles/README.md",
     "type": "md",
-    "category": "profiles/backend"
+    "category": "src/profiles"
+  }
+,
+  {
+    "name": "README",
+    "path": "src/profiles/backend/README.md",
+    "type": "md",
+    "category": "src/profiles/backend"
   }
 ,
   {
     "name": "golden-rules",
-    "path": "profiles/backend/golden-rules.md",
+    "path": "src/profiles/backend/golden-rules.md",
     "type": "md",
-    "category": "profiles/backend"
+    "category": "src/profiles/backend"
   }
 ,
   {
     "name": "plan-template",
-    "path": "profiles/backend/plan-template.md",
+    "path": "src/profiles/backend/plan-template.md",
     "type": "md",
-    "category": "profiles/backend"
+    "category": "src/profiles/backend"
   }
 ,
   {
     "name": "requirement-template",
-    "path": "profiles/backend/requirement-template.md",
+    "path": "src/profiles/backend/requirement-template.md",
     "type": "md",
-    "category": "profiles/backend"
+    "category": "src/profiles/backend"
   }
 ,
   {
     "name": "review-checklist",
-    "path": "profiles/backend/review-checklist.md",
+    "path": "src/profiles/backend/review-checklist.md",
     "type": "md",
-    "category": "profiles/backend"
+    "category": "src/profiles/backend"
   }
 ,
   {
     "name": "README",
-    "path": "profiles/frontend/README.md",
+    "path": "src/profiles/base/README.md",
     "type": "md",
-    "category": "profiles/frontend"
+    "category": "src/profiles/base"
   }
 ,
   {
     "name": "golden-rules",
-    "path": "profiles/frontend/golden-rules.md",
+    "path": "src/profiles/base/golden-rules.md",
     "type": "md",
-    "category": "profiles/frontend"
+    "category": "src/profiles/base"
   }
 ,
   {
     "name": "plan-template",
-    "path": "profiles/frontend/plan-template.md",
+    "path": "src/profiles/base/plan-template.md",
     "type": "md",
-    "category": "profiles/frontend"
+    "category": "src/profiles/base"
   }
 ,
   {
     "name": "requirement-template",
-    "path": "profiles/frontend/requirement-template.md",
+    "path": "src/profiles/base/requirement-template.md",
     "type": "md",
-    "category": "profiles/frontend"
+    "category": "src/profiles/base"
   }
 ,
   {
     "name": "review-checklist",
-    "path": "profiles/frontend/review-checklist.md",
+    "path": "src/profiles/base/review-checklist.md",
     "type": "md",
-    "category": "profiles/frontend"
+    "category": "src/profiles/base"
   }
 ,
   {
     "name": "README",
-    "path": "profiles/mobile/README.md",
+    "path": "src/profiles/frontend/README.md",
     "type": "md",
-    "category": "profiles/mobile"
+    "category": "src/profiles/frontend"
   }
 ,
   {
     "name": "golden-rules",
-    "path": "profiles/mobile/golden-rules.md",
+    "path": "src/profiles/frontend/golden-rules.md",
     "type": "md",
-    "category": "profiles/mobile"
+    "category": "src/profiles/frontend"
   }
 ,
   {
     "name": "plan-template",
-    "path": "profiles/mobile/plan-template.md",
+    "path": "src/profiles/frontend/plan-template.md",
     "type": "md",
-    "category": "profiles/mobile"
+    "category": "src/profiles/frontend"
   }
 ,
   {
     "name": "requirement-template",
-    "path": "profiles/mobile/requirement-template.md",
+    "path": "src/profiles/frontend/requirement-template.md",
     "type": "md",
-    "category": "profiles/mobile"
+    "category": "src/profiles/frontend"
   }
 ,
   {
     "name": "review-checklist",
-    "path": "profiles/mobile/review-checklist.md",
+    "path": "src/profiles/frontend/review-checklist.md",
     "type": "md",
-    "category": "profiles/mobile"
+    "category": "src/profiles/frontend"
+  }
+,
+  {
+    "name": "README",
+    "path": "src/profiles/mobile/README.md",
+    "type": "md",
+    "category": "src/profiles/mobile"
+  }
+,
+  {
+    "name": "golden-rules",
+    "path": "src/profiles/mobile/golden-rules.md",
+    "type": "md",
+    "category": "src/profiles/mobile"
+  }
+,
+  {
+    "name": "plan-template",
+    "path": "src/profiles/mobile/plan-template.md",
+    "type": "md",
+    "category": "src/profiles/mobile"
+  }
+,
+  {
+    "name": "requirement-template",
+    "path": "src/profiles/mobile/requirement-template.md",
+    "type": "md",
+    "category": "src/profiles/mobile"
+  }
+,
+  {
+    "name": "review-checklist",
+    "path": "src/profiles/mobile/review-checklist.md",
+    "type": "md",
+    "category": "src/profiles/mobile"
   }
 ]
