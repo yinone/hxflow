@@ -2,7 +2,7 @@
 # 扫描项目中的 HTML 和 MD 文件，生成 docs.json
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+PROJECT_ROOT="$SCRIPT_DIR"
 OUTPUT_FILE="$PROJECT_ROOT/docs.json"
 
 echo "扫描文档目录..."

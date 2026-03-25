@@ -53,6 +53,7 @@
     "// ── 文档工具 ──────────────────────────────────": "",
     "hx:init": "node bin/hx.js init",
     "hx:doc": "node bin/hx.js doc",
+    "hx:scan-docs": "bash ./scan-docs.sh",
     "hx:plan": "node src/scripts/hx-new-plan.js",
     "hx:ctx": "node src/scripts/hx-ctx-check.js",
     "// ── 代码质量 ──────────────────────────────────": "",
