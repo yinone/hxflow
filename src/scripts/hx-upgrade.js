@@ -4,7 +4,7 @@
  * hx upgrade — 升级已安装的 Harness Workflow
  *
  * 行为：
- *   1. 更新系统层（git repo 执行 git pull；npm 安装执行 npm update -g @hxflow/cli）
+ *   1. 更新系统层（git repo 执行 git pull；npm 安装执行 npm install -g @hxflow/cli@latest --registry https://npm.cdfsunrise.com/）
  *   2. 执行 hx setup 完成安装/更新（生成 agent 适配产物、更新 ~/.hx/ 配置）
  *   3. 更新当前项目 CLAUDE.md 中的 harness 标记块（如在项目中运行）
  *
@@ -41,7 +41,7 @@ if (options.help) {
   用法: hx upgrade [--agent <claude|codex|all>] [--dry-run]
 
   更新框架到最新版：
-    1. 更新系统层（git repo 执行 git pull；npm 安装执行 npm update -g @hxflow/cli）
+    1. 更新系统层（git repo 执行 git pull；npm 安装执行 npm install -g @hxflow/cli@latest --registry https://npm.cdfsunrise.com/）
     2. 自动执行 hx setup 完成安装/更新
     3. 更新当前项目 CLAUDE.md 中的 harness 标记块
 
@@ -73,11 +73,11 @@ try {
       const line = output.trim().split('\n').pop()
       summary.updated.push(`系统层 (git pull: ${line})`)
     } else {
-      execSync('npm update -g @hxflow/cli', { encoding: 'utf8' })
-      summary.updated.push('系统层 (npm update -g @hxflow/cli)')
+      execSync('npm install -g @hxflow/cli@latest --registry https://npm.cdfsunrise.com/', { encoding: 'utf8', stdio: 'inherit' })
+      summary.updated.push('系统层 (npm install -g @hxflow/cli@latest)')
     }
   } else {
-    const method = isGitRepo ? 'git pull' : 'npm update -g @hxflow/cli'
+    const method = isGitRepo ? 'git pull' : 'npm install -g @hxflow/cli@latest --registry https://npm.cdfsunrise.com/'
     summary.updated.push(`系统层 (dry-run，将使用 ${method})`)
   }
 } catch (err) {
