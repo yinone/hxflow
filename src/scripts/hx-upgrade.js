@@ -105,7 +105,7 @@ if (agents.includes('claude')) {
 if (agents.includes('codex')) {
   generateCodexSkillFiles(
     commandSourceDir,
-    resolve(userCodexDir, 'skills', 'hxflow'),
+    resolve(userCodexDir, 'skills'),
     FRAMEWORK_ROOT,
     USER_HX_DIR,
     summary,
