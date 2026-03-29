@@ -16,7 +16,7 @@
  *
  * 工作流命令（Canonical contract）:
  *   hx-init  hx-doc  hx-plan  hx-ctx  hx-run  hx-qa  hx-review  hx-fix
- *   hx-clean  hx-mr  hx-status  hx-go
+ *   hx-clean  hx-mr  hx-status  hx-go  hx-upgrade
  */
 
 import { resolve, dirname } from 'path'
@@ -92,7 +92,7 @@ const BUILTIN_SCRIPTS = {
 const script = BUILTIN_SCRIPTS[command]
 
 if (!script) {
-  const CANONICAL_COMMANDS = ['hx-init', 'hx-doc', 'hx-plan', 'hx-ctx', 'hx-run', 'hx-qa', 'hx-review', 'hx-fix', 'hx-clean', 'hx-mr', 'hx-status', 'hx-go']
+  const CANONICAL_COMMANDS = ['hx-init', 'hx-doc', 'hx-plan', 'hx-ctx', 'hx-run', 'hx-qa', 'hx-review', 'hx-fix', 'hx-clean', 'hx-mr', 'hx-status', 'hx-go', 'hx-upgrade', 'hx-setup', 'hx-uninstall', 'hx-doctor']
   const legacyCommands = ['init', 'doc', 'plan', 'ctx', 'run', 'qa', 'review', 'fix', 'clean', 'mr', 'status', 'go']
   if (CANONICAL_COMMANDS.includes(command)) {
     console.error(`  "${command}" 是 agent 命令 contract。Claude 使用 "/${command}"，Codex 使用 "${command}"。`)

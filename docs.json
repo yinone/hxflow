@@ -105,6 +105,13 @@
   }
 ,
   {
+    "name": "hx-doctor",
+    "path": "src/agents/commands/hx-doctor.md",
+    "type": "md",
+    "category": "src/agents/commands"
+  }
+,
+  {
     "name": "hx-fix",
     "path": "src/agents/commands/hx-fix.md",
     "type": "md",
@@ -168,8 +175,29 @@
   }
 ,
   {
+    "name": "hx-setup",
+    "path": "src/agents/commands/hx-setup.md",
+    "type": "md",
+    "category": "src/agents/commands"
+  }
+,
+  {
     "name": "hx-status",
     "path": "src/agents/commands/hx-status.md",
+    "type": "md",
+    "category": "src/agents/commands"
+  }
+,
+  {
+    "name": "hx-uninstall",
+    "path": "src/agents/commands/hx-uninstall.md",
+    "type": "md",
+    "category": "src/agents/commands"
+  }
+,
+  {
+    "name": "hx-upgrade",
+    "path": "src/agents/commands/hx-upgrade.md",
     "type": "md",
     "category": "src/agents/commands"
   }
