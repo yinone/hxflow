@@ -28,6 +28,13 @@
   }
 ,
   {
+    "name": "hx-rules-refactor",
+    "path": "docs/design/hx-rules-refactor.md",
+    "type": "md",
+    "category": "docs/design"
+  }
+,
+  {
     "name": "testing-reference",
     "path": "docs/design/testing-reference.md",
     "type": "md",
