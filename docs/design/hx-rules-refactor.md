@@ -1,197 +1,783 @@
-# Profile 体系重构：模板 + 项目规则
+# 规则运行时重构：移除 Profile Runtime，改为初始化生成 Project Rules
 
 > 状态：设计中（未实现）
 > 日期：2026-03-30
+> 方案类型：breaking change（不提供运行时兼容）
 
 ---
 
-## 背景与动机
+## 背景
 
-当前框架的 profile 体系存在以下问题：
+当前框架将大量规则能力绑定在 `profile` 运行时模型上，带来以下问题：
 
-- **概念复杂**：三层覆盖（命令侧 + 规则侧）、`extends` 继承、`deepMerge` 合并，新用户理解成本高
-- **规则质量差**：框架 base 是通用模板，与项目实际情况无关，AI 执行时使用的是无意义的默认规则
-- **框架越权**：框架既管流程又管规则内容，升级框架可能影响规则行为
+- 概念过重：`defaultProfile`、`--profile`、三层查找、`extends`、`deepMerge` 增加理解成本
+- 运行时不稳定：同一命令的行为受项目层、用户层、框架层 profile 叠加影响
+- 规则质量差：框架内置 base profile 只能提供通用模板，难以反映项目真实结构
+- 职责混杂：`profile.yaml` 同时承载硬变量、策略规则、模板入口，边界不清
+- 框架越权：升级框架可能改变项目规则行为，而项目本身没有真正拥有自己的运行时事实
+
+本次重构的目标不是继续简化 profile，而是把 profile 原来承担的价值前移到初始化阶段：
+
+- 初始化阶段分析项目并生成项目规则
+- 运行时只读取项目内已经生成好的事实
+- 删除 profile runtime，而不是删除项目规则生成能力
 
 ---
 
-## 核心变化
+## 目标
 
-**框架层从"运行时兜底"变成"初始化种子"**，规则侧三层覆盖消失，规则完全归项目所有。
+1. 删除 profile 作为运行时配置模型
+2. 由 `hx-init` / `hx-rules update` 基于项目实际情况生成项目规则
+3. 将运行时事实收敛为项目级 `config + rules + 扩展点`
+4. 明确 `config.yaml` 与 `rules/*.md` 的职责边界
+5. 避免旧 profile 继承/merge 复杂度以其他形式回流
 
-### 三层体系变化
+---
 
-**命令侧**（保留，不变）：
-```
-框架层  src/agents/commands/hx-*.md
-用户层  ~/.hx/commands/
-项目层  .hx/commands/
+## 非目标
+
+- 不保留 `--profile`
+- 不保留 `defaultProfile`
+- 不保留 profile 继承、查找、merge
+- 不做 profile runtime 兼容层
+- 不把策略类内容重新塞回 `config.yaml`
+
+---
+
+## 核心原则
+
+### 1. 删除的是 Profile Runtime，不是初始化期的项目分析能力
+
+初始化阶段仍然需要分析项目技术栈、目录结构、gates、文档路径，并生成项目自己的规则事实；删除的是运行时对 profile 的解析、继承和切换。
+
+### 2. `config.yaml` 只放硬变量
+
+`config.yaml` 只保存 hxflow 运行时必须精确读取的结构化变量，不放长文本规则，不放 profile 语义，不放纯策略描述。
+
+### 3. 策略类内容统一进入 `rules`
+
+凡是带解释性、审查性、架构约束、文档模板、执行原则的内容，一律进入 `.hx/rules/*.md`。
+
+### 4. 扩展机制保留
+
+`hooks`、`commands`、`pipelines` 与 profile 无关，继续保留为项目级扩展点。
+
+### 5. 保守生成，固定骨架
+
+规则生成采用“项目扫描 + 固定模板 + 条件片段”方式，不依赖自由文本生成。宁可少推断，也不虚构项目结构。
+
+### 6. 更新不覆盖人工沉淀
+
+`hx-rules update` 只更新自动生成区，不覆盖人工维护区，不重新引入复杂 merge。
+
+---
+
+## 新模型
+
+### 初始化阶段
+
+由 `hx-init` / `hx-rules update` 完成：
+
+1. 扫描项目
+2. 归纳项目事实
+3. 生成 `.hx/config.yaml`
+4. 生成 `.hx/rules/*.md`
+5. 初始化或补全 `.hx/hooks/`、`.hx/commands/`、`.hx/pipelines/`
+
+### 运行时阶段
+
+所有 `hx-*` 命令只读取项目内已经生成好的事实：
+
+- `.hx/config.yaml`
+- `.hx/rules/*.md`
+- `.hx/hooks/`
+- `.hx/commands/`
+- `.hx/pipelines/`
+
+运行时不再有：
+
+- profile 名称解析
+- `--profile`
+- `defaultProfile`
+- `.hx/profiles/` / `~/.hx/profiles/` / `src/profiles/`
+- 继承链和 merge 逻辑
+
+---
+
+## 运行时事实来源
+
+### 结构化配置
+
+```text
+.hx/config.yaml
 ```
 
-**规则侧**（三层消失，只剩项目层）：
+职责：运行时硬变量。
+
+### 固定规则文件
+
+```text
+.hx/rules/golden-rules.md
+.hx/rules/review-checklist.md
+.hx/rules/requirement-template.md
+.hx/rules/plan-template.md
 ```
-框架层  src/templates/          ← 种子模板，仅 hx-init 时读取一次
-项目层  .hx/rules/              ← 唯一运行时来源，由 hx-init 生成
+
+职责：Agent 规则、审查清单、文档模板。
+
+### 项目级扩展点
+
+```text
+.hx/hooks/
+.hx/commands/
+.hx/pipelines/
 ```
+
+职责：保留现有扩展机制，不属于 profile 模型。
 
 ---
 
 ## 目录结构
 
-### 框架层（`src/`）
+### 框架层
 
-```
+```text
 src/
-  agents/commands/     # 命令定义（不变）
-  pipelines/           # 流水线定义（不变）
-  templates/           # 种子模板（原 src/profiles/base/）
-    config.yaml        # config.yaml 字段 schema + 注释示例
+  agents/commands/
+  pipelines/
+  templates/
+    config.yaml
     golden-rules.md
     review-checklist.md
     requirement-template.md
     plan-template.md
 ```
 
-### 项目层（`.hx/`）
+### 项目层
 
-```
+```text
 .hx/
-  config.yaml          # 结构化配置（路径 + 门控 + 提交规范 + 架构层级）
-  rules/               # AI 执行时读取的规则文档（原 .hx/profiles/<name>/）
+  config.yaml
+  rules/
     golden-rules.md
     review-checklist.md
     requirement-template.md
     plan-template.md
-  commands/            # 项目级命令覆盖（不变）
-  pipelines/           # 项目级流水线覆盖（不变）
+  hooks/
+  commands/
+  pipelines/
+```
+
+### 删除的目录
+
+```text
+src/profiles/
+.hx/profiles/
+~/.hx/profiles/
 ```
 
 ---
 
-## `config.yaml` 字段 Schema
+## `config.yaml` 边界
 
-所有结构化配置统一到 `.hx/config.yaml`，字段明确约束：
+`config.yaml` 只保存 hxflow 运行时必须精确读取的变量。
+
+建议 schema：
 
 ```yaml
-# ── 路径配置（必填）──
+schemaVersion: 2
+
 paths:
   src: src
   requirementDoc: docs/requirement/{feature}.md
   planDoc: docs/plans/{feature}.md
   progressFile: docs/plans/{feature}-progress.json
 
-# ── 门控命令（必填）──
 gates:
   lint: pnpm lint
   test: pnpm vitest run
-  type: pnpm tsc --noEmit    # 可选
-  build: pnpm build          # 可选
+  type: pnpm tsc --noEmit
 
-# ── 提交规范（选填，有默认值）──
-commit:
-  format: "<type>: <message>"
-  types: [feat, fix, docs, refactor, test, chore]
-
-# ── 架构层级（选填，hx-plan 拆分任务的依据）──
-architecture:
-  layers:
-    - id: api
-      name: API 层
-      path: src/api
+hooks:
+  doc:
+    pre: []
+    post: []
+  plan:
+    pre: []
+    post: []
+  run:
+    pre: []
+    post: []
+  review:
+    pre: []
+    post: []
+  fix:
+    pre: []
+    post: []
+  clean:
+    pre: []
+    post: []
+  mr:
+    pre: []
+    post: []
 ```
 
-**必填字段**：`paths`、`gates`（缺失时 `hx-doctor` 报错）
+### 进入 `config.yaml` 的字段
 
-**选填字段**：`commit`、`architecture`（缺失时使用默认值，不报错）
+- `schemaVersion`
+- `paths.*`
+- `gates.*`
+- `hooks.*`
+
+### 不进入 `config.yaml` 的字段
+
+- `defaultProfile`
+- 任何 `profile` 名称或 label
+- `extends`
+- `task_prefix`
+- `task_split`
+- `architecture` 结构化字段
+- `review_focus`
+- `execution_rules`
+- `qa`
+- 长文本模板正文
+
+这些内容全部迁移到 `rules`。
 
 ---
 
-## 新增命令：`hx-rules`
+## `rules` 边界
 
-解决 `hx-init` 是一次性的问题，支持随时迭代项目规则：
+### `golden-rules.md`
 
-```
-/hx-rules              # 查看当前规则摘要（列出 .hx/rules/ 各文件概要）
-/hx-rules update       # 重新分析项目，增量更新规则
-/hx-rules edit <file>  # 针对某个规则文件交互式修改
-```
+职责：
 
-典型场景：
-- 项目引入新技术栈 → `hx-rules update` 补充相关约定
-- 代码审查发现某类问题反复出现 → `hx-rules edit review-checklist` 把它加进去
-- 团队规范变了 → `hx-rules edit golden-rules`
+- 项目事实摘要
+- 架构与目录约束
+- 实现边界
+- 错误处理原则
+- 测试与验证要求
+- 变更约束
+
+### `review-checklist.md`
+
+职责：
+
+- 范围与一致性检查
+- 架构与分层检查
+- 错误处理与健壮性检查
+- 测试与质量门检查
+- 技术栈专项检查
+
+### `requirement-template.md`
+
+职责：需求文档骨架。
+
+### `plan-template.md`
+
+职责：执行计划骨架与 TASK 展示格式。
+
+### 关于 architecture
+
+architecture 不再作为 `config.yaml` 中的结构化字段存在，而是作为项目策略进入 `golden-rules.md`。原因如下：
+
+- 其内容主要服务 Agent 理解项目分层与约束
+- 带有较强解释性和项目语义
+- 更适合通过自然语言表达目录职责和依赖方向
+
+如未来某个命令确实需要精确消费分层路径，再单独设计狭窄的结构化字段，而不是整体回迁到 `config.yaml`。
 
 ---
 
-## `hx-init` 职责升级
+## 规则文件固定骨架
 
-从"生成配置骨架"变成"生成完整的项目规则"：
+### `golden-rules.md`
 
-1. 分析项目（技术栈、目录结构、gate commands）
-2. 以 `src/templates/` 为结构参考
-3. 用分析结果**填充** `.hx/rules/` 下每个文件（不是复制模板）
-4. 将结构化字段写入 `.hx/config.yaml`
+固定 section：
 
-生成的内容是项目专属的，不是通用模板的复制。
+1. 项目事实
+2. 实现边界
+3. 架构与目录约束
+4. 错误处理原则
+5. 测试与验证要求
+6. 变更约束
+
+### `review-checklist.md`
+
+固定 section：
+
+1. 范围与一致性
+2. 架构与分层检查
+3. 错误处理与健壮性
+4. 测试与质量门
+5. 技术栈专项检查
+
+### `requirement-template.md`
+
+建议骨架：
+
+1. 背景
+2. 目标
+3. 非目标
+4. 范围
+5. 验收标准
+6. 约束与依赖
+7. 待确认问题
+
+### `plan-template.md`
+
+建议骨架：
+
+1. 输入事实
+2. 实施策略
+3. 任务拆分
+4. 执行顺序
+5. 验证方案
+6. 风险与回退
+
+TASK 段落建议固定格式：
+
+```text
+### TASK-01 任务名称
+
+- 目标：
+- 修改范围：
+- 实施要点：
+- 验收标准：
+- 验证方式：
+```
 
 ---
 
-## 消失的东西
+## 项目扫描与生成机制
 
-| 内容 | 原因 |
-|------|------|
-| `profile` 概念和命名 | 改为 `rules`（模板）+ `config`（结构化配置） |
-| `extends` 字段和继承逻辑 | 规则是项目的，不需要继承 |
-| `loadProfile()` | 删除 |
-| `loadProfileWithInheritance()` | 删除 |
-| `deepMerge()` | 删除 |
-| `findProfileRoot()` | 删除 |
-| `buildProfileSearchRoots()` | 删除 |
-| `~/.hx/profiles/` 用户层 | 规则不跨项目共享，用户层只剩 `commands/` |
-| `config.yaml` 的 `defaultProfile` 字段 | 删除 |
+### 新增模块
 
-**保留**：`parseSimpleYaml()`、`parseArgs()`（纯工具函数）
+```text
+src/scripts/lib/scan-project.js
+src/scripts/lib/derive-project-facts.js
+src/scripts/lib/render-rule-templates.js
+src/scripts/lib/rule-context.js
+```
+
+### `scan-project.js`
+
+职责：扫描原始信号，不生成规则。
+
+建议扫描内容：
+
+- 依赖文件：`package.json`、`tsconfig.json`、`go.mod`、`pubspec.yaml` 等
+- 包管理器锁文件
+- `package.json` scripts
+- 顶层目录与主源码目录
+- `docs/**/*.md`
+- 主源码目录下的高频目录命名
+
+扫描回答 5 个问题：
+
+1. 主技术栈是什么
+2. 主源码目录在哪
+3. 可执行 gates 是什么
+4. 文档路径模式是什么
+5. 有没有明显的架构分层线索
+
+### `derive-project-facts.js`
+
+职责：将扫描结果归纳成统一的 `projectFacts`。
+
+建议中间模型：
+
+```ts
+type ProjectFacts = {
+  schemaVersion: 2
+  stack: {
+    language?: string
+    runtime?: string
+    frameworks: string[]
+    testFrameworks: string[]
+    lintTools: string[]
+    buildTools: string[]
+  }
+  paths: {
+    src: string
+    requirementDoc: string
+    planDoc: string
+    progressFile: string
+  }
+  gates: {
+    lint?: string
+    test?: string
+    type?: string
+    build?: string
+  }
+  architecture: {
+    codeRoots: string[]
+    layers: Array<{
+      id: string
+      label: string
+      path: string
+      confidence: 'high' | 'medium' | 'low'
+    }>
+    notes: string[]
+  }
+  conventions: {
+    packageManager?: string
+    moduleStyle?: string
+    testLocation?: string
+  }
+  docs: {
+    hasDocsDir: boolean
+    requirementPatternSource?: string
+    planPatternSource?: string
+  }
+}
+```
+
+说明：
+
+- `architecture` 仅用于生成 rules，不直接写入 config
+- `confidence` 只存在于生成阶段
+- 生成器必须允许“不确定”，不能为追求完整度虚构分层
+
+### `render-rule-templates.js`
+
+职责：基于 `projectFacts` 渲染：
+
+- `config.yaml`
+- `golden-rules.md`
+- `review-checklist.md`
+- `requirement-template.md`
+- `plan-template.md`
+
+渲染方式采用“固定模板 + 插槽替换”，不依赖自由文本生成。
+
+---
+
+## `hx-init`
+
+`hx-init` 由“初始化 profile”改为“初始化项目规则事实”。
+
+新行为：
+
+1. 扫描项目
+2. 归纳 `projectFacts`
+3. 生成 `.hx/config.yaml`
+4. 生成 `.hx/rules/*.md`
+5. 初始化或补全 `.hx/hooks/`、`.hx/commands/`、`.hx/pipelines/`
+6. 更新 `CLAUDE.md` / `AGENTS.md`
+
+### 重要约束
+
+- 不再接受 `--profile`
+- 不再生成 `.hx/profiles/*`
+- 生成的是项目规则，而不是 profile
+
+---
+
+## `hx-rules`
+
+新增规则维护入口：
+
+```text
+hx-rules
+hx-rules update
+```
+
+### `hx-rules`
+
+显示当前项目规则摘要：
+
+- config 概要
+- 固定 rules 文件是否存在
+- hooks / commands / pipelines 概况
+
+### `hx-rules update`
+
+行为：
+
+1. 重新扫描项目
+2. 重新归纳 `projectFacts`
+3. 更新 rules 自动生成区
+4. 补全 `config.yaml` 的缺失字段
+5. 输出差异摘要
+
+默认不做：
+
+- 全文件重写
+- config 强制覆盖
+- 语义 merge
+
+---
+
+## 自动区与人工区
+
+为避免更新覆盖项目沉淀，rules 文件采用双区块模型：
+
+```md
+<!-- hx:auto:start -->
+...自动生成内容...
+<!-- hx:auto:end -->
+
+<!-- hx:manual:start -->
+...人工维护内容...
+<!-- hx:manual:end -->
+```
+
+更新原则：
+
+- `hx-rules update` 只更新 `hx:auto` 区
+- `hx:manual` 区永久保留
+- 不做复杂 markdown merge
+
+这样可以保证：
+
+- 自动区可重算
+- 手工区可长期沉淀
+- 行为简单且可预测
+
+---
+
+## 命令读取矩阵
+
+### `hx-doc`
+
+- 读 `config.paths`
+- 读 `config.hooks.doc`
+- 读 `rules/golden-rules.md`
+- 读 `rules/requirement-template.md`
+
+### `hx-plan`
+
+- 读 `config.paths`
+- 读 `config.hooks.plan`
+- 读 `rules/golden-rules.md`
+- 读 `rules/plan-template.md`
+
+### `hx-run`
+
+- 读 `config.paths`
+- 读 `config.gates`
+- 读 `config.hooks.run`
+- 读 `rules/golden-rules.md`
+
+### `hx-review`
+
+- 读 `config.hooks.review`
+- 读 `rules/golden-rules.md`
+- 读 `rules/review-checklist.md`
+
+### `hx-qa`
+
+- 只读 `config.gates`
+
+### `hx-fix`
+
+- 读 `config.gates`
+- 读 `config.hooks.fix`
+- 读 `rules/golden-rules.md`
+
+### `hx-clean`
+
+- 读 `config.paths`
+- 读 `config.hooks.clean`
+- 可选读 `rules/golden-rules.md`
+
+### `hx-go`
+
+- 自身不读规则正文
+- 只负责调度各子命令
+
+### `hx-ctx`
+
+- 校验 `config.yaml`
+- 校验固定 `rules/*.md`
+- 校验 gates 至少存在一个
+
+---
+
+## `progress.json`
+
+建议同步收敛 schema，去掉 `profile` 字段。
+
+建议格式：
+
+```json
+{
+  "schemaVersion": 2,
+  "feature": "user-login",
+  "generatedAt": "2026-03-30",
+  "updatedAt": "2026-03-30",
+  "lastRun": null,
+  "tasks": [
+    {
+      "id": "TASK-01",
+      "name": "补充登录接口",
+      "status": "pending",
+      "completedAt": null
+    }
+  ]
+}
+```
+
+原则：
+
+- `progress.json` 只描述执行状态
+- 不再记录 profile 来源
+- 如需记录规则代际，使用 `schemaVersion`
 
 ---
 
 ## 实现影响范围
 
-| 文件/模块 | 变化 |
-|-----------|------|
-| `src/profiles/base/` | 重命名为 `src/templates/` |
-| `src/scripts/lib/profile-utils.js` | 删除 profile 相关函数，只保留工具函数 |
-| `src/scripts/lib/resolve-context.js` | 删除 `buildProfileSearchRoots()` |
-| `src/scripts/hx-setup.js` | 停止创建 `~/.hx/profiles/` |
-| `src/scripts/hx-doctor.js` | 重写健康检查逻辑，检查 `.hx/rules/` 和 `config.yaml` 字段 |
-| `src/scripts/hx-upgrade.js` | 新增迁移检测和模板更新提示 |
-| `src/agents/commands/hx-init.md` | 重写生成逻辑 |
-| `src/agents/commands/hx-rules.md` | 新增 |
-| `src/agents/commands/*.md`（所有） | 更新规则文件路径引用 |
-| `tests/unit/profile-utils.test.js` | 删除继承相关测试，补充新逻辑测试 |
-| `CLAUDE.md` | 更新架构说明 |
+### 新增
+
+- `src/scripts/lib/scan-project.js`
+- `src/scripts/lib/derive-project-facts.js`
+- `src/scripts/lib/render-rule-templates.js`
+- `src/scripts/lib/rule-context.js`
+- `src/agents/commands/hx-rules.md`
+- `src/templates/*`
+
+### 重写
+
+- `src/agents/commands/hx-init.md`
+- `src/agents/commands/hx-doc.md`
+- `src/agents/commands/hx-plan.md`
+- `src/agents/commands/hx-run.md`
+- `src/agents/commands/hx-review.md`
+- `src/agents/commands/hx-qa.md`
+
+### 后续迁移
+
+- `src/agents/commands/hx-go.md`
+- `src/agents/commands/hx-ctx.md`
+- `src/agents/commands/hx-fix.md`
+- `src/agents/commands/hx-clean.md`
+- `src/scripts/hx-doctor.js`
+- `src/scripts/hx-upgrade.js`
+- `src/scripts/lib/install-utils.js`
+
+### 删除
+
+- `src/profiles/`
+- profile 查找、继承、merge 相关逻辑
+- `buildProfileSearchRoots()`
+- `loadProfile()`
+- `loadProfileWithInheritance()`
+- `findProfileRoot()`
+- 运行时 `defaultProfile`
 
 ---
 
-## 待解决问题
+## 实施顺序
 
-### 迁移（高优先级）
-已有项目的 `.hx/profiles/` 如何迁移？
+建议按阶段推进：
 
-方案：`hx-upgrade` 检测到旧结构时，提示用户运行 `/hx-init` 重新生成，或提供半自动迁移（读取旧 `profile.yaml` 的 `gate_commands` 等字段，写入新 `config.yaml`）。
+### Phase 1：基础设施
 
-### 规则文件缺失时的错误体验（高优先级）
-改完后项目层是唯一来源，缺失直接报错。需要错误信息明确引导：
+1. 新增 `templates/`
+2. 新增 `scan-project`
+3. 新增 `derive-project-facts`
+4. 新增 `render-rule-templates`
+5. 新增 `rule-context`
 
-```
-.hx/rules/golden-rules.md 不存在。
-请运行 /hx-init 初始化项目规则，或 /hx-rules update 补充缺失文件。
-```
+### Phase 2：生成链路
 
-### 模板版本演进（低优先级）
-框架升级后 `src/templates/` 改进了，已有项目的 `.hx/rules/` 不会自动更新。`hx-upgrade` 提示用户对比差异即可，不强制更新。
+1. 重写 `hx-init`
+2. 新增 `hx-rules`
 
-### 测试补充（中优先级）
-删除 profile 继承测试后，需要补充：
-- `hx-init` 生成内容的正确性测试
-- `config.yaml` 字段校验逻辑的测试
-- 规则文件缺失时的报错行为测试
+### Phase 3：主链命令切换
+
+1. `hx-doc`
+2. `hx-plan`
+3. `hx-run`
+4. `hx-review`
+5. `hx-qa`
+
+### Phase 4：辅助命令切换
+
+1. `hx-go`
+2. `hx-ctx`
+3. `hx-fix`
+4. `hx-clean`
+5. `hx-doctor`
+6. `hx-upgrade`
+
+### Phase 5：删除旧 runtime
+
+删除全部 profile runtime 逻辑与文档叙述。
+
+---
+
+## 测试要求
+
+至少补以下测试：
+
+### 生成链路
+
+- `scan-project` 能识别 TS/JS/Go 等基本技术栈
+- `scan-project` 能识别 scripts 和主源码目录
+- `derive-project-facts` 能稳定归纳 facts
+- `render-rule-templates` 能生成固定 4 个规则文件
+
+### 初始化与更新
+
+- `hx-init` 能生成 `.hx/config.yaml`
+- `hx-init` 能生成 `.hx/rules/*.md`
+- `hx-rules update` 只更新 auto 区
+- `hx-rules update` 不覆盖 manual 区
+- `config.yaml` 仅补全缺失字段
+
+### 运行时契约
+
+- 所有 `hx-*` usage 不再出现 `--profile`
+- `hx-go` 不再透传 profile
+- `hx-ctx` 检查新规则文件而非 profile
+- `progress.json` 使用新 schema
+
+### 文档一致性
+
+- guide 中不再出现 `defaultProfile`
+- guide 中不再出现 `--profile`
+- guide 中不再描述 `src/profiles/*`
+
+---
+
+## 风险与控制
+
+### 风险 1：生成器质量不足
+
+控制：
+
+- 只做保守识别
+- 固定骨架 + 条件片段
+- 不做自由生成
+
+### 风险 2：更新覆盖人工规则
+
+控制：
+
+- auto/manual 双区块
+- 只更新 auto 区
+- config 默认不覆盖
+
+### 风险 3：`config.yaml` 再次膨胀为 profile 替身
+
+控制：
+
+- config 只允许硬变量
+- 任何策略性字段都进入 rules
+- 不把 architecture/review/qa 重新结构化回 config
+
+---
+
+## 结论
+
+本次重构的正确落点是：
+
+- 删除 profile runtime
+- 保留项目分析与规则生成能力
+- 将原本由 profile 承载的价值前移到 `hx-init`
+- 将运行时压缩为 `config + rules + hooks/commands/pipelines`
+
+这能显著降低运行时复杂度，同时让项目真正拥有自己的规则事实。

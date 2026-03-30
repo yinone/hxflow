@@ -16,7 +16,7 @@ describe('hx-plan command contract', () => {
 
     expect(planSpec).toMatchObject({
       name: 'hx-plan',
-      usage: 'hx-plan [<feature-key>] [--profile <name>]',
+      usage: 'hx-plan [<feature-key>]',
       claude: '/hx-plan',
       codex: 'hx-plan',
     })
@@ -34,12 +34,11 @@ describe('hx-plan command contract', () => {
     expect(content).toContain('默认提示下一步 `hx-run`')
   })
 
-  it('保留关键执行约束，避免覆盖已有计划并约束 TASK 格式', () => {
+  it('约束 progress schemaVersion 和 TASK 格式', () => {
     const content = readFileSync(PLAN_COMMAND_PATH, 'utf8')
 
-    expect(content).toContain('不覆盖已存在的计划文件')
-    expect(content).toContain('每个 TASK 必须包含')
-    expect(content).toContain('TASK-id 格式')
-    expect(content).toContain('TASK-<TEAM>-<NN>')
+    expect(content).toContain('"schemaVersion": 2')
+    expect(content).toContain('"id": "TASK-01"')
+    expect(content).toContain('不再记录 profile 字段')
   })
 })

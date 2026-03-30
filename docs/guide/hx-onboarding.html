@@ -76,7 +76,7 @@
           <article class="card">
             <div class="card-meta">使用层</div>
             <h3 class="card-title"><code>hx</code> 的职责</h3>
-            <p class="card-body">负责组织文档、计划、Profile 规则与上下文，并生成执行 Prompt 或运行校验命令。</p>
+            <p class="card-body">负责组织文档、计划、项目规则与上下文，并生成执行 Prompt 或运行校验命令。</p>
           </article>
         </div>
         <div class="callout info">
@@ -97,15 +97,15 @@
             <h3 class="card-title"><code>feature key</code></h3>
             <p class="card-body">它是“当前需求在 HXFlow 里的内部短 ID”，不是给业务方看的标题。比如“用户登录页支持手机号登录”这类需求，系统可能生成 <code>user-login</code> 作为 key。后续很多文件都会以它命名，所以它更像一个稳定的文件前缀，而不是展示名。</p>
           </article>
-          <article class="card">
-            <div class="card-meta">术语 02</div>
-            <h3 class="card-title"><code>profile</code></h3>
-            <p class="card-body">它是“本次执行采用哪套团队规则”。里面会定义模板、架构层级、质量门控命令和默认路径。最常见的是 <code>base</code>，它表示先按框架内置最小规则跑通；如果团队有定制流程，再换成自己的 profile。</p>
+          <article class=”card”>
+            <div class=”card-meta”>术语 02</div>
+            <h3 class=”card-title”><code>.hx/rules/*.md</code> 项目规则文件</h3>
+            <p class=”card-body”>它是”本项目执行时遵守的团队规则”。由 <code>/hx-init</code> 生成骨架，存放在 <code>.hx/rules/</code> 目录。其中 <code>golden-rules.md</code> 包含团队黄金原则；手动区的内容永久保留，不会被 <code>/hx-rules update</code> 覆盖。</p>
           </article>
         </div>
-        <div class="callout info">
-          <span class="icon">i</span>
-          <div><strong>一句话记忆：</strong><code>feature key</code> 用来串起“同一个需求”的文档和进度文件，<code>profile</code> 用来决定“按什么规则生成和执行”。正常情况下你通常只需要显式写 <code>--profile</code>，不需要手写 <code>feature key</code>。</div>
+        <div class=”callout info”>
+          <span class=”icon”>i</span>
+          <div><strong>一句话记忆：</strong><code>feature key</code> 用来串起”同一个需求”的文档和进度文件，<code>.hx/rules/*.md</code> 决定”按什么团队规则生成和执行”。正常情况下 feature key 自动生成续接，规则文件在项目初始化时配置好，后续只需按需更新。</div>
         </div>
       </div>
     </section>
@@ -133,7 +133,7 @@ hx setup</code></pre>
             <h3 class="card-title">hx setup 写入目录</h3>
             <pre><code>~/.hx/config.yaml
 ~/.hx/commands/
-~/.hx/profiles/
+~/.hx/hooks/
 ~/.hx/pipelines/
 ~/.claude/commands/    ← Claude 转发器
 ~/.codex/skills/hx-*/   ← Codex skill 目录（每命令一个）</code></pre>
@@ -147,25 +147,22 @@ hx setup</code></pre>
       <div class="wrap">
         <div class="section-tag">Init</div>
         <h2 class="section-title">项目初始化（Agent 命令）</h2>
-        <p class="section-desc">在 Claude Code 或 Codex 中运行；可选 <code>--profile</code> 指定要使用的 Profile 名称。框架默认内置 <code>base</code>。</p>
+        <p class="section-desc">在 Claude Code 或 Codex 中运行；自动分析项目结构，生成配置与规则文件骨架。</p>
         <pre><code><span class="cg"># 在 Claude Code 中运行（自动分析项目结构）</span>
 /hx-init
 
 <span class="cg"># 在 Codex 中运行</span>
-$hx-init
-
-<span class="cg"># 或显式指定 profile</span>
-/hx-init --profile base</code></pre>
+$hx-init</code></pre>
         <div class="grid grid-2">
           <article class="card">
             <div class="card-meta">输出</div>
             <h3 class="card-title">写入的文件</h3>
-            <pre><code>.hx/config.yaml            ← 显式默认配置 + paths
+            <pre><code>.hx/config.yaml            ← 硬变量配置 + paths
 CLAUDE.md                  ← 注入 harness 标记块
+.hx/rules/*.md             ← 项目规则文件骨架
 .hx/commands/*.example     ← 自定义命令样板
 .hx/hooks/*.example        ← Hook 样板
-.hx/pipelines/default.yaml ← 项目级流水线样板
-.hx/profiles/&lt;name&gt;/       ← 自定义 profile（如需）</code></pre>
+.hx/pipelines/default.yaml ← 项目级流水线样板</code></pre>
           </article>
           <article class="card">
             <div class="card-meta">约束</div>
@@ -183,35 +180,35 @@ CLAUDE.md                  ← 注入 harness 标记块
         <p class="section-desc">支持一键自动化（/hx-go）和手动逐步执行两种模式。主路径默认是 <code>/hx-doc → /hx-plan → /hx-run → /hx-qa → /hx-mr</code>。</p>
         <div class="callout tip">
           <span class="icon">✓</span>
-          <div><strong>推荐：</strong>优先使用 <code>/hx-go --task 12345 --profile base</code> 一键执行主路径。只有在需要断点恢复或手动指定时，才显式传入 <code>feature key</code>。</div>
+          <div><strong>推荐：</strong>优先使用 <code>/hx-go --task 12345</code> 一键执行主路径。只有在需要断点恢复或手动指定时，才显式传入 <code>feature key</code>。</div>
         </div>
         <div class="timeline">
           <div class="timeline-item">
             <div class="timeline-step">01</div>
             <div>
               <div class="timeline-title">创建需求文档</div>
-              <div class="timeline-body">执行 <code>/hx-doc --profile base</code> 创建需求文档；可用 <code>--task &lt;id&gt;</code> 直接从任务系统拉取需求来源。feature key 由系统自动生成，正常情况下不用关心。</div>
+              <div class="timeline-body">执行 <code>/hx-doc</code> 创建需求文档；可用 <code>--task &lt;id&gt;</code> 直接从任务系统拉取需求来源。feature key 由系统自动生成，正常情况下不用关心。</div>
             </div>
           </div>
           <div class="timeline-item">
             <div class="timeline-step">02</div>
             <div>
               <div class="timeline-title">生成执行计划</div>
-              <div class="timeline-body">补全验收标准后执行 <code>/hx-plan --profile base</code>；系统会自动从当前需求文档续接并生成计划 Markdown 和 <code>*-progress.json</code>。</div>
+              <div class="timeline-body">补全验收标准后执行 <code>/hx-plan</code>；系统会自动从当前需求文档续接并生成计划 Markdown 和 <code>*-progress.json</code>。</div>
             </div>
           </div>
           <div class="timeline-item">
             <div class="timeline-step">03</div>
             <div>
               <div class="timeline-title">执行需求</div>
-              <div class="timeline-body">执行 <code>/hx-run --profile base</code>，按计划顺序完成当前需求下的全部 pending 任务；命令会先自动完成当前需求的执行前预检。仅在调试/恢复时才传 <code>--task</code>。</div>
+              <div class="timeline-body">执行 <code>/hx-run</code>，按计划顺序完成当前需求下的全部 pending 任务；命令会先自动完成当前需求的执行前预检。仅在调试/恢复时才传 <code>--task</code>。</div>
             </div>
           </div>
           <div class="timeline-item">
             <div class="timeline-step">04</div>
             <div>
                 <div class="timeline-title">质量校验</div>
-                <div class="timeline-body">执行 <code>/hx-qa --profile base</code> 运行主路径质量校验。若需要人工审查、失败修复或工程清理，再按需使用 <code>/hx-review</code>、<code>/hx-fix</code>、<code>/hx-clean</code>。</div>
+                <div class="timeline-body">执行 <code>/hx-qa</code> 运行主路径质量校验。若需要人工审查、失败修复或工程清理，再按需使用 <code>/hx-review</code>、<code>/hx-fix</code>、<code>/hx-clean</code>。</div>
             </div>
           </div>
           <div class="timeline-item">
@@ -223,30 +220,30 @@ CLAUDE.md                  ← 注入 harness 标记块
           </div>
         </div>
         <pre><code><span class="cg"># 手动逐步执行（Claude）</span>
-/hx-doc --task 12345 --profile base
-/hx-plan --profile base
-/hx-run --profile base
-/hx-qa --profile base
+/hx-doc --task 12345
+/hx-plan
+/hx-run
+/hx-qa
 /hx-mr
 
 <span class="cg"># 手动逐步执行（Codex）</span>
-$hx-doc --task 12345 --profile base
-$hx-plan --profile base
-$hx-run --profile base
-$hx-qa --profile base
+$hx-doc --task 12345
+$hx-plan
+$hx-run
+$hx-qa
 $hx-mr
 
 <span class="cg"># 或一键执行（Claude）</span>
-/hx-go --task 12345 --profile base
+/hx-go --task 12345
 
 <span class="cg"># 或一键执行（Codex）</span>
-$hx-go --task 12345 --profile base
+$hx-go --task 12345
 
 <span class="cg"># 从指定步骤恢复（Claude）</span>
-/hx-go user-login --from run --profile base</code></pre>
+/hx-go user-login --from run</code></pre>
         <div class="callout tip">
           <span class="icon">✓</span>
-          <div><strong>可选诊断：</strong>若 <code>/hx-run</code> 因输入不完整而停止，可额外执行 <code>/hx-ctx --profile base</code> 查看具体缺失项。</div>
+          <div><strong>可选诊断：</strong>若 <code>/hx-run</code> 因输入不完整而停止，可额外执行 <code>/hx-ctx</code> 查看具体缺失项。</div>
         </div>
       </div>
     </section>
@@ -260,26 +257,23 @@ $hx-go --task 12345 --profile base
           <article class="card">
             <div class="card-meta">场景</div>
             <h3 class="card-title">需求：任务系统里有一个登录相关任务</h3>
-            <pre><code><span class="cg"># 任务来源</span>
+            <pre><code><span class=”cg”># 任务来源</span>
 任务 ID: 12345
-任务标题: 用户登录页支持手机号登录
-
-<span class="cg"># 我们先用最简单的规则集</span>
-profile: base</code></pre>
-            <p class="card-body">这时你可以把它理解成：“我要做一个登录需求，并且这次先按 <code>base</code> 这套默认规则来执行。”</p>
+任务标题: 用户登录页支持手机号登录</code></pre>
+            <p class=”card-body”>这时你可以把它理解成：”我要做一个登录需求，执行时按项目 <code>.hx/rules/</code> 中定义的团队规则运行。”</p>
           </article>
           <article class="card">
             <div class="card-meta">命令</div>
             <h3 class="card-title">最常见的两种启动方式</h3>
             <pre><code><span class="cg"># 一步一步来</span>
-/hx-doc --task 12345 --profile base
-/hx-plan --profile base
-/hx-run --profile base
-/hx-qa --profile base
+/hx-doc --task 12345
+/hx-plan
+/hx-run
+/hx-qa
 /hx-mr
 
 <span class="cg"># 或者直接一键跑主路径</span>
-/hx-go --task 12345 --profile base</code></pre>
+/hx-go --task 12345</code></pre>
             <p class="card-body">如果只是第一次体验，优先用这两套命令，不要先手输 <code>feature key</code>。</p>
           </article>
         </div>
@@ -302,21 +296,19 @@ profile: base</code></pre>
           <article class="card">
             <div class="card-meta">文件内容</div>
             <h3 class="card-title">文档头部大概会长这样</h3>
-            <pre><code><span class="cg"># docs/requirement/user-login.md</span>
+            <pre><code><span class=”cg”># docs/requirement/user-login.md</span>
 # 需求：用户登录页支持手机号登录
 
 &gt; 内部主键（Feature Key）：user-login
-&gt; Profile：base
 
-<span class="cg"># docs/plans/user-login-progress.json</span>
+<span class=”cg”># docs/plans/user-login-progress.json</span>
 {
-  "feature": "user-login",
-  "profile": "base",
-  "tasks": [
-    { "id": "TASK-BE-01", "status": "pending" }
+  “feature”: “user-login”,
+  “tasks”: [
+    { “id”: “TASK-BE-01”, “status”: “pending” }
   ]
 }</code></pre>
-            <p class="card-body">所以读到这些字段时可以直接这样理解：<code>feature</code> 说明“这是哪个需求”，<code>profile</code> 说明“按哪套规则拆任务和做门控”。</p>
+            <p class=”card-body”>所以读到这些字段时可以直接这样理解：<code>feature</code> 说明”这是哪个需求”，执行规则由 <code>.hx/rules/</code> 中的项目规则文件统一决定。</p>
           </article>
         </div>
         <div class="callout info">
@@ -325,7 +317,7 @@ profile: base</code></pre>
         </div>
         <div class="callout info">
           <span class="icon">i</span>
-          <div><strong>什么时候才需要手动写 key：</strong>通常只在断点恢复、同一项目里同时有多个需求、或者自动定位失败时。例如：<code>/hx-go user-login --from run --profile base</code>。</div>
+          <div><strong>什么时候才需要手动写 key：</strong>通常只在断点恢复、同一项目里同时有多个需求、或者自动定位失败时。例如：<code>/hx-go user-login --from run</code>。</div>
         </div>
       </div>
     </section>
@@ -374,7 +366,7 @@ profile: base</code></pre>
           <a class="card link-card" href="hx-deep-dive.html">
             <div class="card-meta">Runtime</div>
             <h3 class="card-title">运行机制</h3>
-            <p class="card-body">用于排查 Profile、Hook 与上下文装配问题。</p>
+            <p class="card-body">用于排查规则文件、Hook 与上下文装配问题。</p>
             <div class="link-line">查看 →</div>
           </a>
           <a class="card link-card" href="hx-command-index.html">
@@ -386,7 +378,7 @@ profile: base</code></pre>
           <a class="card link-card" href="hx-config-reference.html">
             <div class="card-meta">Configuration</div>
             <h3 class="card-title">配置参考</h3>
-            <p class="card-body">用于扩展路径、Profile 与 Hook。</p>
+            <p class="card-body">用于扩展路径、项目规则与 Hook。</p>
             <div class="link-line">查看 →</div>
           </a>
         </div>

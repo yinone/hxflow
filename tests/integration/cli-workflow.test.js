@@ -4,7 +4,7 @@ import { dirname, resolve } from 'path'
 import { fileURLToPath } from 'url'
 
 import { loadCommandSpecs } from '../../src/scripts/lib/install-utils.js'
-import { parseSimpleYaml } from '../../src/scripts/lib/profile-utils.js'
+import { parseSimpleYaml } from '../../src/scripts/lib/config-utils.js'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
 const COMMANDS_DIR = resolve(ROOT, 'src/agents/commands')

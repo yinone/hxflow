@@ -1,0 +1,39 @@
+# Harness Workflow 项目级配置
+# 运行时只读取结构化硬变量；解释性规则统一维护在 .hx/rules/*.md。
+
+schemaVersion: {{SCHEMA_VERSION}}
+
+paths:
+  src: {{SRC_PATH}}
+  requirementDoc: {{REQUIREMENT_DOC}}
+  planDoc: {{PLAN_DOC}}
+  progressFile: {{PROGRESS_FILE}}
+
+gates:
+  lint: {{GATE_LINT}}
+  test: {{GATE_TEST}}
+  type: {{GATE_TYPE}}
+  build: {{GATE_BUILD}}
+
+hooks:
+  doc:
+    pre: []
+    post: []
+  plan:
+    pre: []
+    post: []
+  run:
+    pre: []
+    post: []
+  review:
+    pre: []
+    post: []
+  fix:
+    pre: []
+    post: []
+  clean:
+    pre: []
+    post: []
+  mr:
+    pre: []
+    post: []

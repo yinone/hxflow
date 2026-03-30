@@ -4,7 +4,7 @@
  * hx setup — 全局安装框架文件到用户目录
  *
  * 安装内容：
- *   1. ~/.hx/ 目录结构（commands/、profiles/、pipelines/）
+ *   1. ~/.hx/ 目录结构（commands/、hooks/、pipelines/）
  *   2. ~/.hx/config.yaml（写入 frameworkRoot，如不存在）
  *   3. Agent 适配层：
  *      - ~/.claude/commands/ — Claude 转发器
@@ -26,12 +26,11 @@
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
-import { parseSimpleYaml } from './lib/profile-utils.js'
 import { homedir } from 'os'
 import { resolve } from 'path'
 
 import { FRAMEWORK_ROOT } from './lib/resolve-context.js'
-import { parseArgs } from './lib/profile-utils.js'
+import { parseArgs, parseSimpleYaml } from './lib/config-utils.js'
 import {
   generateCodexSkillFiles,
   generateForwarderFiles,
@@ -52,7 +51,7 @@ if (options.help) {
     -h, --help          显示帮助
 
   将框架文件安装到用户全局目录：
-    ~/.hx/              目录结构（commands/、profiles/、pipelines/）
+    ~/.hx/              目录结构（commands/、hooks/、pipelines/）
     ~/.hx/config.yaml   用户全局配置（记录 frameworkRoot）
     ~/.claude/commands/ Claude 转发器文件（按三层优先级路由到实体命令）
     ~/.codex/skills/    Codex skill 目录（每个命令一个子目录，内含 SKILL.md）
@@ -88,7 +87,7 @@ console.log('')
 
 // ── Step 1: 创建 ~/.hx/ 目录结构 ──
 
-for (const sub of ['', 'commands', 'profiles', 'pipelines']) {
+for (const sub of ['', 'commands', 'hooks', 'pipelines']) {
   const dir = sub ? resolve(userHxDir, sub) : userHxDir
   if (!existsSync(dir)) {
     if (!dryRun) mkdirSync(dir, { recursive: true })

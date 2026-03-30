@@ -30,7 +30,7 @@
   <div class="nav-group">本页目录</div>
   <a href="#phases"><span class="nav-num">C1</span><span>工作流分层</span></a>
   <a href="#runtime"><span class="nav-num">C2</span><span>运行时三层路径</span></a>
-  <a href="#profiles"><span class="nav-num">C3</span><span>Profile 解析</span></a>
+  <a href="#project-rules"><span class="nav-num">C3</span><span>规则运行时</span></a>
   <a href="#context"><span class="nav-num">C4</span><span>上下文与 Hook</span></a>
   <a href="#quality"><span class="nav-num">C5</span><span>质量控制链路</span></a>
   <a href="#progress"><span class="nav-num">C6</span><span>计划与进度文件</span></a>
@@ -54,7 +54,7 @@
       </div>
       <div class="hero-stats">
         <div class="metric"><div class="metric-value">3</div><div class="metric-label">运行层级</div></div>
-        <div class="metric"><div class="metric-value">3</div><div class="metric-label">Profile 查找层</div></div>
+        <div class="metric"><div class="metric-value">2</div><div class="metric-label">规则文件入口</div></div>
         <div class="metric"><div class="metric-value">2</div><div class="metric-label">Hook 入口</div></div>
       </div>
     </div>
@@ -103,18 +103,18 @@
             <tbody>
               <tr>
                 <td><span class="badge violet">FRAMEWORK_ROOT</span></td>
-                <td><code>src/agents/commands/（命令实体）<br>src/profiles/base/（内置基础 Profile）<br>src/pipelines/（内置流水线）</code></td>
+                <td><code>src/agents/commands/（命令实体）<br>src/templates/（规则骨架模板）<br>src/pipelines/（内置流水线）</code></td>
                 <td>框架内置资源（只读），通过 git pull 升级。命令不直接在此运行，由转发器路由。</td>
               </tr>
               <tr>
                 <td><span class="badge gold">USER_HX_DIR</span></td>
-                <td><code>~/.hx/commands/（用户命令覆盖）<br>~/.hx/profiles/（用户 Profile）<br>~/.hx/pipelines/（用户流水线）<br>~/.hx/config.yaml</code></td>
+                <td><code>~/.hx/commands/（用户命令覆盖）<br>~/.hx/hooks/（用户 Hook）<br>~/.hx/pipelines/（用户流水线）<br>~/.hx/config.yaml</code></td>
                 <td>跨项目共享的用户级覆盖。由 hx setup 创建目录结构，用户自行写入覆盖文件。</td>
               </tr>
               <tr>
                 <td><span class="badge blue">PROJECT_ROOT</span></td>
-                <td><code>.hx/commands/（项目命令覆盖）<br>.hx/profiles/（项目 Profile）<br>.hx/pipelines/（项目流水线）<br>.hx/config.yaml</code></td>
-                <td>项目专属覆盖，优先级最高。由 /hx-init 初始化 .hx/config.yaml。</td>
+                <td><code>.hx/commands/（项目命令覆盖）<br>.hx/rules/（项目规则文件）<br>.hx/pipelines/（项目流水线）<br>.hx/config.yaml</code></td>
+                <td>项目专属覆盖，优先级最高。由 /hx-init 初始化 .hx/config.yaml 与 .hx/rules/。</td>
               </tr>
             </tbody>
           </table>
@@ -130,32 +130,32 @@
       </div>
     </section>
 
-    <section id="profiles">
+    <section id="project-rules">
       <div class="wrap">
-        <div class="section-tag">Profiles</div>
-        <h2 class="section-title">Profile 解析</h2>
-        <p class="section-desc">Profile 决定架构层级、门控命令、黄金规则与模板资源。当前框架内置只保留 <code>base</code>，其余统一走用户级或项目级自定义 Profile。</p>
+        <div class="section-tag">Rules Runtime</div>
+        <h2 class="section-title">规则运行时</h2>
+        <p class="section-desc">项目规则以静态文件方式存储在 <code>.hx/rules/</code> 目录，由 <code>/hx-init</code> 生成骨架，Agent 命令在执行时直接读取。无运行时查找链，无继承逻辑。</p>
         <div class="grid grid-2">
           <article class="card">
-            <div class="card-meta">搜索顺序</div>
-            <h3 class="card-title">Profile 搜索根目录</h3>
-            <pre><code>&lt;project&gt;/.hx/profiles/
-~/.hx/profiles/
-框架内置 profiles/base/</code></pre>
-            <p class="card-body">同名 Profile 按该顺序覆盖。</p>
+            <div class="card-meta">规则入口</div>
+            <h3 class="card-title">项目规则文件位置</h3>
+            <pre><code>&lt;project&gt;/.hx/rules/golden-rules.md
+&lt;project&gt;/.hx/rules/*.md（其他规则文件）
+&lt;project&gt;/.hx/config.yaml（硬变量配置）</code></pre>
+            <p class="card-body">所有规则文件由团队手动维护，直接生效，无需 merge 或继承。</p>
           </article>
           <article class="card">
-            <div class="card-meta">推断顺序</div>
-            <h3 class="card-title"><code>hx run</code> 如何确定 profile</h3>
-            <pre><code>--profile 参数
-→ .hx/config.yaml 的 defaultProfile
-→ ~/.hx/config.yaml 的 defaultProfile</code></pre>
-            <p class="card-body">Agent 命令运行时按此顺序确定使用哪个 Profile。</p>
+            <div class="card-meta">初始化与更新</div>
+            <h3 class="card-title">规则文件的生命周期</h3>
+            <pre><code>/hx-init      → 生成 .hx/rules/*.md 骨架
+手动编辑      → 写入手动区（永久保留）
+/hx-rules update → 更新自动区，不覆盖手动区</code></pre>
+            <p class="card-body">手动区与自动区由注释分隔，更新只触及自动区。</p>
           </article>
         </div>
-        <div class="callout warn">
-          <span class="icon">!</span>
-          <div><strong>参数范围：</strong>只有读取 Profile 的命令需要 <code>--profile</code>；<code>hx version</code> 与 <code>hx setup</code> 不依赖该参数。</div>
+        <div class="callout info">
+          <span class="icon">i</span>
+          <div><strong>设计原则：</strong>新架构移除了 <code>--profile</code> 参数、<code>defaultProfile</code> 字段和继承链。运行时事实收敛为 <code>.hx/config.yaml</code>（硬变量）与 <code>.hx/rules/*.md</code>（规则文件），静态读取，无动态推断。</div>
         </div>
       </div>
     </section>
@@ -169,9 +169,9 @@
           <article class="card">
             <div class="card-meta">主上下文</div>
             <h3 class="card-title"><code>/hx-run</code> 默认读取的文件</h3>
-            <pre><code>src/profiles/base/golden-rules.md
-当前 Profile 的 golden-rules.md
-当前 Profile 的 profile.yaml
+            <pre><code>.hx/rules/golden-rules.md
+.hx/rules/*.md（其他项目规则文件）
+.hx/config.yaml（硬变量配置）
 paths.planDoc 对应文件
 paths.requirementDoc 对应文件
 paths.progressFile 对应文件</code></pre>
@@ -199,12 +199,12 @@ paths.progressFile 对应文件</code></pre>
           <article class="card">
             <div class="card-meta">可选预检</div>
             <h3 class="card-title"><code>/hx-ctx</code></h3>
-            <p class="card-body">/hx-ctx 面向当前需求做轻量预检，主要用于排查文档、计划、进度文件或 Profile 资源缺失；正常主流程由 <code>/hx-run</code> 自动完成同等检查。</p>
+            <p class="card-body">/hx-ctx 面向当前需求做轻量预检，主要用于排查文档、计划、进度文件或规则文件缺失；正常主流程由 <code>/hx-run</code> 自动完成同等检查。</p>
           </article>
           <article class="card">
             <div class="card-meta">质量校验</div>
             <h3 class="card-title"><code>/hx-qa</code></h3>
-            <p class="card-body">按固定顺序执行 <code>lint → build → type → test</code>，只跑 Profile 里实际定义过的步骤，遇到失败立即停止。</p>
+            <p class="card-body">按固定顺序执行 <code>lint → build → type → test</code>，只跑 <code>.hx/config.yaml</code> 中实际定义过的步骤，遇到失败立即停止。</p>
           </article>
           <article class="card">
             <div class="card-meta">按需补充</div>
@@ -278,7 +278,7 @@ done</code></pre>
         </div>
         <div class="callout tip">
           <span class="icon">✓</span>
-          <div><strong>断点恢复：</strong>使用 <code>/hx-go user-login --from run --profile base</code> 从指定步骤继续，跳过已完成的 doc/plan 阶段。</div>
+          <div><strong>断点恢复：</strong>使用 <code>/hx-go user-login --from run</code> 从指定步骤继续，跳过已完成的 doc/plan 阶段。</div>
         </div>
         <div class="foot-nav">
           <a class="btn-ghost" href="hx-onboarding.html">查看入门</a>

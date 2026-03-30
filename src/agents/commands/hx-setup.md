@@ -39,7 +39,7 @@ hx setup $ARGUMENTS
 
 #### B. 疑似框架 bug（进入 Step 3）
 
-- 模块加载失败（`install-utils.js` / `resolve-context.js` / `profile-utils.js`）
+- 模块加载失败（`install-utils.js` / `resolve-context.js` / `config-utils.js`）
 - `generateForwarderFiles` / `generateCodexSkillFiles` 内部抛出未预期异常
 - 命令脚本不存在（`命令脚本不存在: ...`）
 

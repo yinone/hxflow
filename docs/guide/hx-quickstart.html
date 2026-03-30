@@ -241,7 +241,7 @@
     <div class="hero-inner">
       <div class="hero-tag">TEAM TRAINING · BASED ON CURRENT REPO</div>
       <h1 class="hero-title">用一页讲清 <em>HXFlow</em><br><span class="mono">框架是什么、怎么跑、怎么扩展</span></h1>
-      <p class="hero-sub">这份快速入门页基于当前仓库事实整理：<code>@hxflow/cli</code> 是一个 Node 单包 CLI，真正的工作流能力由 Markdown 命令契约、Profile、Pipeline 和用户/项目层覆盖共同组成。目标读者是第一次接手 HXFlow 的工程师。</p>
+      <p class="hero-sub">这份快速入门页基于当前仓库事实整理：<code>@hxflow/cli</code> 是一个 Node 单包 CLI，真正的工作流能力由 Markdown 命令契约、项目规则文件、Pipeline 和用户/项目层覆盖共同组成。目标读者是第一次接手 HXFlow 的工程师。</p>
       <div class="hero-actions">
         <a class="btn-primary" href="#memory">先看三句话</a>
         <a class="btn-ghost" href="#use">直接看怎么用</a>
@@ -280,7 +280,7 @@
           <article class="card">
             <div class="card-meta">1 / 产品边界</div>
             <h3 class="card-title">它编排的是交付流程，不是业务运行时</h3>
-            <p class="card-body">仓库里没有 React、Vue、Spring 这类业务运行时框架代码，核心是 <code>bin/hx.js</code>、<code>src/agents/commands/</code>、<code>src/profiles/</code> 和 <code>src/pipelines/</code> 这组工作流定义。</p>
+            <p class="card-body">仓库里没有 React、Vue、Spring 这类业务运行时框架代码，核心是 <code>bin/hx.js</code>、<code>src/agents/commands/</code>、<code>src/templates/</code> 和 <code>src/pipelines/</code> 这组工作流定义。</p>
           </article>
           <article class="card">
             <div class="card-meta">2 / 真正入口</div>
@@ -308,10 +308,10 @@
         <pre><code><span class="cg"># 当前仓库核心结构</span>
 bin/hx.js                     <span class="cm"># CLI 入口，只负责内置维护命令</span>
 src/scripts/                  <span class="cm"># setup / upgrade / doctor / uninstall 实现</span>
-src/scripts/lib/              <span class="cm"># profile 解析、上下文查找、安装工具</span>
+src/scripts/lib/              <span class="cm"># 配置与规则工具、上下文查找、安装工具</span>
 src/agents/commands/*.md      <span class="cm"># hx-init / hx-doc / hx-go 等命令契约</span>
 src/pipelines/default.yaml    <span class="cm"># 默认主路径：doc -> plan -> run -> qa -> mr</span>
-src/profiles/base/            <span class="cm"># 内置基础 profile：模板、规则、清单</span>
+src/templates/                <span class="cm"># 规则文件骨架模板</span>
 docs/guide/*.html             <span class="cm"># 面向团队的静态文档</span></code></pre>
         <div class="repo-map">
           <article class="map-card">
@@ -325,9 +325,9 @@ docs/guide/*.html             <span class="cm"># 面向团队的静态文档</sp
             <p>每个 <code>hx-*</code> 命令都是一份 Markdown 约束文件，里面写“事实来源、执行步骤、边界和输出要求”。这是 HXFlow 最关键的设计点。</p>
           </article>
           <article class="map-card">
-            <div class="map-path">src/profiles/base/</div>
-            <h3>团队规则和模板的起点</h3>
-            <p><code>profile.yaml</code> 管规则，<code>golden-rules.md</code> 管原则，<code>requirement-template.md</code> 和 <code>plan-template.md</code> 管文档骨架。所有自定义 profile 都从这里继承。</p>
+            <div class="map-path">src/templates/</div>
+            <h3>规则文件骨架模板的起点</h3>
+            <p><code>src/templates/</code> 存放 <code>golden-rules.md</code>、需求模板、计划模板等骨架文件。<code>/hx-init</code> 运行后会将这些模板渲染到项目的 <code>.hx/rules/</code> 目录，供团队按需编辑。</p>
           </article>
           <article class="map-card">
             <div class="map-path">src/pipelines/default.yaml</div>
@@ -337,7 +337,7 @@ docs/guide/*.html             <span class="cm"># 面向团队的静态文档</sp
         </div>
         <div class="callout tip">
           <span class="icon">✓</span>
-          <div><strong>新人读仓库顺序：</strong><code>README.md</code> → <code>bin/hx.js</code> → <code>src/agents/commands/hx-init.md</code> → <code>src/pipelines/default.yaml</code> → <code>src/profiles/base/README.md</code>。</div>
+          <div><strong>新人读仓库顺序：</strong><code>README.md</code> → <code>bin/hx.js</code> → <code>src/agents/commands/hx-init.md</code> → <code>src/pipelines/default.yaml</code> → <code>src/templates/</code>。</div>
         </div>
       </div>
     </section>
@@ -366,7 +366,7 @@ docs/guide/*.html             <span class="cm"># 面向团队的静态文档</sp
               <li>载体：<code>src/agents/commands/*.md</code> 里的命令契约。</li>
               <li>同一套 contract，Claude 用 <code>/hx-*</code>，Codex 用 <code>$hx-*</code>。</li>
             </ul>
-            <div class="command-line">Claude: /hx-go --task 12345 --profile base<br>Codex: $hx-go --task 12345 --profile base</div>
+            <div class="command-line">Claude: /hx-go --task 12345<br>Codex: $hx-go --task 12345</div>
           </article>
         </div>
         <div class="callout info">
@@ -391,13 +391,13 @@ docs/guide/*.html             <span class="cm"># 面向团队的静态文档</sp
           <div class="path-row">
             <div class="path-label">用户层</div>
             <div>
-              <p><code>~/.hx/</code>。跨项目共享，适合放个人或团队通用 profile、自定义命令和复用规则。<code>hx setup</code> 会先把这层基础结构准备好。</p>
+              <p><code>~/.hx/</code>。跨项目共享，适合放个人或团队通用 hooks、自定义命令和 pipeline 覆盖。<code>hx setup</code> 会先把这层基础结构准备好。</p>
             </div>
           </div>
           <div class="path-row">
             <div class="path-label">系统层</div>
             <div>
-              <p><code>&lt;frameworkRoot&gt;/src/</code>。也就是当前仓库内置的默认实现：命令契约、<code>base</code> profile、默认 pipeline、setup/upgrade 脚本都在这里。</p>
+              <p><code>&lt;frameworkRoot&gt;/src/</code>。也就是当前仓库内置的默认实现：命令契约、规则骨架模板（<code>src/templates/</code>）、默认 pipeline、setup/upgrade 脚本都在这里。</p>
             </div>
           </div>
         </div>
@@ -408,9 +408,9 @@ docs/guide/*.html             <span class="cm"># 面向团队的静态文档</sp
             <p>例如 <code>hx-go</code> 会先找 <code>.hx/commands/hx-go.md</code>，再找 <code>~/.hx/commands/hx-go.md</code>，最后才退回系统层。</p>
           </article>
           <article class="phase-card">
-            <div class="phase-tag">Profile Merge</div>
-            <h3>Profile 继承</h3>
-            <p><code>profiles/&lt;name&gt;/profile.yaml</code> 支持 <code>extends</code>，对象递归合并，数组整体替换，标量直接覆盖。这是团队化落地的主扩展点。</p>
+            <div class="phase-tag">Rules Lookup</div>
+            <h3>项目规则</h3>
+            <p><code>.hx/rules/*.md</code> 由 <code>/hx-init</code> 生成骨架，团队在手动区写入规则后永久保留。<code>/hx-rules update</code> 可更新自动区，不影响手动区内容。</p>
           </article>
           <article class="phase-card">
             <div class="phase-tag">Pipeline Override</div>
@@ -420,7 +420,7 @@ docs/guide/*.html             <span class="cm"># 面向团队的静态文档</sp
         </div>
         <div class="callout tip">
           <span class="icon">✓</span>
-          <div><strong>团队治理建议：</strong>不要直接改系统层 <code>src/profiles/base/</code>。先在项目层或用户层做一份清晰命名的 profile，例如 <code>my-team</code>，并显式 <code>extends: base</code>。</div>
+          <div><strong>团队治理建议：</strong>不要直接改系统层 <code>src/templates/</code>。团队规则应写入项目层 <code>.hx/rules/</code> 的手动区，确保框架升级时不会被覆盖。</div>
         </div>
       </div>
     </section>
@@ -442,7 +442,7 @@ docs/guide/*.html             <span class="cm"># 面向团队的静态文档</sp
             <div class="timeline-step">B</div>
             <div>
               <div class="timeline-title">项目级：初始化当前仓库</div>
-              <div class="timeline-body">在 Agent 会话里运行 <code>hx-init</code>。它会分析项目结构、推断默认 profile、写入 <code>.hx/config.yaml</code>、样板命令、Hook、Pipeline，并在 <code>CLAUDE.md</code> / <code>AGENTS.md</code> 中注入 Harness 标记块。</div>
+              <div class="timeline-body">在 Agent 会话里运行 <code>hx-init</code>。它会分析项目结构、生成项目规则、写入 <code>.hx/config.yaml</code>、样板命令、Hook、Pipeline，并在 <code>CLAUDE.md</code> / <code>AGENTS.md</code> 中注入 Harness 标记块。</div>
             </div>
           </div>
           <div class="timeline-item">
@@ -466,24 +466,24 @@ hx setup
 <span class="cm">Codex:</span>  $hx-init
 
 <span class="cg"># 3. 进入需求交付</span>
-<span class="cm">Claude:</span> /hx-go --task 12345 --profile base
-<span class="cm">Codex:</span>  $hx-go --task 12345 --profile base</code></pre>
+<span class="cm">Claude:</span> /hx-go --task 12345
+<span class="cm">Codex:</span>  $hx-go --task 12345</code></pre>
           </article>
           <article class="card">
             <div class="card-meta">手动模式</div>
             <h3 class="card-title">需要可控性时分步执行</h3>
             <pre><code><span class="cm">Claude:</span>
-/hx-doc --task 12345 --profile base
-/hx-plan --profile base
-/hx-run --profile base
-/hx-qa --profile base
+/hx-doc --task 12345
+/hx-plan
+/hx-run
+/hx-qa
 /hx-mr
 
 <span class="cm">Codex:</span>
-$hx-doc --task 12345 --profile base
-$hx-plan --profile base
-$hx-run --profile base
-$hx-qa --profile base
+$hx-doc --task 12345
+$hx-plan
+$hx-run
+$hx-qa
 $hx-mr</code></pre>
             <p class="card-body">主路径里通常不需要你手写 <code>feature key</code>，因为 <code>hx-doc</code> 会自动生成，后续步骤会自动续接。只有冲突、恢复或多需求并行时才显式写 key。</p>
           </article>
@@ -503,13 +503,13 @@ $hx-mr</code></pre>
         <div class="repo-map">
           <article class="map-card">
             <div class="map-path">.hx/config.yaml</div>
-            <h3>改路径和默认 profile</h3>
-            <p>这是项目级主入口。最先讲它，因为路径模板、默认 profile、Hook 和 pipeline 入口都在这里汇总。</p>
+            <h3>改路径和硬变量配置</h3>
+            <p>这是项目级主入口。最先讲它，因为路径模板、门控命令、Hook 和 pipeline 入口都在这里汇总。</p>
           </article>
           <article class="map-card">
-            <div class="map-path">.hx/profiles/&lt;name&gt;/</div>
+            <div class="map-path">.hx/rules/</div>
             <h3>改团队规则</h3>
-            <p>当团队需要自己的架构层级、门控命令和模板时，创建自定义 profile，并用 <code>extends: base</code> 继承当前内置规则。</p>
+            <p>当团队需要自己的架构约定、黄金原则时，编辑 <code>.hx/rules/golden-rules.md</code> 及其他规则文件。<code>/hx-init</code> 负责生成初始骨架，手动区内容永久保留。</p>
           </article>
           <article class="map-card">
             <div class="map-path">.hx/commands/*.md</div>
@@ -522,9 +522,9 @@ $hx-mr</code></pre>
             <p>当团队不想走默认主路径，或者需要插入内部阶段时，优先改 pipeline，而不是去改 <code>hx-go</code> 的核心实现。</p>
           </article>
         </div>
-        <div class="callout tip">
-          <span class="icon">✓</span>
-          <div><strong>记忆口径可以这样说：</strong>“想改规则，去 profile；想改流程，去 pipeline；想改单个命令提示，去 commands；想改项目默认入口，去 config。” 这比逐个讲文件更容易记。</div>
+        <div class=”callout tip”>
+          <span class=”icon”>✓</span>
+          <div><strong>记忆口径可以这样说：</strong>”想改规则，去 <code>.hx/rules/</code>；想改流程，去 pipeline；想改单个命令提示，去 commands；想改项目默认入口，去 config。” 这比逐个讲文件更容易记。</div>
         </div>
         <div class="grid grid-2">
           <article class="card">
@@ -536,9 +536,9 @@ npm run hx:test:integration</code></pre>
             <p class="card-body">这些命令来自当前仓库 <code>package.json</code>。如果你的读者包含框架维护者，这三个脚本需要明确提到。</p>
           </article>
           <article class="card">
-            <div class="card-meta">共享 profile</div>
+            <div class="card-meta">规则共享策略</div>
             <h3 class="card-title">共享策略</h3>
-            <p class="card-body">框架只内置 <code>base</code>。其他 profile 按 README 约定应下沉到用户层或项目层。这样系统层升级时，团队规则不会被覆盖。</p>
+            <p class="card-body">框架通过 <code>src/templates/</code> 提供规则骨架，团队规则落在项目层的 <code>.hx/rules/</code>。这样系统层升级时，团队手动写入的规则不会被覆盖。</p>
           </article>
         </div>
       </div>
@@ -565,16 +565,16 @@ npm run hx:test:integration</code></pre>
             <ul>
               <li>机器级执行 <code>hx setup</code>。</li>
               <li>项目级执行 <code>hx-init</code>。</li>
-              <li>需求级执行 <code>hx-go --task 12345 --profile base</code>，或至少手动跑一遍 <code>hx-doc → hx-plan</code>。</li>
+              <li>需求级执行 <code>hx-go --task 12345</code>，或至少手动跑一遍 <code>hx-doc → hx-plan</code>。</li>
             </ul>
           </article>
-          <article class="workshop-step">
-            <div class="step-tag">20 分钟</div>
+          <article class=”workshop-step”>
+            <div class=”step-tag”>20 分钟</div>
             <h3>环节三：做一次最小扩展</h3>
             <ul>
-              <li>在项目层新增 <code>.hx/profiles/my-team/profile.yaml</code>。</li>
-              <li>给它加一条团队自己的 <code>gate_commands</code>。</li>
-              <li>让大家理解“团队定制不是改源码，而是做覆盖”。</li>
+              <li>在项目层编辑 <code>.hx/rules/golden-rules.md</code>，在手动区写入一条团队自己的规则。</li>
+              <li>在 <code>.hx/config.yaml</code> 中添加一条 <code>gate_commands</code>。</li>
+              <li>让大家理解”团队定制不是改源码，而是编辑项目规则文件”。</li>
             </ul>
           </article>
         </div>
@@ -593,8 +593,8 @@ npm run hx:test:integration</code></pre>
             <p>不是。当前 <code>bin/hx.js</code> 会明确提示它是 agent command contract。日常工作流命令由 Agent 读取 Markdown 契约后执行。</p>
           </article>
           <article class="mistake-card">
-            <h3>误区 2：框架升级要顺手改 <code>base</code></h3>
-            <p>不应该。<code>base</code> 是内置根基类，团队规则应放在用户层或项目层自定义 profile 里，否则后续升级会和团队约束纠缠在一起。</p>
+            <h3>误区 2：框架升级会覆盖团队规则</h3>
+            <p>不会。团队规则存放在项目层的 <code>.hx/rules/</code> 手动区，框架升级只更新 <code>src/templates/</code> 骨架，不会触碰已有的 <code>.hx/rules/</code> 内容。</p>
           </article>
           <article class="mistake-card">
             <h3>误区 3：每次都要手动写 <code>feature key</code></h3>
@@ -624,11 +624,11 @@ npm run hx:test:integration</code></pre>
           </a>
           <a class="reading-card" href="hx-deep-dive.html">
             <h3>运行机制</h3>
-            <p>适合维护者和高级用户，理解命令查找、Profile 合并、Hook 与上下文装配。</p>
+            <p>适合维护者和高级用户，理解命令查找、规则运行时、Hook 与上下文装配。</p>
           </a>
           <a class="reading-card" href="hx-config-reference.html">
             <h3>配置参考</h3>
-            <p>适合要做项目级落地的人，查路径、Hook、Profile、Pipeline 的具体字段。</p>
+            <p>适合要做项目级落地的人，查路径、Hook、项目规则、Pipeline 的具体字段。</p>
           </a>
         </div>
         <div class="foot-nav">

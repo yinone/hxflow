@@ -24,7 +24,7 @@ hx uninstall $ARGUMENTS --dry-run
 向用户展示完整预览输出，并明确说明：
 - 将要移除的全局文件（`~/.hx/config.yaml`、`~/.claude/commands/hx-*.md`、`~/.codex/skills/hx-*/`）
 - 将要移除的项目文件（`.hx/config.yaml`、`CLAUDE.md` 中的标记块等）
-- **保留内容**：用户自定义的 `~/.hx/commands/`、`~/.hx/profiles/`、源码、git history 等均不受影响
+- **保留内容**：用户自定义的 `~/.hx/commands/`、`~/.hx/hooks/`、`~/.hx/pipelines/`、源码、git history 等均不受影响
 
 若 dry-run 输出 "未发现 Harness Workflow 安装痕迹"，直接告知用户无需卸载，结束。
 

@@ -28,6 +28,13 @@
   }
 ,
   {
+    "name": "hx-extension-rule-pack",
+    "path": "docs/design/hx-extension-rule-pack.md",
+    "type": "md",
+    "category": "docs/design"
+  }
+,
+  {
     "name": "hx-rules-refactor",
     "path": "docs/design/hx-rules-refactor.md",
     "type": "md",
@@ -175,6 +182,13 @@
   }
 ,
   {
+    "name": "hx-rules",
+    "path": "src/agents/commands/hx-rules.md",
+    "type": "md",
+    "category": "src/agents/commands"
+  }
+,
+  {
     "name": "hx-run",
     "path": "src/agents/commands/hx-run.md",
     "type": "md",
@@ -210,44 +224,30 @@
   }
 ,
   {
-    "name": "README",
-    "path": "src/profiles/README.md",
-    "type": "md",
-    "category": "src/profiles"
-  }
-,
-  {
-    "name": "README",
-    "path": "src/profiles/base/README.md",
-    "type": "md",
-    "category": "src/profiles/base"
-  }
-,
-  {
     "name": "golden-rules",
-    "path": "src/profiles/base/golden-rules.md",
+    "path": "src/templates/golden-rules.md",
     "type": "md",
-    "category": "src/profiles/base"
+    "category": "src/templates"
   }
 ,
   {
     "name": "plan-template",
-    "path": "src/profiles/base/plan-template.md",
+    "path": "src/templates/plan-template.md",
     "type": "md",
-    "category": "src/profiles/base"
+    "category": "src/templates"
   }
 ,
   {
     "name": "requirement-template",
-    "path": "src/profiles/base/requirement-template.md",
+    "path": "src/templates/requirement-template.md",
     "type": "md",
-    "category": "src/profiles/base"
+    "category": "src/templates"
   }
 ,
   {
     "name": "review-checklist",
-    "path": "src/profiles/base/review-checklist.md",
+    "path": "src/templates/review-checklist.md",
     "type": "md",
-    "category": "src/profiles/base"
+    "category": "src/templates"
   }
 ]

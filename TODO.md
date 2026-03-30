@@ -11,7 +11,7 @@
 - CLI 精简为 5 个命令：setup / upgrade / uninstall / gate / doctor
 - 删除所有"prompt 组装"JS 脚本（hx-agent-run、hx-agent-fix、hx-scan 等）
 - 所有 /hx-* Claude 命令重写为直接 AI 指令（不依赖 CLI 中间层）
-- /hx-init 改为 Claude 直接用工具分析项目并生成 profile
+- /hx-init 改为 Claude 直接用工具分析项目并生成项目规则
 
 ## 设计思想
 

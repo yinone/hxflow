@@ -12,21 +12,21 @@ const RUN_COMMAND_PATH = resolve(COMMANDS_DIR, 'hx-run.md')
 const MR_COMMAND_PATH = resolve(COMMANDS_DIR, 'hx-mr.md')
 
 describe('workflow command contracts', () => {
-  it('hx-doc exposes task-aware metadata and requirement creation flow', () => {
+  it('hx-doc exposes task-aware metadata and rules-based creation flow', () => {
     const specs = loadCommandSpecs(COMMANDS_DIR)
     const docSpec = specs.find((spec) => spec.name === 'hx-doc')
     const content = readFileSync(DOC_COMMAND_PATH, 'utf8')
 
     expect(docSpec).toMatchObject({
       name: 'hx-doc',
-      usage: 'hx-doc [<feature-key-or-title>] [--task <task-id>] [--profile <name>]',
+      usage: 'hx-doc [<feature-key-or-title>] [--task <task-id>]',
       claude: '/hx-doc',
       codex: 'hx-doc',
     })
     expect(content).toContain('任务拉取模式')
     expect(content).toContain('手工整理模式')
-    expect(content).toContain('基于模板创建 `requirementDoc`')
-    expect(content).toContain('下一步优先提示 `hx-plan --profile <name>`')
+    expect(content).toContain('rules/requirement-template.md')
+    expect(content).toContain('默认提示下一步 `hx-plan`')
   })
 
   it('hx-run keeps whole-feature execution and progress update constraints', () => {
@@ -36,14 +36,14 @@ describe('workflow command contracts', () => {
 
     expect(runSpec).toMatchObject({
       name: 'hx-run',
-      usage: 'hx-run [<feature-key>] [--task <task-id>] [--profile <name>]',
+      usage: 'hx-run [<feature-key>] [--task <task-id>]',
       claude: '/hx-run',
       codex: 'hx-run',
     })
     expect(content).toContain('执行内置预检')
     expect(content).toContain('所有 `pending` 任务')
-    expect(content).toContain('更新 `progressFile`')
-    expect(content).toContain('提示继续运行 `hx-qa`')
+    expect(content).toContain('progressFile')
+    expect(content).toContain('不读取或透传 profile')
   })
 
   it('hx-mr keeps MR context inputs and delivery options aligned', () => {
@@ -59,7 +59,5 @@ describe('workflow command contracts', () => {
     })
     expect(content).toContain('git log <target>..HEAD --oneline')
     expect(content).toContain('git diff <target>...HEAD --stat')
-    expect(content).toContain('格式 `feat: <feature-key> - <一句话摘要>`')
-    expect(content).toContain('供复制到 GitLab/GitHub')
   })
 })

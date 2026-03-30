@@ -10,7 +10,7 @@
  *   3. CLAUDE.md 中的 harness 标记块
  *
  * 保留内容（完全不动）：
- *   - ~/.hx/ 下的用户自定义 commands/profiles/pipelines 内容
+ *   - ~/.hx/ 下的用户自定义 commands/hooks/pipelines 内容
  *   - 用户原有 .claude/skills/、.claude/agents/、.claude/config/
  *   - CLAUDE.md 中标记块以外的所有内容
  *   - 用户源码、git history、所有其他文件
@@ -23,7 +23,7 @@ import { resolve } from 'path'
 
 import { findProjectRoot } from './lib/resolve-context.js'
 import { HARNESS_MARKER_START, HARNESS_MARKER_END, escapeRegExp } from './lib/install-utils.js'
-import { parseArgs } from './lib/profile-utils.js'
+import { parseArgs } from './lib/config-utils.js'
 
 // ── CLI 参数 ──
 

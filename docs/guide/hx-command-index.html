@@ -110,7 +110,7 @@
             <div class="command-syntax">hx setup [--dry-run]</div>
             <p class="card-body">生成 Claude / Codex 两侧入口，初始化 ~/.hx/ 目录结构。</p>
             <div class="note-list">
-              <p>会创建 <code>~/.hx/</code>（commands/、profiles/、pipelines/）目录结构。</p>
+              <p>会创建 <code>~/.hx/</code>（commands/、hooks/、pipelines/）目录结构。</p>
               <p>生成 Claude 转发器到 <code>~/.claude/commands/</code>，同时为每个命令生成 Codex skill 目录到 <code>~/.codex/skills/hx-&lt;cmd&gt;/SKILL.md</code>。</p>
               <p><code>~/.hx/config.yaml</code> 不存在时创建，写入 frameworkRoot。</p>
               <p>Skill 由 Agent 自身机制管理，<code>hx setup</code> 不会安装或同步 skill。</p>
@@ -119,12 +119,12 @@
           <article class="card command-card">
             <div class="card-meta">Init（Claude）</div>
             <h3 class="card-title"><code class="command-name">/hx-init</code></h3>
-            <div class="command-syntax">/hx-init [--profile &lt;name&gt;]</div>
-            <p class="card-body">在 Claude Code 或 Codex 中运行。分析项目结构推断 Profile 和路径配置。</p>
+            <div class="command-syntax">/hx-init</div>
+            <p class="card-body">在 Claude Code 或 Codex 中运行。分析项目结构推断路径配置并生成项目规则。</p>
             <div class="note-list">
-              <p>会写入 <code>.hx/config.yaml</code>（defaultProfile + paths）。</p>
+              <p>会写入 <code>.hx/config.yaml</code>（硬变量 + paths）。</p>
               <p>在 CLAUDE.md 中注入 harness 标记块。</p>
-              <p>若推荐自定义 profile，写入 <code>.hx/profiles/&lt;name&gt;/profile.yaml</code>。</p>
+              <p>生成 <code>.hx/rules/*.md</code> 项目规则文件骨架。</p>
             </div>
           </article>
           <article class="card command-card">
@@ -155,7 +155,7 @@
             <p class="card-body">环境健康检测。</p>
             <div class="note-list">
               <p>检查 Node 版本、<code>~/.hx/</code> 目录、Claude 转发器和 Codex bundle 是否完整。</p>
-              <p>检查当前项目 <code>.hx/config.yaml</code> 和 Profile 加载是否正常。</p>
+              <p>检查当前项目 <code>.hx/config.yaml</code> 和 <code>.hx/rules/</code> 规则文件是否完整。</p>
               <p>发现问题时退出码为 1，可集成到 CI 预检。</p>
             </div>
           </article>
@@ -178,7 +178,7 @@
           <article class="card command-card">
             <div class="card-meta">Doc（Claude）</div>
             <h3 class="card-title"><code class="command-name">/hx-doc</code></h3>
-            <div class="command-syntax">/hx-doc [&lt;feature-key-or-title&gt;] [--task &lt;id&gt;] [--profile &lt;name&gt;]</div>
+            <div class="command-syntax">/hx-doc [&lt;feature-key-or-title&gt;] [--task &lt;id&gt;]</div>
             <p class="card-body">从需求来源生成结构化需求文档；支持手工整理和按任务号拉取。</p>
             <div class="note-list">
               <p>路径从 <code>.hx/config.yaml</code> 的 <code>paths.requirementDoc</code> 模板推断。</p>
@@ -190,7 +190,7 @@
           <article class="card command-card">
             <div class="card-meta">Plan（Claude）</div>
             <h3 class="card-title"><code class="command-name">/hx-plan</code></h3>
-            <div class="command-syntax">/hx-plan [&lt;feature-key&gt;] [--profile &lt;name&gt;]</div>
+            <div class="command-syntax">/hx-plan [&lt;feature-key&gt;]</div>
             <p class="card-body">读取需求文档，生成计划 Markdown 与 <code>*-progress.json</code>。</p>
             <div class="note-list">
               <p>路径从 <code>.hx/config.yaml</code> 的 paths.planDoc 模板推断。</p>
@@ -201,8 +201,8 @@
           <article class="card command-card">
             <div class="card-meta">Ctx（Claude）</div>
             <h3 class="card-title"><code class="command-name">/hx-ctx</code></h3>
-            <div class="command-syntax">/hx-ctx [&lt;feature-key&gt;] [--profile &lt;name&gt;]</div>
-            <p class="card-body">面向当前需求做执行前预检，主要用于排查输入不完整或 Profile 资源缺失。</p>
+            <div class="command-syntax">/hx-ctx [&lt;feature-key&gt;]</div>
+            <p class="card-body">面向当前需求做执行前预检，主要用于排查输入不完整或规则文件缺失。</p>
             <div class="note-list">
               <p>正常主流程不用先单独运行；<code>/hx-run</code> 会自动完成同等预检。</p>
               <p>仅在 <code>/hx-run</code> 因文档、计划或 progress 文件异常而停止时，用它查看具体缺失项。</p>
@@ -232,7 +232,7 @@
           <article class="card command-card">
             <div class="card-meta">Run（Claude）</div>
             <h3 class="card-title"><code class="command-name">/hx-run</code></h3>
-            <div class="command-syntax">/hx-run [&lt;feature-key&gt;] [--task &lt;TASK-ID&gt;] [--profile &lt;name&gt;]</div>
+            <div class="command-syntax">/hx-run [&lt;feature-key&gt;] [--task &lt;TASK-ID&gt;]</div>
             <p class="card-body">默认执行当前需求下的全部 pending 任务；<code>--task</code> 仅用于高级模式。</p>
             <div class="note-list">
               <p>从 <code>.hx/config.yaml</code> 的 paths.* 字段读取需求文档、执行计划和进度文件路径。</p>
@@ -244,7 +244,7 @@
           <article class="card command-card">
             <div class="card-meta">Go（Claude）</div>
             <h3 class="card-title"><code class="command-name">/hx-go</code></h3>
-            <div class="command-syntax">/hx-go [&lt;feature-key&gt;] [--task &lt;TASK-ID&gt;] [--from &lt;step-id&gt;] [--profile &lt;name&gt;]</div>
+            <div class="command-syntax">/hx-go [&lt;feature-key&gt;] [--task &lt;TASK-ID&gt;] [--from &lt;step-id&gt;]</div>
             <p class="card-body">全自动流水线，默认串起主路径；项目级 pipeline 可插入 review、clean 等辅助步骤。</p>
             <div class="note-list">
               <p>读取 pipeline YAML（<code>.hx/pipelines/default.yaml</code> → <code>~/.hx/pipelines/default.yaml</code> → 框架内置），按步骤驱动执行。</p>
@@ -257,19 +257,19 @@
           <article class="card command-card">
             <div class="card-meta">Review（Claude）</div>
             <h3 class="card-title"><code class="command-name">/hx-review</code></h3>
-            <div class="command-syntax">/hx-review [--profile &lt;name&gt;]</div>
+            <div class="command-syntax">/hx-review</div>
             <p class="card-body">按团队审查清单审查 diff。</p>
             <div class="note-list">
-              <p>Profile 配置了额外审查项时，会在基础清单后追加团队专属检查项。</p>
+              <p>读取 <code>.hx/rules/*.md</code> 项目规则，在基础清单后追加团队专属检查项。</p>
             </div>
           </article>
           <article class="card command-card">
             <div class="card-meta">Fix（Claude）</div>
             <h3 class="card-title"><code class="command-name">/hx-fix</code></h3>
-            <div class="command-syntax">/hx-fix [--profile &lt;name&gt;]</div>
+            <div class="command-syntax">/hx-fix</div>
             <p class="card-body">读取 Review 意见按团队规范修复。</p>
             <div class="note-list">
-              <p>会加载团队黄金规则和 fix Hook。</p>
+              <p>会加载 <code>.hx/rules/golden-rules.md</code> 和 fix Hook。</p>
             </div>
           </article>
         </div>
@@ -285,8 +285,8 @@
           <article class="card command-card">
             <div class="card-meta">QA（Claude）</div>
             <h3 class="card-title"><code class="command-name">/hx-qa</code></h3>
-            <div class="command-syntax">/hx-qa [--profile &lt;name&gt;]</div>
-            <p class="card-body">从 Profile 的 <code>gate_commands</code> 中按顺序执行质量校验。</p>
+            <div class="command-syntax">/hx-qa</div>
+            <p class="card-body">从 <code>.hx/config.yaml</code> 的 <code>gate_commands</code> 中按顺序执行质量校验。</p>
             <div class="note-list">
               <p>固定顺序 <code>lint → build → type → test</code>，只执行已定义步骤。</p>
               <p>任一步骤失败后停止，输出失败详情供 <code>/hx-fix</code> 使用。</p>
@@ -295,11 +295,11 @@
           <article class="card command-card">
             <div class="card-meta">Clean（Claude）</div>
             <h3 class="card-title"><code class="command-name">/hx-clean</code></h3>
-            <div class="command-syntax">/hx-clean [--profile &lt;name&gt;]</div>
+            <div class="command-syntax">/hx-clean</div>
             <p class="card-body">工程清理扫描（全局 + 团队专项）。</p>
             <div class="note-list">
               <p>扫描 <code>src/</code> 下的 <code>console.log</code>、<code>: any</code>、裸 <code>throw new Error</code>、TODO 等模式。</p>
-              <p>团队 Profile 可追加专项扫描规则。</p>
+              <p><code>.hx/rules/</code> 中的项目规则可追加专项扫描约定。</p>
             </div>
           </article>
           <article class="card command-card">
@@ -316,7 +316,7 @@
         </div>
         <div class="callout warn">
           <span class="icon">!</span>
-          <div><strong>范围：</strong>本页仅覆盖命令语法与边界。Profile、Hook 和配置继承请参考 <a href="hx-deep-dive.html">运行机制</a> 与 <a href="hx-config-reference.html">配置参考</a>。</div>
+          <div><strong>范围：</strong>本页仅覆盖命令语法与边界。规则文件、Hook 和配置请参考 <a href="hx-deep-dive.html">运行机制</a> 与 <a href="hx-config-reference.html">配置参考</a>。</div>
         </div>
         <div class="foot-nav">
           <a class="btn-ghost" href="hx-deep-dive.html">查看运行机制</a>

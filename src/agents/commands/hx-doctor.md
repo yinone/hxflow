@@ -39,10 +39,10 @@ hx doctor
 | `~/.codex/skills/ 中未找到 hx-* skill 目录` | 运行 `/hx-setup` |
 | `.hx/config.yaml 不存在（未初始化）` | 运行 `/hx-init` |
 | `.hx/config.yaml 格式错误` | 检查并修复 YAML 语法 |
-| `gate_commands 未配置` | 编辑 `.hx/profiles/<name>/profile.yaml`，配置 lint/test/build 命令 |
-| `Profile 加载失败` | 检查 profile 文件路径和 `extends` 字段是否正确 |
+| `gates 未配置` | 编辑 `.hx/config.yaml`，补充 lint/test/build 等 gate 命令 |
+| `.hx/rules/*.md 缺失` | 运行 `/hx-init` 或 `/hx-rules update` 重新生成固定规则文件 |
 | `node v<版本>（需要 >= 18）` | 升级 Node.js 到 18 或以上 |
-| `profiles/base/ 缺失（系统层损坏）` | 框架安装损坏，运行 `/hx-upgrade` 修复 |
+| `~/.hx/commands/` / `~/.hx/hooks/` / `~/.hx/pipelines/` 缺失 | 运行 `/hx-setup` 修复全局目录骨架 |
 
 ---
 
@@ -61,7 +61,7 @@ hx doctor
 以下情况提示用户通过 `/hx-issue` 提交 Bug：
 
 - `hx doctor` 命令本身崩溃（非 exit code 1 的正常失败，而是未捕获异常）
-- 模块加载失败（`resolve-context.js` / `profile-utils.js` 内部错误）
+- 模块加载失败（`resolve-context.js` / `config-utils.js` / `rule-context.js` 内部错误）
 - 检测逻辑抛出与文件系统/网络无关的内部异常
 
 询问用户是否提交（Y/n），确认后调用 `/hx-issue`，预填：

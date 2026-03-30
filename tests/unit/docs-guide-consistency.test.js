@@ -5,48 +5,25 @@ import { fileURLToPath } from 'url'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
 
-const COMMAND_INDEX_PATH = resolve(ROOT, 'docs/guide/hx-command-index.html')
-const ONBOARDING_PATH = resolve(ROOT, 'docs/guide/hx-onboarding.html')
-const DEEP_DIVE_PATH = resolve(ROOT, 'docs/guide/hx-deep-dive.html')
-const ENGINEERING_SPEC_PATH = resolve(ROOT, 'docs/guide/harness-engineering-spec.html')
+const README_PATH = resolve(ROOT, 'README.md')
+const CLAUDE_PATH = resolve(ROOT, 'CLAUDE.md')
 
-describe('guide docs consistency', () => {
-  it('hx-command-index keeps canonical syntax for main workflow commands', () => {
-    const content = readFileSync(COMMAND_INDEX_PATH, 'utf8')
+describe('docs consistency', () => {
+  it('README reflects the project-rules runtime model', () => {
+    const content = readFileSync(README_PATH, 'utf8')
 
-    expect(content).toContain('/hx-doc [&lt;feature-key-or-title&gt;] [--task &lt;id&gt;] [--profile &lt;name&gt;]')
-    expect(content).toContain('/hx-plan [&lt;feature-key&gt;] [--profile &lt;name&gt;]')
-    expect(content).toContain('/hx-run [&lt;feature-key&gt;] [--task &lt;TASK-ID&gt;] [--profile &lt;name&gt;]')
-    expect(content).toContain('/hx-mr [&lt;feature-key&gt;] [--project &lt;group/repo&gt;] [--target &lt;branch&gt;]')
+    expect(content).toContain('.hx/rules/*.md')
+    expect(content).toContain('hx-rules [update]')
+    expect(content).toContain('不再有运行时 `profile`')
+    expect(content).not.toContain('--profile base')
   })
 
-  it('hx-onboarding preserves the canonical main path and task-first examples', () => {
-    const content = readFileSync(ONBOARDING_PATH, 'utf8')
+  it('CLAUDE.md references the new rule-generation modules', () => {
+    const content = readFileSync(CLAUDE_PATH, 'utf8')
 
-    expect(content).toContain('/hx-doc → /hx-plan → /hx-run → /hx-qa → /hx-mr')
-    expect(content).toContain('/hx-doc --task 12345 --profile base')
-    expect(content).toContain('/hx-plan --profile base')
-    expect(content).toContain('/hx-run --profile base')
-    expect(content).toContain('/hx-go --task 12345 --profile base')
-  })
-
-  it('hx-deep-dive keeps the default pipeline explanation aligned with the current main path', () => {
-    const content = readFileSync(DEEP_DIVE_PATH, 'utf8')
-
-    expect(content).toContain('默认项目内置主路径是 <code>doc -> plan -> run -> qa -> mr</code>')
-    expect(content).toContain('phase: Phase 01')
-    expect(content).toContain('command: hx-doc')
-    expect(content).toContain('command: hx-run')
-    expect(content).toContain('/hx-go user-login --from run --profile base')
-  })
-
-  it('harness-engineering-spec keeps the updated phase grouping and hx-go narrative', () => {
-    const content = readFileSync(ENGINEERING_SPEC_PATH, 'utf8')
-
-    expect(content).toContain('Phase 01 — 03')
-    expect(content).toContain('Phase 04 + 06')
-    expect(content).toContain('Phase 08 + Auxiliary')
-    expect(content).toContain('Phase 01→02→04→06 完成后自动进入 Phase 08')
-    expect(content).toContain('/hx-mr user-login --project lehu/bffservice')
+    expect(content).toContain('config-utils.js')
+    expect(content).toContain('scan-project.js')
+    expect(content).toContain('render-rule-templates.js')
+    expect(content).toContain('不再有运行时 `profile`')
   })
 })

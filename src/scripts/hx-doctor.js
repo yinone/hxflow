@@ -5,9 +5,9 @@
  *
  * 检测内容：
  *   1. 运行环境（node 版本、hx 安装）
- *   2. 全局安装（~/.hx/profiles、Claude/Codex 适配层）
- *   3. 当前项目（.hx/config.yaml、需求/计划目录）
- *   4. Profile 健康（能否加载、gate_commands 是否配置）
+ *   2. 全局安装（~/.hx/commands、hooks、pipelines、Claude/Codex 适配层）
+ *   3. 当前项目（.hx/config.yaml、.hx/rules/*.md、需求/计划目录）
+ *   4. gate 健康（至少存在一个可执行 gate）
  */
 
 import { existsSync, readFileSync, readdirSync } from 'fs'
@@ -16,13 +16,16 @@ import { resolve } from 'path'
 import { createRequire } from 'module'
 
 import { FRAMEWORK_ROOT } from './lib/resolve-context.js'
+import { parseSimpleYaml } from './lib/config-utils.js'
+import {
+  DEFAULT_PLAN_DOC,
+  DEFAULT_PROGRESS_FILE,
+  DEFAULT_REQUIREMENT_DOC,
+  RULE_FILE_NAMES,
+  listConfiguredGates
+} from './lib/rule-context.js'
 
 const require = createRequire(import.meta.url)
-const DEFAULT_REQUIREMENT_DOC = 'docs/requirement/{feature}.md'
-const DEFAULT_PLAN_DOC = 'docs/plans/{feature}.md'
-const DEFAULT_PROGRESS_FILE = 'docs/plans/{feature}-progress.json'
-
-// ── 收集结果 ──────────────────────────────────────────────────────
 
 const issues = []
 const div = '─'.repeat(48)
@@ -31,8 +34,6 @@ function ok(msg)   { console.log(`  ✓ ${msg}`) }
 function fail(msg) { console.log(`  ✗ ${msg}`); issues.push(msg) }
 function warn(msg) { console.log(`  ⚠ ${msg}`) }
 function section(title) { console.log(`\n── ${title} ${div.slice(title.length + 4)}`) }
-
-// ── 环境 ──────────────────────────────────────────────────────────
 
 section('环境')
 
@@ -50,25 +51,22 @@ try {
   warn('无法读取版本信息')
 }
 
-// ── 全局安装 ──────────────────────────────────────────────────────
-
 section('全局安装')
 
-const HX_DIR     = resolve(homedir(), '.hx')
+const HX_DIR = resolve(homedir(), '.hx')
 const CLAUDE_DIR = resolve(homedir(), '.claude')
-const CODEX_DIR  = resolve(homedir(), '.codex')
+const CODEX_DIR = resolve(homedir(), '.codex')
 
-const requiredProfiles = ['base']
-for (const name of requiredProfiles) {
-  const p = resolve(FRAMEWORK_ROOT, 'profiles', name)
-  existsSync(p) ? ok(`profiles/${name}/`) : fail(`profiles/${name}/ 缺失（系统层损坏，检查 ${FRAMEWORK_ROOT}）`)
+for (const dirName of ['commands', 'hooks', 'pipelines']) {
+  const absolute = resolve(HX_DIR, dirName)
+  existsSync(absolute) ? ok(`~/.hx/${dirName}/`) : warn(`~/.hx/${dirName}/ 缺失`)
 }
 
 let hasAgentAdapter = false
 
 const claudeCommandsDir = resolve(CLAUDE_DIR, 'commands')
 if (existsSync(claudeCommandsDir)) {
-  const commands = readdirSync(claudeCommandsDir).filter(f => f.startsWith('hx-') && f.endsWith('.md'))
+  const commands = readdirSync(claudeCommandsDir).filter((file) => file.startsWith('hx-') && file.endsWith('.md'))
   if (commands.length > 0) {
     ok(`~/.claude/commands/（${commands.length} 个命令）`)
     hasAgentAdapter = true
@@ -94,8 +92,6 @@ if (!hasAgentAdapter) {
   fail('未检测到任何 agent 适配层，运行 hx setup 修复')
 }
 
-// ── 当前项目 ──────────────────────────────────────────────────────
-
 section('当前项目')
 
 const ROOT = process.cwd()
@@ -108,45 +104,42 @@ if (!existsSync(hxConfig)) {
 
   let config = {}
   try {
-    const { parseSimpleYaml } = await import('./lib/profile-utils.js')
     config = parseSimpleYaml(readFileSync(hxConfig, 'utf8'))
-    ok(`.hx/config.yaml · profile: ${config.defaultProfile || '未设置'}`)
+    ok(`.hx/config.yaml · schemaVersion: ${config.schemaVersion || '未设置'}`)
   } catch {
     fail('.hx/config.yaml 格式错误')
   }
 
-  // 项目文件检查
-  const projectFiles = collectProjectPaths(config)
-  for (const { path, label } of projectFiles) {
+  for (const { path, label } of collectProjectPaths(config)) {
     existsSync(resolve(ROOT, path))
       ? ok(label)
       : warn(`${label} 缺失`)
   }
 
-  // Profile 健康
-  if (config.defaultProfile) {
-    section(`Profile · ${config.defaultProfile}`)
-    try {
-      const { loadProfile } = await import('./lib/profile-utils.js')
-      const { buildProfileSearchRoots } = await import('./lib/resolve-context.js')
-      const profile = loadProfile(FRAMEWORK_ROOT, config.defaultProfile, {
-        searchRoots: buildProfileSearchRoots(ROOT)
-      })
-      ok(`${profile.profile} 加载正常`)
-
-      const gates = Object.entries(profile.gateCommands || {}).filter(([, v]) => v)
-      if (gates.length > 0) {
-        ok(`gate_commands: ${gates.map(([k]) => k).join(', ')}`)
-      } else {
-        warn('gate_commands 未配置，编辑 .hx/profiles/' + config.defaultProfile + '/profile.yaml')
-      }
-    } catch (err) {
-      fail(`Profile 加载失败: ${err.message}`)
+  for (const fileName of RULE_FILE_NAMES) {
+    const absolute = resolve(ROOT, '.hx', 'rules', fileName)
+    if (!existsSync(absolute)) {
+      fail(`.hx/rules/${fileName} 缺失`)
+      continue
     }
+
+    const content = readFileSync(absolute, 'utf8').trim()
+    if (content === '') {
+      fail(`.hx/rules/${fileName} 为空`)
+      continue
+    }
+
+    ok(`.hx/rules/${fileName}`)
+  }
+
+  section('Rules & Gates')
+  const gates = listConfiguredGates({ gates: config.gates || {} })
+  if (gates.length > 0) {
+    ok(`gates: ${gates.map(({ name }) => name).join(', ')}`)
+  } else {
+    fail('gates 未配置，编辑 .hx/config.yaml 的 gates 字段')
   }
 }
-
-// ── 结果 ──────────────────────────────────────────────────────────
 
 console.log(`\n${'─'.repeat(48)}`)
 if (issues.length === 0) {
@@ -163,6 +156,7 @@ function collectProjectPaths(config) {
     buildProjectPathCheck(config.paths?.requirementDoc || DEFAULT_REQUIREMENT_DOC),
     buildProjectPathCheck(config.paths?.planDoc || DEFAULT_PLAN_DOC),
     buildProjectPathCheck(config.paths?.progressFile || DEFAULT_PROGRESS_FILE),
+    { path: '.hx/rules', label: '.hx/rules/' },
     { path: '.claude/commands', label: '.claude/commands/' },
   ]
 

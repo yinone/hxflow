@@ -2664,7 +2664,7 @@
       <div class="wrap">
         <div class="sh-tag">关于 Harness</div>
         <h2 class="sh-title">什么是 Harness Engineering</h2>
-        <p class="sh-desc">Harness Engineering 是一套以 AI Agent 为核心执行者的软件工程方法论。在本仓库中，它被实现为一个 profile-driven workflow
+        <p class="sh-desc">Harness Engineering 是一套以 AI Agent 为核心执行者的软件工程方法论。在本仓库中，它被实现为一个 project-rules-driven workflow
           framework。工程师不再直接编写业务代码，而是通过结构化文档、架构约束和自动化流水线驱动 Agent 产出高质量代码。</p>
 
         <div class="rgrid" style="margin-top:32px">
@@ -3166,10 +3166,9 @@ AC: 组件自身无 API 调用，仅通过 onSubmit 暴露表单数据
                 最小执行上下文示例（以下使用默认目录举例，实际路径以 <code>paths.*</code> 为准）</div>
               <pre><span class="ck"># 当前执行需要的最小输入</span>
 
-<span class="cs">## Profile</span>
-→ .hx/config.yaml <span class="cm">（defaultProfile / paths）</span>
-→ src/profiles/base/golden-rules.md
-→ 当前 Profile 的 profile.yaml / golden-rules.md
+<span class="cs">## 配置与规则</span>
+→ .hx/config.yaml <span class="cm">（硬变量 / paths）</span>
+→ .hx/rules/golden-rules.md
 
 <span class="cs">## 文档</span>
 → docs/plans/auth-login-api.md <span class="cm">（TASK-BE-01 ~ 05，进行中）</span>
@@ -3742,7 +3741,7 @@ AC: 组件自身无 API 调用，仅通过 onSubmit 暴露表单数据
             <div class="codeblock gold" style="margin-top:24px">
               <div
                 style="font-family:var(--mono);font-size:10px;color:var(--txt3);margin-bottom:12px;letter-spacing:.1em">
-                黄金规则库示例 · src/profiles/base/golden-rules.md</div>
+                黄金规则库示例 · .hx/rules/golden-rules.md</div>
               <pre><span class="ck"># 黄金原则（Golden Principles）</span>
 <span class="cm"># 由团队共同维护，每条原则对应一个 Lint 规则</span>
 
@@ -3828,7 +3827,7 @@ AC: 组件自身无 API 调用，仅通过 onSubmit 暴露表单数据
 <span class="ck">/hx-mr user-login --project lehu/bffservice</span>
 
 <span class="cm"># 或在全自动流水线中自动执行</span>
-<span class="ck">/hx-go user-login --task 46474 --profile go-ddd</span>
+<span class="ck">/hx-go user-login --task 46474</span>
 <span class="cm"># → Phase 01→02→04→06 完成后自动进入 Phase 08</span>
 
 <span class="cm"># 如已安装 gitlab skill，可使用其提供的命令查看 MR 状态</span>
@@ -3877,7 +3876,7 @@ AC: 组件自身无 API 调用，仅通过 onSubmit 暴露表单数据
               <div class="wf-snum">✓</div>
               <div class="wf-stitle">质量校验</div>
               <div class="wf-sbody">按 Profile 执行对应门控命令；失败则停下等待修复</div>
-              <span class="wf-cmd">/hx-qa --profile &lt;name&gt;</span>
+              <span class="wf-cmd">/hx-qa</span>
             </div>
           </div>
 
@@ -3913,7 +3912,7 @@ AC: 组件自身无 API 调用，仅通过 onSubmit 暴露表单数据
               <div class="wf-snum">CTX</div>
               <div class="wf-stitle">执行前预检</div>
               <div class="wf-sbody">当 /hx-run 因输入不完整而停止时，额外运行 /hx-ctx 查看缺失项</div>
-              <span class="wf-cmd">/hx-ctx [feature-key] --profile &lt;name&gt;</span>
+              <span class="wf-cmd">/hx-ctx [feature-key]</span>
             </div>
             <div class="wf-step gate-s">
               <div class="wf-snum">RV</div>
@@ -4210,7 +4209,7 @@ compatibility: # 可选
 
 <span class="cs">## 前置条件</span>
 <span class="cm">在开始之前，先用 `view` 工具读取以下文件（如果存在）：
-- [依赖文档路径，如 src/profiles/base/golden-rules.md]</span>
+- [依赖文档路径，如 .hx/rules/golden-rules.md]</span>
 
 <span class="cs">## 执行步骤</span>
 
@@ -4317,8 +4316,8 @@ description: |
 <span class="ck"># PR Review Checklist 生成</span>
 
 <span class="cs">## 前置条件</span>
-<span class="cm">1. 读取 `src/profiles/base/golden-rules.md` 获取基础黄金规则
-2. 读取当前 Profile 的 `profile.yaml` 了解架构层级定义
+<span class="cm">1. 读取 `.hx/rules/golden-rules.md` 获取项目黄金规则
+2. 读取 `.hx/rules/*.md` 了解架构层级定义
 3. 判断 PR 类型：前端 / 后端 / 全栈</span>
 
 <span class="cs">## 执行步骤</span>
@@ -4563,7 +4562,7 @@ git log --since="14 days ago" --format="" --name-only \
           </div>
           <div class="pa-row opt-row">
             <div class="pa-label ex">⑤ 验收动作</div>
-            <div class="pa-content">「完成后运行 <code>/hx-qa --profile go-ddd</code>，所有检查通过后开 PR，并更新进度文件中 TASK-BE-03 状态为完成」
+            <div class="pa-content">「完成后运行 <code>/hx-qa</code>，所有检查通过后开 PR，并更新进度文件中 TASK-BE-03 状态为完成」
             </div>
             <div class="pa-note">告诉 Agent 「完成」的标准是什么，以及完成后做什么。没有这一步，Agent 不知道何时停止。</div>
           </div>
@@ -4608,10 +4607,10 @@ git log --since="14 days ago" --format="" --name-only \
 
 <span class="cm"># ⑤ 全局规范（始终引用，不要每次重写）</span>
 错误处理遵循 <span class="cv">docs/requirement/error-codes.md</span>
-日志字段遵循 <span class="cv">src/profiles/base/golden-rules.md</span> 中的 GP-BASE-002
+日志字段遵循 <span class="cv">.hx/rules/golden-rules.md</span> 中的 GP-BASE-002
 
 <span class="cm"># ⑥ 验收动作</span>
-完成后运行 <span class="ck">/hx-qa --profile {profile}</span>，全部通过后开 PR
+完成后运行 <span class="ck">/hx-qa</span>，全部通过后开 PR
 并将 <span class="cv">{TASK-ID}</span> 在 <span class="cv">{进度文件路径}</span> 中标记为「done」
 </pre>
           </div>
@@ -4643,7 +4642,7 @@ git log --since="14 days ago" --format="" --name-only \
 <span class="ck">修复要求：</span>
 - 不改变 <span class="cv">{不能动的接口/类型}</span> 的签名
 - 修复后写一个能复现此 Bug 的回归测试
-- 运行 <span class="ck">/hx-qa --profile {profile}</span> 确认测试通过后开 PR
+- 运行 <span class="ck">/hx-qa</span> 确认测试通过后开 PR
 
 <span class="cm"># 注意：不要写"我觉得问题是……"——让 Agent 自己读日志定位
   # 你的猜测可能是错的，会误导 Agent</span>
@@ -4766,8 +4765,8 @@ git log --since="14 days ago" --format="" --name-only \
   ---</span>
 
 <span class="ck">审查依据（必须读取后再审查）：</span>
-- <span class="cv">src/profiles/base/golden-rules.md</span>（基础黄金规则）
-- <span class="cv">当前 Profile 的 profile.yaml</span>（架构层级规则）
+- <span class="cv">.hx/rules/golden-rules.md</span>（项目黄金规则）
+- <span class="cv">.hx/rules/*.md</span>（其他项目架构规则）
 - <span class="cv">docs/requirement/error-codes.md</span>（错误码体系）
 
 <span class="ck">重点检查（AI 代码的常见失效模式）：</span>
@@ -4834,7 +4833,7 @@ git log --since="14 days ago" --format="" --name-only \
               <div class="anti-label bad">避免</div>只描述「做什么」，不说「做完后做什么」——Agent 不知道何时停止，容易持续修改或重复执行
             </div>
             <div class="anti-fix">
-              <div class="anti-label fix">替换为</div>「完成后运行 <code>/hx-qa --profile go-ddd</code>，全部通过后开 PR，并更新 TASK-XX
+              <div class="anti-label fix">替换为</div>「完成后运行 <code>/hx-qa</code>，全部通过后开 PR，并更新 TASK-XX
               进度为 done」
             </div>
           </div>
@@ -4926,7 +4925,7 @@ git log --since="14 days ago" --format="" --name-only \
           <div class="dd-col">
             <div class="dd-head do">✓ 会提升质量的写法</div>
             <div class="dd-body">
-              <span class="ok">「按照 TASK-BE-03，完成后 /hx-qa --profile go-ddd 通过」</span>
+              <span class="ok">「按照 TASK-BE-03，完成后 /hx-qa 通过」</span>
               <span class="cm">// 具体任务 + 具体验收，可复现</span>
 
               <span class="ok">「满足 AC-001、AC-002、AC-003」</span>

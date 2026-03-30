@@ -33,11 +33,3 @@ export function findProjectRoot(startDir) {
 
   return resolve(startDir || process.cwd())
 }
-
-/**
- * 构建 profile 查找根目录列表（优先级高→低）：
- *   <project>/.hx → ~/.hx → FRAMEWORK_ROOT
- */
-export function buildProfileSearchRoots(projectRoot) {
-  return [resolve(projectRoot, '.hx'), USER_HX_DIR, FRAMEWORK_ROOT]
-}

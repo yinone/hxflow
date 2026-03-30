@@ -32,7 +32,7 @@
   <a href="#schema"><span class="nav-num">E2</span><span>配置字段</span></a>
   <a href="#paths"><span class="nav-num">E3</span><span>路径模板</span></a>
   <a href="#hooks"><span class="nav-num">E4</span><span>Hook 配置</span></a>
-  <a href="#profiles"><span class="nav-num">E5</span><span>自定义 Profile</span></a>
+  <a href="#project-rules"><span class="nav-num">E5</span><span>项目规则</span></a>
   <a href="#compat"><span class="nav-num">E6</span><span>排错</span></a>
   <div class="nav-group">链接</div>
   <a href="harness-engineering-spec.html"><span class="nav-num">←</span><span>返回规范文档</span></a>
@@ -46,7 +46,7 @@
     <div class="hero-inner">
       <div class="hero-tag">HXFLOW · CONFIGURATION</div>
       <h1 class="hero-title">配置参考</h1>
-      <p class="hero-sub">说明配置入口、字段定义、合并策略、Hook 加载顺序和自定义 Profile 搜索路径。</p>
+      <p class="hero-sub">说明配置入口、字段定义、合并策略、Hook 加载顺序和项目规则文件。</p>
       <div class="hero-actions">
         <a class="btn-primary" href="#schema">字段定义</a>
         <a class="btn-ghost" href="hx-command-index.html">命令索引</a>
@@ -96,10 +96,13 @@
         <p class="section-desc">核心字段如下。</p>
         <div class="grid grid-2">
           <article class="card">
-            <div class="card-meta">string</div>
-            <h3 class="card-title"><code>defaultProfile</code></h3>
-            <p class="card-body">命令未显式传入 <code>--profile</code> 且无法自动推断时使用该值。</p>
-            <pre><code>defaultProfile: base</code></pre>
+            <div class="card-meta">object</div>
+            <h3 class="card-title"><code>gate_commands</code></h3>
+            <p class="card-body">定义质量门控命令，按 <code>lint → build → type → test</code> 顺序执行。只执行已定义的步骤。</p>
+            <pre><code>gate_commands:
+  lint: npm run lint
+  type: npm run type-check
+  test: npm run test</code></pre>
           </article>
           <article class="card">
             <div class="card-meta">object</div>
@@ -198,29 +201,28 @@ Pre Hook
       </div>
     </section>
 
-    <section id="profiles">
+    <section id="project-rules">
       <div class="wrap">
-        <div class="section-tag">Profiles</div>
-        <h2 class="section-title">自定义 Profile</h2>
-        <p class="section-desc">CLI 会在多个根目录中按顺序查找同名 Profile；框架内置只保留 <code>base</code>。</p>
-        <pre><code>&lt;project&gt;/.hx/profiles/&lt;name&gt;/
-~/.hx/profiles/&lt;name&gt;/
-框架内置 profiles/base/</code></pre>
+        <div class="section-tag">Project Rules</div>
+        <h2 class="section-title">项目规则</h2>
+        <p class="section-desc">项目规则以 Markdown 文件形式存放在 <code>.hx/rules/</code> 目录，由 <code>/hx-init</code> 生成骨架，团队手动编辑后永久保留。</p>
+        <pre><code>&lt;project&gt;/.hx/rules/golden-rules.md   ← 团队黄金原则
+&lt;project&gt;/.hx/rules/*.md             ← 其他专项规则文件</code></pre>
         <div class="grid grid-2">
           <article class="card">
-            <div class="card-meta">项目级</div>
-            <h3 class="card-title">项目级</h3>
-            <p class="card-body">在 <code>.hx/profiles/&lt;name&gt;/profile.yaml</code> 中创建，优先级最高。<code>extends: base</code> 表示继承基础规则。</p>
+            <div class="card-meta">初始化</div>
+            <h3 class="card-title">由 <code>/hx-init</code> 生成骨架</h3>
+            <p class="card-body"><code>/hx-init</code> 分析项目结构后，将 <code>src/templates/</code> 中的规则骨架渲染到 <code>.hx/rules/</code>。生成的文件分为自动区和手动区，以注释分隔。</p>
           </article>
           <article class="card">
-            <div class="card-meta">用户级</div>
-            <h3 class="card-title">用户级</h3>
-            <p class="card-body">在 <code>~/.hx/profiles/&lt;name&gt;/profile.yaml</code> 中创建，跨项目共享。</p>
+            <div class="card-meta">手动区永久保留</div>
+            <h3 class="card-title">手动区不会被覆盖</h3>
+            <p class="card-body">团队在手动区写入的规则内容，运行 <code>/hx-rules update</code> 时不会被覆盖；只有自动区会根据最新模板更新。</p>
           </article>
           <article class="card">
-            <div class="card-meta">框架内置</div>
-            <h3 class="card-title">系统层仅保留 <code>base</code></h3>
-            <p class="card-body">系统层只提供 <code>src/profiles/base/</code> 作为基础模板。团队差异应放在用户级或项目级自定义 Profile 中。</p>
+            <div class="card-meta">更新规则</div>
+            <h3 class="card-title">用 <code>/hx-rules update</code> 更新</h3>
+            <p class="card-body">框架升级后，可运行 <code>/hx-rules update</code> 刷新自动区内容，同时保留所有手动区定制。团队规则与框架版本解耦。</p>
           </article>
         </div>
       </div>
@@ -236,17 +238,17 @@ Pre Hook
             <div class="card-meta">有效入口</div>
             <h3 class="card-title">正式目录</h3>
             <pre><code>.hx/config.yaml
-.hx/profiles/
+.hx/rules/
 .hx/pipelines/</code></pre>
-            <p class="card-body">项目级配置、自定义 Profile 和项目级流水线覆盖均应位于此处。</p>
+            <p class="card-body">项目级配置、项目规则文件和项目级流水线覆盖均应位于此处。</p>
           </article>
           <article class="card">
             <div class="card-meta">Checklist</div>
             <h3 class="card-title">检查项</h3>
             <div class="note-list">
               <p>最终生效的是用户级还是项目级配置。</p>
-              <p>Profile / Hook 文件是否在被查找的根目录中。</p>
-              <p><code>paths.requirementDoc</code>、<code>paths.planDoc</code>、<code>defaultProfile</code> 与项目实际目录是否一致。</p>
+              <p>Hook 文件是否在被查找的根目录中。</p>
+              <p><code>paths.requirementDoc</code>、<code>paths.planDoc</code> 与项目实际目录是否一致。</p>
               <p>运行 <code>hx doctor</code> 快速检测所有配置问题。</p>
             </div>
           </article>

@@ -1,11 +1,6 @@
 import { existsSync, readFileSync } from 'fs'
-import { resolve } from 'path'
-
-const DEFAULT_PROFILE = 'base'
-const PROFILE_USAGE = '任意存在的 profile 名称（默认 base）'
 
 const SHORT_FLAGS = {
-  p: 'profile',
   t: 'target',
   y: 'yes',
   h: 'help',
@@ -61,162 +56,13 @@ export function parseArgs(argv) {
   return { positional, options }
 }
 
-export function parseProfileSpecifier(specifier) {
-  const raw = (specifier || '').trim()
-  if (!raw) {
-    return null
+export function readYamlFile(filePath, fallback = {}) {
+  if (!existsSync(filePath)) {
+    return fallback
   }
 
-  if (raw.includes('/') || raw.includes('\\') || raw === '.' || raw === '..') {
-    throw new Error(`无效的 profile: ${raw}。可用值: ${PROFILE_USAGE}`)
-  }
-
-  return {
-    profile: raw,
-    team: raw,
-    platform: null,
-    label: raw,
-    platformLabel: null
-  }
+  return parseSimpleYaml(readFileSync(filePath, 'utf8'))
 }
-
-/**
- * 加载 profile。
- *
- * @param {string}   frameworkRoot - 框架安装目录（内置 profiles）
- * @param {string}   specifier     - profile 标识符，如 "base"、"my-team"、"go-ddd"
- * @param {object}   [opts]
- * @param {string[]} [opts.searchRoots] - profile 查找根目录列表（优先级高→低），默认 [frameworkRoot]
- */
-export function loadProfile(frameworkRoot, specifier, opts = {}) {
-  const searchRoots = opts.searchRoots || [frameworkRoot]
-  const parsed = parseProfileSpecifier(specifier || DEFAULT_PROFILE)
-  if (!parsed) throw new Error(`缺少 profile。可用值: ${PROFILE_USAGE}`)
-
-  const teamRoot = findProfileRoot(searchRoots, parsed.team)
-  if (!teamRoot) {
-    throw new Error(`profile 文件不存在: profiles/${parsed.team}/profile.yaml`)
-  }
-
-  const teamDir = resolve(teamRoot, 'profiles', parsed.team)
-  const profilePath = resolve(teamDir, 'profile.yaml')
-  const teamConfig = loadProfileWithInheritance(frameworkRoot, parsed.team, new Set(), { searchRoots })
-
-  const platformConfig = {}
-  const platformPath = null
-  const merged = deepMerge(teamConfig, platformConfig)
-  const paths = merged.paths || {}
-  const layerPaths = merged.layer_paths || {}
-  const architecture = normaliseArchitecture(merged.architecture, paths, layerPaths)
-  const taskSplit = merged.task_split || { order: [], template: [] }
-  const taskPrefix = merged.task_prefix || teamConfig.task_prefix || ''
-  const profileName = parsed.profile
-  const baseRoot = searchRoots[searchRoots.length - 1]
-
-  return {
-    profile: profileName,
-    team: parsed.team,
-    platform: parsed.platform,
-    label: teamConfig.label || parsed.team,
-    platformLabel: platformConfig.label || parsed.platformLabel,
-    taskPrefix,
-    architecture,
-    taskSplit,
-    gateCommands: isPlainObject(merged.gate_commands) ? merged.gate_commands : {},
-    constraints: merged.constraints || [],
-    reviewExtra: merged.review_extra || [],
-    qa: merged.qa || {},
-    qaExtra: merged.qa_extra || [],
-    executionRules: merged.execution_rules || [],
-    commitFormat: merged.commit_format || '',
-    commitTypes: merged.commit_types || [],
-    paths,
-    docPath: merged.doc_path || null,
-    planPath: merged.plan_path || null,
-    taskDocPattern: merged.task_doc_pattern || null,
-    taskIdFormat: merged.task_id_format || null,
-    progressTracking: merged.progress_tracking !== false,
-    workflow: Array.isArray(merged.workflow) ? merged.workflow : null,
-    knowledgeBase: Array.isArray(merged.knowledge_base) ? merged.knowledge_base : [],
-    raw: merged,
-    files: {
-      profilePath,
-      platformPath,
-      teamDir,
-      requirementTemplatePath: resolve(teamDir, 'requirement-template.md'),
-      planTemplatePath: resolve(teamDir, 'plan-template.md'),
-      reviewChecklistPath: resolve(teamDir, 'review-checklist.md'),
-      goldenRulesPath: resolve(teamDir, 'golden-rules.md'),
-      baseGoldenRulesPath: resolve(baseRoot, 'profiles', 'base', 'golden-rules.md')
-    }
-  }
-}
-
-function findProfileRoot(searchRoots, profileName) {
-  for (const root of searchRoots) {
-    if (existsSync(resolve(root, 'profiles', profileName, 'profile.yaml'))) {
-      return root
-    }
-  }
-  return null
-}
-
-function loadProfileWithInheritance(frameworkRoot, profileName, visited = new Set(), opts = {}) {
-  const searchRoots = opts.searchRoots || [frameworkRoot]
-
-  if (visited.has(profileName)) {
-    throw new Error(`profile 循环继承检测: ${[...visited, profileName].join(' → ')}`)
-  }
-  visited.add(profileName)
-
-  const foundRoot = findProfileRoot(searchRoots, profileName)
-  if (!foundRoot) {
-    throw new Error(`profile 文件不存在: profiles/${profileName}/profile.yaml`)
-  }
-
-  const profileDir = resolve(foundRoot, 'profiles', profileName)
-  const config = parseSimpleYaml(readFileSync(resolve(profileDir, 'profile.yaml'), 'utf8'))
-  const parentName = config.extends
-
-  if (!parentName) return config
-
-  const parentConfig = loadProfileWithInheritance(frameworkRoot, parentName, visited, opts)
-  return deepMerge(parentConfig, config)
-}
-
-function normaliseArchitecture(architecture, paths, layerPaths) {
-  const layers = Array.isArray(architecture?.layers) ? architecture.layers : []
-  return {
-    ...(architecture || {}),
-    layers: layers.map((layer) => ({
-      ...layer,
-      path: layerPaths[layer.id] || replacePathPlaceholders(layer.path, paths)
-    }))
-  }
-}
-
-function replacePathPlaceholders(pathValue, paths) {
-  if (typeof pathValue !== 'string') return pathValue
-  return pathValue.replace(/\{(\w+)\}/g, (_, key) => paths[key] || `{${key}}`)
-}
-
-function deepMerge(baseValue, overrideValue) {
-  if (Array.isArray(baseValue) && Array.isArray(overrideValue)) return [...overrideValue]
-  if (!isPlainObject(baseValue) || !isPlainObject(overrideValue)) return overrideValue ?? baseValue
-
-  const result = { ...baseValue }
-  for (const [key, value] of Object.entries(overrideValue)) {
-    if (value === undefined) continue
-    result[key] = key in baseValue ? deepMerge(baseValue[key], value) : value
-  }
-  return result
-}
-
-function isPlainObject(value) {
-  return value != null && typeof value === 'object' && !Array.isArray(value)
-}
-
-// ── YAML 解析器 ──────────────────────────────────────────────────────────────
 
 export function parseSimpleYaml(content) {
   const lines = preprocessYaml(content)
@@ -250,6 +96,7 @@ function stripYamlComment(line) {
       if (index === 0 || /\s/.test(previous)) return line.slice(0, index).trimEnd()
     }
   }
+
   return line
 }
 
@@ -356,6 +203,7 @@ function findUnquotedColon(text) {
     if (char === '"' && !inSingle && previous !== '\\') { inDouble = !inDouble; continue }
     if (char === ':' && !inSingle && !inDouble) return index
   }
+
   return -1
 }
 
@@ -372,7 +220,7 @@ function parseScalar(value) {
   if (value === 'true') return true
   if (value === 'false') return false
   if (value === 'null') return null
-  if (/^-?\d+(?:\.\d+)?$/.test(value)) return Number(value)
+  if (/^-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?$/.test(value)) return Number(value)
   return value
 }
 
@@ -394,4 +242,8 @@ function splitInlineArray(value) {
 
   if (current) items.push(current)
   return items
+}
+
+function isPlainObject(value) {
+  return value != null && typeof value === 'object' && !Array.isArray(value)
 }

@@ -21,12 +21,14 @@
 
 ### 单元测试
 
-适合验证“稳定文本契约”和“纯函数逻辑”。
+适合验证”稳定文本契约”和”纯函数逻辑”。
 
-- `tests/unit/profile-utils.test.js`
-  - 参数解析、profile 加载、YAML 解析、继承与兜底逻辑
+- `tests/unit/config-utils.test.js`
+  - CLI 参数解析、YAML 解析（含完整 config.yaml 结构）
+- `tests/unit/rule-generation.test.js`
+  - `scanProject` → `deriveProjectFacts` → `renderRuleTemplates` 完整管道
 - `tests/unit/resolve-context.test.js`
-  - 项目根查找、三层 profile 查找根目录
+  - 项目根查找、框架根路径常量
 - `tests/unit/install-utils.test.js`
   - forwarder / Codex bundle 生成、命令 frontmatter 解析、安装产物结构
 - `tests/unit/pipeline-definition.test.js`
@@ -97,7 +99,8 @@ npm run hx:test:integration
 
 优先补：
 
-- `tests/unit/profile-utils.test.js`
+- `tests/unit/config-utils.test.js`
+- `tests/unit/rule-generation.test.js`
 - `tests/unit/resolve-context.test.js`
 - `tests/unit/install-utils.test.js`
 
@@ -150,7 +153,6 @@ npm run hx:test:integration
 
 ## 6. 当前测试网覆盖的高风险点
 
-- 自定义 profile 缺少 `label` 时的兜底
 - `hx uninstall` 清理全局安装产物但保留用户自定义内容
 - `hx-init` 项目脚手架要求不被删减
 - `hx-go` 默认主路径和阶段编号不漂移
@@ -167,7 +169,6 @@ npm run hx:test:integration
    - `npm pack --dry-run` 产物内容
    - `package.json.files` 白名单是否漏掉关键文件
 2. 更细的 fixture 场景
-   - 自定义 profile
    - 自定义 `paths.taskDoc`
    - 项目级 `CLAUDE.md` 标记块更新
 3. 文档发布面一致性

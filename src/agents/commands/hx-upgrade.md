@@ -49,7 +49,7 @@ hx upgrade $ARGUMENTS
 
 - 命令脚本不存在（`命令脚本不存在: ...`）
 - `hx setup` 内部抛出未预期异常（非网络/权限相关）
-- `install-utils.js` / `profile-utils.js` / `resolve-context.js` 中的模块加载错误
+- `install-utils.js` / `config-utils.js` / `rule-context.js` / `resolve-context.js` 中的模块加载错误
 - `buildHarnessBlock` / `parseSimpleYaml` 等内部函数抛出异常
 - 错误信息含有 Node.js 内部堆栈但无明确用户操作可修复
 

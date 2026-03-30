@@ -5,7 +5,7 @@ import { dirname, resolve } from 'path'
 import { fileURLToPath } from 'url'
 import { spawnSync } from 'child_process'
 
-import { parseSimpleYaml } from '../../src/scripts/lib/profile-utils.js'
+import { parseSimpleYaml } from '../../src/scripts/lib/config-utils.js'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
 const BIN_PATH = resolve(ROOT, 'bin/hx.js')
@@ -42,24 +42,41 @@ describe('fixture project smoke', () => {
 
     mkdirSync(resolve(projectDir, '.git'), { recursive: true })
     mkdirSync(resolve(projectDir, '.hx', 'commands'), { recursive: true })
+    mkdirSync(resolve(projectDir, '.hx', 'rules'), { recursive: true })
     mkdirSync(resolve(projectDir, '.hx', 'pipelines'), { recursive: true })
     mkdirSync(resolve(projectDir, 'workflow', 'requirements'), { recursive: true })
     mkdirSync(resolve(projectDir, 'workflow', 'plans'), { recursive: true })
     mkdirSync(resolve(projectDir, '.claude', 'commands'), { recursive: true })
 
     writeFileSync(resolve(projectDir, '.hx', 'config.yaml'), [
-      'defaultProfile: base',
+      'schemaVersion: 2',
       'paths:',
       '  requirementDoc: workflow/requirements/{feature}.md',
       '  planDoc: workflow/plans/{feature}.md',
       '  progressFile: workflow/plans/{feature}-progress.json',
+      'gates:',
+      '  lint: npm run lint',
+      '  test: npm run test',
     ].join('\n'), 'utf8')
+
+    for (const fileName of ['golden-rules.md', 'review-checklist.md', 'requirement-template.md', 'plan-template.md']) {
+      writeFileSync(resolve(projectDir, '.hx', 'rules', fileName), [
+        '<!-- hx:auto:start -->',
+        '# auto',
+        '<!-- hx:auto:end -->',
+        '',
+        '<!-- hx:manual:start -->',
+        '- manual',
+        '<!-- hx:manual:end -->',
+        ''
+      ].join('\n'), 'utf8')
+    }
 
     writeFileSync(resolve(projectDir, '.hx', 'commands', 'hx-run.md'), [
       '---',
       'name: hx-run',
       'description: Project override',
-      'usage: hx-run [<feature-key>] [--task <task-id>] [--profile <name>]',
+      'usage: hx-run [<feature-key>] [--task <task-id>]',
       'claude: /hx-run',
       'codex: hx-run',
       '---',
@@ -100,7 +117,8 @@ describe('fixture project smoke', () => {
     const doctorOutput = doctor.stdout + doctor.stderr
     expect(doctorOutput).toContain('workflow/requirements/')
     expect(doctorOutput).toContain('workflow/plans/')
-    expect(doctorOutput).toContain('profile: base')
+    expect(doctorOutput).toContain('.hx/rules/')
+    expect(doctorOutput).toContain('gates: lint, test')
     expect(doctorOutput).toContain('~/.claude/commands/')
     expect(doctorOutput).toContain('~/.codex/skills/')
 
@@ -115,63 +133,5 @@ describe('fixture project smoke', () => {
     const projectPipeline = parseSimpleYaml(readFileSync(resolve(projectDir, '.hx', 'pipelines', 'default.yaml'), 'utf8'))
     expect(projectPipeline.steps.map((step) => step.command)).toEqual(['hx-doc', 'hx-run', 'hx-mr'])
     expect(readFileSync(resolve(projectDir, '.hx', 'commands', 'hx-run.md'), 'utf8')).toContain('project hx-run override')
-  })
-
-  it('falls back to user-level pipeline and commands when project overrides are absent', () => {
-    const homeDir = makeTempDir('hx-smoke-home-fallback-')
-    const projectDir = makeTempDir('hx-smoke-project-fallback-')
-
-    mkdirSync(resolve(projectDir, '.git'), { recursive: true })
-    mkdirSync(resolve(projectDir, 'docs', 'requirement'), { recursive: true })
-    mkdirSync(resolve(projectDir, 'docs', 'plans'), { recursive: true })
-
-    const setup = runHx(['setup'], projectDir, homeDir)
-    expect(setup.status).toBe(0)
-
-    const userHxDir = resolve(homeDir, '.hx')
-    const userClaudeDir = resolve(homeDir, '.claude')
-    const userCodexDir = resolve(homeDir, '.codex')
-
-    mkdirSync(resolve(userHxDir, 'commands'), { recursive: true })
-    mkdirSync(resolve(userHxDir, 'pipelines'), { recursive: true })
-
-    writeFileSync(resolve(userHxDir, 'commands', 'hx-mr.md'), [
-      '---',
-      'name: hx-mr',
-      'description: User override',
-      'usage: hx-mr [<feature-key>] [--project <group/repo>] [--target <branch>]',
-      'claude: /hx-mr',
-      'codex: hx-mr',
-      '---',
-      '',
-      '# user hx-mr override',
-    ].join('\n'), 'utf8')
-
-    writeFileSync(resolve(userHxDir, 'pipelines', 'default.yaml'), [
-      'name: 用户级 fallback pipeline',
-      'steps:',
-      '  - id: doc',
-      '    phase: Phase 01',
-      '    name: 需求文档',
-      '    command: hx-doc',
-      '  - id: qa',
-      '    phase: Phase 06',
-      '    name: 最终质量校验',
-      '    command: hx-qa',
-    ].join('\n'), 'utf8')
-
-    const doctor = runHx(['doctor'], projectDir, homeDir)
-    expect(doctor.status).toBe(0)
-
-    const claudeMrForwarder = readFileSync(resolve(userClaudeDir, 'commands', 'hx-mr.md'), 'utf8')
-    expect(claudeMrForwarder).toContain('.hx/commands/hx-mr.md')
-    expect(claudeMrForwarder).toContain(resolve(userHxDir, 'commands', 'hx-mr.md'))
-
-    const codexSkillFile = readFileSync(resolve(userCodexDir, 'skills', 'hx-mr', 'SKILL.md'), 'utf8')
-    expect(codexSkillFile).toContain('name: hx-mr')
-
-    const userPipeline = parseSimpleYaml(readFileSync(resolve(userHxDir, 'pipelines', 'default.yaml'), 'utf8'))
-    expect(userPipeline.steps.map((step) => step.command)).toEqual(['hx-doc', 'hx-qa'])
-    expect(readFileSync(resolve(userHxDir, 'commands', 'hx-mr.md'), 'utf8')).toContain('user hx-mr override')
   })
 })

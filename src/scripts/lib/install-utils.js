@@ -9,7 +9,7 @@ export const SUPPORTED_AGENTS = ['claude', 'codex']
 export const DEFAULT_REQUIREMENT_DOC = 'docs/requirement/{feature}.md'
 export const DEFAULT_PLAN_DOC = 'docs/plans/{feature}.md'
 
-export function buildHarnessBlock(profile, opts = {}) {
+export function buildHarnessBlock(opts = {}) {
   const requirementDir = extractTemplateDir(
     opts.requirementDoc || DEFAULT_REQUIREMENT_DOC,
     'docs/requirement/'
@@ -25,7 +25,7 @@ export function buildHarnessBlock(profile, opts = {}) {
 本项目已启用 Harness Workflow Framework。
 
 - 配置: \`.hx/config.yaml\`
-- Profile: \`${profile}\`
+- 规则目录: \`.hx/rules/\`
 - 需求文档: \`${requirementDir}\`
 - 执行计划: \`${planDir}\`
 
@@ -160,7 +160,8 @@ const FORWARDER_DESCRIPTIONS = {
   'hx-qa':      'Phase 06 · 运行团队质量校验',
   'hx-clean':   'Phase 07 · 工程清理扫描',
   'hx-mr':      'Phase 08 · 输出 Merge Request 创建上下文',
-  'hx-init':    '初始化项目，分析结构，写入 .hx/config.yaml',
+  'hx-init':    '初始化项目，生成 .hx/config.yaml 与 .hx/rules/*.md',
+  'hx-rules':   '查看或更新项目规则事实',
   'hx-status':  '查看当前项目任务执行进度',
 }
 
