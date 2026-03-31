@@ -435,7 +435,7 @@ docs/guide/*.html             <span class="cm"># 面向团队的静态文档</sp
             <div class="timeline-step">A</div>
             <div>
               <div class="timeline-title">机器级：先装框架</div>
-              <div class="timeline-body">全局安装 npm 包后，先手动运行一次 <code>hx setup</code>。这一步会写入 <code>~/.hx/</code> 目录结构、<code>~/.hx/settings.yaml</code>，并把同一套 workflow skill 安装到目标 agent 的 skills 目录；所选 agents 会记录到 settings，供后续修复和重跑复用。</div>
+              <div class="timeline-body">全局安装 npm 包后，先手动运行一次 <code>hx setup</code>。这一步会写入 <code>~/.hx/</code> 目录结构、<code>~/.hx/settings.yaml</code>，并把同一套 workflow skill 安装到 <code>~/.claude/skills/</code> 与 <code>~/.agents/skills/</code>。</div>
             </div>
           </div>
           <div class="timeline-item">

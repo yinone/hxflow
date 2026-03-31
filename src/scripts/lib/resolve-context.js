@@ -21,11 +21,29 @@ export const PACKAGE_ROOT = resolve(__dirname, '../../..')
 export const USER_HX_DIR = resolve(homedir(), '.hx')
 
 /**
+ * 安全获取当前工作目录。
+ * 当进程启动后原 cwd 被删除时，process.cwd() 会抛 uv_cwd；这里降级到仍存在的目录。
+ */
+export function getSafeCwd(fallbackDir = homedir()) {
+  try {
+    return process.cwd()
+  } catch {
+    const initCwd = process.env.INIT_CWD
+    if (initCwd && existsSync(initCwd)) {
+      return resolve(initCwd)
+    }
+
+    return resolve(fallbackDir)
+  }
+}
+
+/**
  * 向上搜索项目根目录。
  * 优先找 .hx/config.yaml，最后找 .git（通用项目根标记）。
  */
 export function findProjectRoot(startDir) {
-  let dir = resolve(startDir || process.cwd())
+  const resolvedStartDir = resolve(startDir || getSafeCwd())
+  let dir = resolvedStartDir
   const root = resolve('/')
 
   while (dir !== root) {
@@ -34,5 +52,5 @@ export function findProjectRoot(startDir) {
     dir = dirname(dir)
   }
 
-  return resolve(startDir || process.cwd())
+  return resolvedStartDir
 }

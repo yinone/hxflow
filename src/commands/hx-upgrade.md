@@ -16,8 +16,7 @@ protected: true
    - 否则执行包管理器升级到最新版本
    - 传入 `--dry-run` 时仅输出计划
 2. 重跑安装逻辑：
-   - 补齐 `~/.hx/` 目录骨架，以及各 agent 的 skill 入口
-   - 优先复用 `~/.hx/settings.yaml` 中已记录的 agents；首次缺失时提示用户选择
+   - 补齐 `~/.hx/` 目录骨架，以及 `~/.claude/skills/`、`~/.agents/skills/`
    - 当前目录属于项目时，同步更新 `CLAUDE.md` / `AGENTS.md` 标记块
    - 传入 `--dry-run` 时仅输出计划
 3. 输出升级结果或 dry-run 计划。

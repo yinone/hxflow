@@ -1,5 +1,5 @@
 import { execFileSync, spawnSync } from 'child_process'
-import { mkdtempSync, rmSync, writeFileSync } from 'fs'
+import { mkdtempSync, rmSync } from 'fs'
 import { tmpdir } from 'os'
 import { resolve } from 'path'
 
@@ -33,15 +33,10 @@ describe('hx cli integration', () => {
     expect(runNode(['bin/hx.js', 'version'])).toMatch(/hx v\d+\.\d+\.\d+/)
   })
 
-  it('runs migrate against legacy settings and ignores deprecated agents', () => {
+  it('runs migrate with current default targets', () => {
     const userHxDir = createTempDir('hx-migrate-user-')
     const userClaudeDir = createTempDir('hx-migrate-claude-')
-
-    writeFileSync(
-      resolve(userHxDir, 'settings.yaml'),
-      'frameworkRoot: /legacy/framework\nagents: claude,qwen\n',
-      'utf8'
-    )
+    const userAgentsDir = createTempDir('hx-migrate-agents-')
 
     const result = spawnSync(
       process.execPath,
@@ -53,6 +48,8 @@ describe('hx cli integration', () => {
         userHxDir,
         '--user-claude-dir',
         userClaudeDir,
+        '--user-agents-dir',
+        userAgentsDir,
       ],
       {
         cwd: process.cwd(),
@@ -62,9 +59,47 @@ describe('hx cli integration', () => {
 
     expect(result.status).toBe(0)
     expect(result.stdout).toContain('Harness Workflow · migrate')
-    expect(result.stdout).toContain('source      → settings')
-    expect(result.stdout).toContain('agents      → claude')
-    expect(result.stdout).toContain('deprecated  → qwen')
+    expect(result.stdout).toContain('source      → default')
+    expect(result.stdout).toContain('targets     → claude, agents')
+  })
+
+  it('runs migrate when the original cwd has been removed', () => {
+    const userHxDir = createTempDir('hx-migrate-deleted-user-')
+    const userClaudeDir = createTempDir('hx-migrate-deleted-claude-')
+    const userAgentsDir = createTempDir('hx-migrate-deleted-agents-')
+    const removedCwd = createTempDir('hx-migrate-removed-cwd-')
+
+    const entryPath = resolve(process.cwd(), 'bin', 'hx.js')
+    const script = `
+      import { rmSync } from 'node:fs'
+      import { chdir } from 'node:process'
+      import { pathToFileURL } from 'node:url'
+
+      chdir(${JSON.stringify(removedCwd)})
+      rmSync(${JSON.stringify(removedCwd)}, { recursive: true, force: true })
+      process.argv = [
+        process.execPath,
+        ${JSON.stringify(entryPath)},
+        'migrate',
+        '--dry-run',
+        '--user-hx-dir',
+        ${JSON.stringify(userHxDir)},
+        '--user-claude-dir',
+        ${JSON.stringify(userClaudeDir)},
+        '--user-agents-dir',
+        ${JSON.stringify(userAgentsDir)},
+      ]
+      await import(pathToFileURL(${JSON.stringify(entryPath)}).href)
+    `
+
+    const result = spawnSync(process.execPath, ['--input-type=module', '-e', script], {
+      cwd: process.cwd(),
+      encoding: 'utf8',
+    })
+
+    expect(result.status).toBe(0)
+    expect(result.stdout).toContain('Harness Workflow · migrate')
+    expect(result.stdout).toContain('Harness Workflow · setup (dry-run)')
   })
 
   it('reports contract commands without executing local scripts', () => {

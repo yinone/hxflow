@@ -120,7 +120,7 @@
           <div class="callout info">
             <span class="icon">i</span>
             <div>
-              <strong>两类命令：</strong><code>hx</code> CLI 只保留 <code>setup</code> 和 <code>version</code>；<code>/hx-*</code> / <code>$hx-*</code> 是统一的 Agent skill 契约，由各 agent 的 skill 入口路由到框架实体执行。
+              <strong>两类命令：</strong><code>hx</code> CLI 只保留 <code>setup</code>、<code>migrate</code> 和 <code>version</code>；<code>/hx-*</code> / <code>$hx-*</code> 是统一的 Agent skill 契约，由 agent 的 skill 入口路由到框架实体执行。
             </div>
           </div>
         </div>
@@ -260,12 +260,13 @@
             <article class="card">
               <div class="card-meta">命令真源</div>
               <h3 class="card-title">入口和分发以 <code>bin/hx.js</code> 为准</h3>
-              <p class="card-body"><code>hx</code> CLI 只暴露 3 个内置命令（setup / migrate / version）；<code>/hx-*</code> 工作流命令由所选 agent 的 <code>skills</code> 入口路由到
+              <p class="card-body"><code>hx</code> CLI 只暴露 3 个内置命令（setup / migrate / version）；<code>/hx-*</code> 工作流命令由 agent 的 <code>skills</code> 入口路由到
                 <code>src/commands/</code> 实体文件执行。</p>
               <div class="path-strip">
                 <span class="pill">bin/hx.js</span>
                 <span class="pill">src/commands/</span>
                 <span class="pill">~/.claude/skills/</span>
+                <span class="pill">~/.agents/skills/</span>
               </div>
             </article>
             <article class="card">

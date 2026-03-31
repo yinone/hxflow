@@ -1,12 +1,10 @@
 #!/usr/bin/env node
 
-/** hx setup 只负责创建 ~/.hx 目录骨架、写 ~/.hx/settings.yaml，并生成各 agent 的 skill 入口。 */
+/** hx setup 只负责创建 ~/.hx 目录骨架、写 ~/.hx/settings.yaml，并生成 skill 入口。 */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
 import { homedir } from 'os'
 import { resolve } from 'path'
-import { createInterface } from 'readline/promises'
-import { stdin as input, stdout as output } from 'process'
 
 import { FRAMEWORK_ROOT, PACKAGE_ROOT } from './lib/resolve-context.js'
 import {
@@ -29,7 +27,7 @@ const { options } = parseArgs(process.argv.slice(2))
 
 await main()
 
-async function main() {
+function main() {
   if (options.help) {
     console.log(buildHelpText())
     process.exit(0)
@@ -41,24 +39,20 @@ async function main() {
     : resolve(homedir(), '.hx')
   const existingSettingsPath = resolve(userHxDir, USER_SETTINGS_FILE)
   const existingSettings = existsSync(existingSettingsPath) ? readFileSync(existingSettingsPath, 'utf8') : ''
-  const configuredAgents = readTopLevelYamlScalar(existingSettings, 'agents')
-  const agents = await resolveSetupAgents({ optionAgent: options.agent, configuredAgents })
+  const targets = resolveSetupAgents({ optionAgent: options.agent })
   const agentHomes = Object.fromEntries(
     SUPPORTED_AGENTS.map((agent) => {
-      const overrideKey = `user-${agent}-dir`
-      const target = options[overrideKey]
-        ? resolve(options[overrideKey], 'skills')
-        : resolve(homedir(), getAgentSkillDir(agent))
+      const target = resolveTargetDir(agent)
       return [agent, target]
     })
   )
 
   const summary = { created: [], updated: [], removed: [], skipped: [], warnings: [] }
 
-  printSetupHeader({ agents, dryRun, userHxDir, agentHomes })
+  printSetupHeader({ targets, dryRun, userHxDir, agentHomes })
 
   ensureUserLayerDirectories(userHxDir, summary, dryRun)
-  ensureUserSettingsFile(userHxDir, agents, summary, dryRun)
+  ensureUserSettingsFile(userHxDir, existingSettings, summary, dryRun)
 
   const frameworkCommandDir = resolve(FRAMEWORK_ROOT, 'commands')
   const userCommandDir = resolve(userHxDir, 'commands')
@@ -67,7 +61,7 @@ async function main() {
     loadCommandSpecs(userCommandDir)
   )
 
-  for (const agent of agents) {
+  for (const agent of targets) {
     generateSkillFilesForAgent(
       agent,
       commandSpecs,
@@ -82,59 +76,26 @@ async function main() {
   printSummary(summary, dryRun)
 }
 
-async function resolveSetupAgents({ optionAgent, configuredAgents }) {
+function resolveSetupAgents({ optionAgent }) {
   if (optionAgent) {
     return resolveAgentTargets(optionAgent)
   }
 
-  if (configuredAgents) {
-    return resolveAgentTargets(configuredAgents)
-  }
-
-  if ((!input.isTTY || !output.isTTY) && process.env.HX_SETUP_FORCE_PROMPT !== '1') {
-    return resolveAgentTargets('all')
-  }
-
-  return promptForAgents()
+  return resolveAgentTargets('all')
 }
 
-async function promptForAgents() {
-  console.log('\n  请选择要安装的 agents：\n')
-  SUPPORTED_AGENTS.forEach((agent, index) => {
-    console.log(`  ${index + 1}. ${agent}`)
-  })
-  console.log('\n  输入序号或名称，多个值用逗号分隔；直接回车默认安装全部。\n')
-
-  const rl = createInterface({ input, output })
-
-  try {
-    const answer = ((await rl.question('  > ')) || '').trim()
-    if (!answer) {
-      return resolveAgentTargets('all')
-    }
-
-    const resolved = answer
-      .split(',')
-      .map((item) => item.trim())
-      .filter(Boolean)
-      .map((item) => {
-        if (/^\d+$/.test(item)) {
-          const index = Number(item) - 1
-          const agent = SUPPORTED_AGENTS[index]
-          if (!agent) {
-            throw new Error(`无效的 agent 序号: ${item}`)
-          }
-          return agent
-        }
-        return item
-      })
-
-    return resolveAgentTargets(resolved.join(','))
-  } catch {
-    return resolveAgentTargets('all')
-  } finally {
-    rl.close()
+function resolveTargetDir(agent) {
+  if (agent === 'claude') {
+    return options['user-claude-dir']
+      ? resolve(options['user-claude-dir'], 'skills')
+      : resolve(homedir(), getAgentSkillDir('claude'))
   }
+
+  const sharedOverride = options['user-agents-dir']
+
+  return sharedOverride
+    ? resolve(sharedOverride, 'skills')
+    : resolve(homedir(), getAgentSkillDir('agents'))
 }
 
 function ensureUserLayerDirectories(userHxDir, summary, dryRun) {
@@ -147,9 +108,9 @@ function ensureUserLayerDirectories(userHxDir, summary, dryRun) {
   }
 }
 
-function ensureUserSettingsFile(userHxDir, agents, summary, dryRun) {
+function ensureUserSettingsFile(userHxDir, previousContent, summary, dryRun) {
   const userSettingsPath = resolve(userHxDir, USER_SETTINGS_FILE)
-  const settingsContent = buildUserSettingsContent(agents)
+  const settingsContent = buildUserSettingsContent()
 
   if (!existsSync(userSettingsPath)) {
     if (!dryRun) writeFileSync(userSettingsPath, settingsContent, 'utf8')
@@ -157,40 +118,35 @@ function ensureUserSettingsFile(userHxDir, agents, summary, dryRun) {
     return
   }
 
-  const previousContent = readFileSync(userSettingsPath, 'utf8')
   const existingFrameworkRoot = readTopLevelYamlScalar(previousContent, 'frameworkRoot')
-
-  const existingAgents = readTopLevelYamlScalar(previousContent, 'agents')
-  const nextAgents = agents.join(',')
-
-  if (existingFrameworkRoot === PACKAGE_ROOT && existingAgents === nextAgents) {
+  if (existingFrameworkRoot === PACKAGE_ROOT && !previousContent.includes('\nagents:')) {
     summary.skipped.push('~/.hx/settings.yaml (已存在)')
     return
   }
 
   let nextContent = upsertTopLevelYamlScalar(previousContent, 'frameworkRoot', PACKAGE_ROOT)
-  nextContent = upsertTopLevelYamlScalar(nextContent, 'agents', nextAgents)
+  nextContent = nextContent.replace(/^agents:.*\n?/m, '')
+  if (!nextContent.endsWith('\n')) nextContent += '\n'
   if (!dryRun) writeFileSync(userSettingsPath, nextContent, 'utf8')
-  summary.updated.push('~/.hx/settings.yaml (frameworkRoot / agents)')
+  summary.updated.push('~/.hx/settings.yaml (frameworkRoot)')
 }
 
-function buildUserSettingsContent(agents) {
+function buildUserSettingsContent() {
   return [
     '# Harness Workflow 用户级配置',
     `frameworkRoot: ${PACKAGE_ROOT}`,
-    `agents: ${agents.join(',')}`,
     '',
   ].join('\n')
 }
 
-function printSetupHeader({ agents, dryRun, userHxDir, agentHomes }) {
+function printSetupHeader({ targets, dryRun, userHxDir, agentHomes }) {
   const lines = [
     `\n  Harness Workflow · setup${dryRun ? ' (dry-run)' : ''}`,
-    `  agents      → ${agents.join(', ')}`,
+    `  targets     → ${targets.join(', ')}`,
     `  ~/.hx/      → ${userHxDir}`,
   ]
 
-  for (const agent of agents) {
+  for (const agent of targets) {
     lines.push(`  ${agent.padEnd(11)}→ ${agentHomes[agent]}`)
   }
 
@@ -216,29 +172,27 @@ function printSummary(summary, dryRun) {
 
 function buildHelpText() {
   return `
-  用法: hx setup [--dry-run]
+  用法: hx setup [--dry-run] [--agent <claude|agents|all>]
 
   选项:
-        --user-<agent>-dir <dir>
-                        覆盖对应 agent 的安装根目录，例如 --user-gemini-dir /tmp/gemini
+        --agent <name>  可选，仅安装 claude、agents 或 all（默认）
+        --user-claude-dir <dir>
+                        覆盖 Claude Code 的安装根目录
+        --user-agents-dir <dir>
+                        覆盖通用 agent 的安装根目录
         --dry-run       仅显示将要安装的内容，不实际写入
     -h, --help          显示帮助
 
   将框架文件安装到用户全局目录：
     ~/.hx/              用户层目录骨架（commands/、hooks/、pipelines/）
-    ~/.hx/settings.yaml 用户级配置（记录 frameworkRoot / agents）
+    ~/.hx/settings.yaml 用户级配置（记录 frameworkRoot）
     ~/.claude/skills/   Claude skill 目录（默认）
-    ~/.codex/skills/    Codex skill 目录（默认）
-    ~/.cursor/skills/   Cursor skill 目录（默认）
-    ~/.gemini/skills/   Gemini skill 目录（默认）
-    ~/.kimi/skills/     Kimi skill 目录（默认）
-    ~/.windsurf/skills/ Windsurf skill 目录（默认）
+    ~/.agents/skills/   其他 agent 共用的 skill 目录（默认）
 
-  首次无记录时会列出 agent 清单供用户选择。
   hx setup 用于首次安装、手动修复、补装或重跑安装逻辑。
 
   注意：不会把框架内置 skill、Hook、Pipeline 复制到 ~/.hx/ 下。
-  hx setup 会安装同一套 workflow skill 到目标 agent 的 skills 目录。
+  hx setup 会安装同一套 workflow skill 到 ~/.claude/skills/ 与 ~/.agents/skills/。
   业务侧自定义 skill 仍由用户自行管理。
 
   安装后，在 Agent 会话中运行 hx-init 初始化项目。

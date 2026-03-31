@@ -19,7 +19,7 @@ import {
   loadCommandSpecs,
   mergeCommandSpecs,
 } from '../src/scripts/lib/install-utils.js'
-import { USER_HX_DIR, findProjectRoot } from '../src/scripts/lib/resolve-context.js'
+import { USER_HX_DIR, findProjectRoot, getSafeCwd } from '../src/scripts/lib/resolve-context.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const SCRIPTS_DIR = resolve(__dirname, '..', 'src', 'scripts')
@@ -29,7 +29,8 @@ const BUILTIN_SCRIPTS = {
   setup: 'hx-setup.js',
   migrate: 'hx-migrate.js',
 }
-const projectRoot = findProjectRoot(process.cwd())
+const runtimeCwd = getSafeCwd()
+const projectRoot = findProjectRoot(runtimeCwd)
 const installedCommandSpecs = mergeCommandSpecs(
   loadCommandSpecs(FRAMEWORK_COMMAND_DIR),
   loadCommandSpecs(resolve(USER_HX_DIR, 'commands')),

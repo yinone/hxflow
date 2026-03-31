@@ -36,7 +36,7 @@ describe('hx setup integration', () => {
   it('creates user skeleton, settings, and skill entries', () => {
     const userHxDir = createTempDir('hx-user-')
     const userClaudeDir = createTempDir('hx-claude-')
-    const userCodexDir = createTempDir('hx-codex-')
+    const userAgentsDir = createTempDir('hx-agents-')
 
     const output = runNode([
       'src/scripts/hx-setup.js',
@@ -44,27 +44,27 @@ describe('hx setup integration', () => {
       userHxDir,
       '--user-claude-dir',
       userClaudeDir,
-      '--user-codex-dir',
-      userCodexDir,
-    ], { input: '1,2\n', env: { HX_SETUP_FORCE_PROMPT: '1' } })
+      '--user-agents-dir',
+      userAgentsDir,
+    ])
 
     expect(output).toContain('Harness Workflow · setup')
     expect(existsSync(resolve(userHxDir, 'commands'))).toBe(true)
     expect(existsSync(resolve(userHxDir, 'hooks'))).toBe(true)
     expect(existsSync(resolve(userHxDir, 'pipelines'))).toBe(true)
     expect(readFileSync(resolve(userHxDir, 'settings.yaml'), 'utf8')).toContain(`frameworkRoot: ${process.cwd()}`)
-    expect(readFileSync(resolve(userHxDir, 'settings.yaml'), 'utf8')).toContain('agents: claude,codex')
+    expect(readFileSync(resolve(userHxDir, 'settings.yaml'), 'utf8')).not.toContain('agents:')
     expect(readFileSync(resolve(userClaudeDir, 'skills', 'hx-doc', 'SKILL.md'), 'utf8')).toContain('hx-skill: hx-doc')
-    expect(readFileSync(resolve(userCodexDir, 'skills', 'hx-doc', 'SKILL.md'), 'utf8')).toContain('hx-skill: hx-doc')
+    expect(readFileSync(resolve(userAgentsDir, 'skills', 'hx-doc', 'SKILL.md'), 'utf8')).toContain('hx-skill: hx-doc')
   })
 
   it('prunes stale skill entries for commands removed from the framework', () => {
     const userHxDir = createTempDir('hx-user-stale-')
     const userClaudeDir = createTempDir('hx-claude-stale-')
-    const userCodexDir = createTempDir('hx-codex-stale-')
+    const userAgentsDir = createTempDir('hx-agents-stale-')
     const staleClaudeSkillDir = resolve(userClaudeDir, 'skills', 'hx-setup')
     const staleClaudeSkill = resolve(staleClaudeSkillDir, 'SKILL.md')
-    const staleSkillDir = resolve(userCodexDir, 'skills', 'hx-setup')
+    const staleSkillDir = resolve(userAgentsDir, 'skills', 'hx-setup')
     const staleSkill = resolve(staleSkillDir, 'SKILL.md')
 
     mkdirSync(staleClaudeSkillDir, { recursive: true })
@@ -78,13 +78,13 @@ describe('hx setup integration', () => {
       userHxDir,
       '--user-claude-dir',
       userClaudeDir,
-      '--user-codex-dir',
-      userCodexDir,
-    ], { input: '1,2\n', env: { HX_SETUP_FORCE_PROMPT: '1' } })
+      '--user-agents-dir',
+      userAgentsDir,
+    ])
 
     expect(output).toContain('删除:')
     expect(output).toContain('~/.claude/skills/hx-setup/')
-    expect(output).toContain('~/.codex/skills/hx-setup/')
+    expect(output).toContain('~/.agents/skills/hx-setup/')
     expect(existsSync(staleClaudeSkill)).toBe(false)
     expect(existsSync(staleSkill)).toBe(false)
   })
@@ -92,70 +92,60 @@ describe('hx setup integration', () => {
   it('supports dry-run without writing files', () => {
     const userHxDir = createTempDir('hx-user-dry-')
     const userClaudeDir = createTempDir('hx-claude-dry-')
-    const userCodexDir = createTempDir('hx-codex-dry-')
+    const userAgentsDir = createTempDir('hx-agents-dry-')
 
     const output = runNode([
       'src/scripts/hx-setup.js',
-      '--agent',
-      'claude,codex',
       '--dry-run',
       '--user-hx-dir',
       userHxDir,
       '--user-claude-dir',
       userClaudeDir,
-      '--user-codex-dir',
-      userCodexDir,
+      '--user-agents-dir',
+      userAgentsDir,
     ])
 
     expect(output).toContain('[dry-run] 未实际写入。')
     expect(existsSync(resolve(userHxDir, 'settings.yaml'))).toBe(false)
     expect(existsSync(resolve(userClaudeDir, 'skills', 'hx-doc', 'SKILL.md'))).toBe(false)
-    expect(existsSync(resolve(userCodexDir, 'skills', 'hx-doc', 'SKILL.md'))).toBe(false)
+    expect(existsSync(resolve(userAgentsDir, 'skills', 'hx-doc', 'SKILL.md'))).toBe(false)
   })
 
-  it('installs the same workflow skill into additional agent directories', () => {
-    const userHxDir = createTempDir('hx-user-gemini-')
-    const userGeminiDir = createTempDir('hx-gemini-')
+  it('supports installing only the shared agent target', () => {
+    const userHxDir = createTempDir('hx-user-agents-')
+    const userAgentsDir = createTempDir('hx-agents-only-')
 
     const output = runNode([
       'src/scripts/hx-setup.js',
       '--agent',
-      'gemini',
+      'agents',
       '--user-hx-dir',
       userHxDir,
-      '--user-gemini-dir',
-      userGeminiDir,
+      '--user-agents-dir',
+      userAgentsDir,
     ])
 
-    expect(output).toContain('agents      → gemini')
-    expect(readFileSync(resolve(userGeminiDir, 'skills', 'hx-doc', 'SKILL.md'), 'utf8')).toContain('hx-skill: hx-doc')
+    expect(output).toContain('targets     → agents')
+    expect(readFileSync(resolve(userAgentsDir, 'skills', 'hx-doc', 'SKILL.md'), 'utf8')).toContain('hx-skill: hx-doc')
   })
 
-  it('reuses agents from settings when --agent is omitted', () => {
-    const userHxDir = createTempDir('hx-user-settings-')
-    const userGeminiDir = createTempDir('hx-gemini-settings-')
-
-    runNode([
-      'src/scripts/hx-setup.js',
-      '--agent',
-      'gemini',
-      '--user-hx-dir',
-      userHxDir,
-      '--user-gemini-dir',
-      userGeminiDir,
-    ])
-
-    rmSync(resolve(userGeminiDir, 'skills', 'hx-doc'), { recursive: true, force: true })
+  it('installs claude and shared agent targets by default', () => {
+    const userHxDir = createTempDir('hx-user-defaults-')
+    const userClaudeDir = createTempDir('hx-claude-defaults-')
+    const userAgentsDir = createTempDir('hx-agents-defaults-')
 
     const output = runNode([
       'src/scripts/hx-setup.js',
       '--user-hx-dir',
       userHxDir,
-      '--user-gemini-dir',
-      userGeminiDir,
+      '--user-claude-dir',
+      userClaudeDir,
+      '--user-agents-dir',
+      userAgentsDir,
     ])
 
-    expect(output).toContain('agents      → gemini')
-    expect(readFileSync(resolve(userGeminiDir, 'skills', 'hx-doc', 'SKILL.md'), 'utf8')).toContain('hx-skill: hx-doc')
+    expect(output).toContain('targets     → claude, agents')
+    expect(readFileSync(resolve(userClaudeDir, 'skills', 'hx-doc', 'SKILL.md'), 'utf8')).toContain('hx-skill: hx-doc')
+    expect(readFileSync(resolve(userAgentsDir, 'skills', 'hx-doc', 'SKILL.md'), 'utf8')).toContain('hx-skill: hx-doc')
   })
 })

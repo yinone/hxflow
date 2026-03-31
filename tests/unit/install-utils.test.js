@@ -36,10 +36,10 @@ describe('install-utils', () => {
   it('resolves agent targets and rejects invalid values', () => {
     expect(resolveAgentTargets()).toEqual(SUPPORTED_AGENTS)
     expect(resolveAgentTargets('claude')).toEqual(['claude'])
-    expect(resolveAgentTargets('gemini,kimi')).toEqual(['gemini', 'kimi'])
-    expect(resolveAgentTargets('cursor,windsurf')).toEqual(['cursor', 'windsurf'])
-    expect(resolveAgentTargets('codex,claude,codex')).toEqual(['codex', 'claude'])
+    expect(resolveAgentTargets('agents')).toEqual(['agents'])
+    expect(resolveAgentTargets('claude,agents,claude')).toEqual(['claude', 'agents'])
     expect(() => resolveAgentTargets('claude,unknown')).toThrow('无效的 agent')
+    expect(() => resolveAgentTargets('codex')).toThrow('无效的 agent')
   })
 
   it('loads command specs from frontmatter and merges with protected precedence', () => {
@@ -135,7 +135,7 @@ describe('install-utils', () => {
     expect(protectedCodexSkill).toContain(`\`${frameworkRoot}/commands/hx-init.md\``)
     expect(protectedCodexSkill).not.toContain('/tmp/hx-user/commands/hx-init.md')
     expect(summary.created).toContain('~/.claude/skills/hx-doc/SKILL.md')
-    expect(codexSummary.created).toContain('~/.codex/skills/hx-doc/SKILL.md')
+    expect(codexSummary.created).toContain('~/.agents/skills/hx-doc/SKILL.md')
   })
 
   it('skips writing unchanged skill files', () => {
@@ -173,7 +173,7 @@ describe('install-utils', () => {
     generateCodexSkillFiles(specs, codexDir, frameworkRoot, userHxDir, codexSummary, { createDir: true })
 
     expect(claudeSummary.removed).toContain('~/.claude/skills/hx-setup/')
-    expect(codexSummary.removed).toContain('~/.codex/skills/hx-setup/')
+    expect(codexSummary.removed).toContain('~/.agents/skills/hx-setup/')
     expect(() => readFileSync(resolve(targetDir, 'hx-setup', 'SKILL.md'), 'utf8')).toThrow()
     expect(() => readFileSync(resolve(codexDir, 'hx-setup', 'SKILL.md'), 'utf8')).toThrow()
   })
@@ -190,6 +190,6 @@ describe('install-utils', () => {
     const geminiSkill = readFileSync(resolve(targetDir, 'hx-doc', 'SKILL.md'), 'utf8')
     expect(geminiSkill).toContain('hx-skill: hx-doc')
     expect(geminiSkill).toContain('`<项目根>/.hx/commands/hx-doc.md`')
-    expect(summary.created).toContain('~/.gemini/skills/hx-doc/SKILL.md')
+    expect(summary.created).toContain('~/.agents/skills/hx-doc/SKILL.md')
   })
 })

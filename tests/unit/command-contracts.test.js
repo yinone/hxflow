@@ -158,7 +158,7 @@ describe('command contracts', () => {
     expect(hxGo).toContain('src/commands/resolution.md')
     expect(resolution).toContain('`protected: true` 的 skill 只允许读取框架层实体文件。')
     expect(resolution).toContain('~/.claude/skills/*/SKILL.md')
-    expect(resolution).toContain('~/.codex/skills/*/SKILL.md')
+    expect(resolution).toContain('~/.agents/skills/*/SKILL.md')
   })
 
   it('keeps the main-chain parameter model aligned', () => {

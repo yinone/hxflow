@@ -16,7 +16,7 @@ protected: true
    - `~/.hx/settings.yaml`
    - `~/.hx/commands/`、`~/.hx/hooks/`、`~/.hx/pipelines/`
    - `~/.claude/skills/hx-*/SKILL.md`
-   - `~/.codex/skills/hx-*/SKILL.md`
+   - `~/.agents/skills/hx-*/SKILL.md`
 2. 检查当前项目：
    - 项目根下 `.hx/config.yaml`
    - `.hx/rules/*.md`

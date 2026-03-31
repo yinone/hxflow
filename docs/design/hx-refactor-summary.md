@@ -50,7 +50,8 @@
 
 - 框架内置实体仍在 `src/commands/`
 - 用户层和项目层覆盖仍在 `~/.hx/commands/`、`.hx/commands/`
-- 各 agent 的入口统一安装到各自的 `skills` 目录
+- Claude Code 入口安装到 `~/.claude/skills/`
+- 其他 agent 入口统一安装到 `~/.agents/skills/`
 
 也就是：
 
@@ -66,44 +67,47 @@
 
 不同 agent 的差异只保留在目标目录，不再保留模板分叉。
 
-### 2.3 支持的 agent
+### 2.3 适配边界
 
-当前保留的 agent：
+当前只保留两类适配入口：
 
 - `claude`
-- `codex`
-- `cursor`
-- `gemini`
-- `kimi`
-- `windsurf`
-
-`qwen` 已移除。
+- `agents`
 
 ## 3. setup 行为重构
 
-### 3.1 交互选择 agent
+### 3.1 固定安装入口
 
 `hx setup` 的安装行为改成：
 
-- 首次执行时列出 agent 清单供用户选择
-- 支持多选
-- 直接回车表示全选
-- 已有配置时默认复用历史选择
+- 默认安装到 `~/.claude/skills/` 与 `~/.agents/skills/`
+- 不再出现 agent 候选列表
+- 需要时可用 `--agent` 仅安装单个入口
 
 ### 3.2 settings 持久化
 
-用户选择的 agent 会记录到：
+安装状态记录在：
 
 - `~/.hx/settings.yaml`
 
-当前至少保存：
+当前只保存：
 
 - `frameworkRoot`
-- `agents`
 
-后续修复、补装、升级默认复用这份选择。
+适配层入口固定为：
 
-### 3.3 去掉 postinstall 自动安装
+- `~/.claude/skills/`
+- `~/.agents/skills/`
+
+### 3.3 migrate 边界
+
+`hx migrate` 只用于把 1.x / 2.x 的旧安装产物迁到当前模型。
+
+- 默认重建 `claude` 和 `agents` 两个入口
+- 通过重跑 `hx setup` 清理遗留的 `agents` 配置字段
+- 不负责兼容旧的独立 agent 目录模型
+
+### 3.4 去掉 postinstall 自动安装
 
 安装链从“自动 postinstall”改成“手动执行 setup”。
 
@@ -179,7 +183,7 @@ Hook 公共规范已收敛为抽象接口。
 测试同步做了几类调整：
 
 - 安装工具单测更新为通用 agent 列表与统一目录生成规则
-- `hx-setup` 集成测试覆盖交互选择、settings 复用、dry-run 和新增 agent
+- `hx-setup` 集成测试覆盖固定入口安装、dry-run 和共享目录生成
 - 删除 `hx-postinstall` 集成测试
 - 文档一致性测试补充：
   - 不再公开强调 `--agent`

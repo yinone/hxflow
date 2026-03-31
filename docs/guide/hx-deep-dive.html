@@ -135,11 +135,11 @@
         </div>
         <div class="callout info">
           <span class="icon">i</span>
-          <div><strong>配置边界：</strong><code>~/.hx/settings.yaml</code> 只保存用户级安装设置和已选择的 agents；项目运行时配置以 <code>.hx/config.yaml</code> 为准。commands / pipelines 仍按项目层 → 用户层 → 框架层覆盖解析，hooks 按固定顺序串行执行。</div>
+          <div><strong>配置边界：</strong><code>~/.hx/settings.yaml</code> 只保存用户级安装设置；项目运行时配置以 <code>.hx/config.yaml</code> 为准。commands / pipelines 仍按项目层 → 用户层 → 框架层覆盖解析，hooks 按固定顺序串行执行。</div>
         </div>
         <div class="callout info">
           <span class="icon">i</span>
-          <div><strong>入口机制：</strong>所选 agent 都通过各自的 <code>skills</code> 目录运行同一套 <code>hx-*</code> workflow skill，例如 <code>~/.claude/skills/</code>、<code>~/.codex/skills/</code>、<code>~/.cursor/skills/</code>。最终都按项目层 → 用户层 → 系统层的顺序读取同一套实体文件。</div>
+          <div><strong>入口机制：</strong>Claude Code 通过 <code>~/.claude/skills/</code> 运行；其他 agent 统一通过 <code>~/.agents/skills/</code> 运行。最终都按项目层 → 用户层 → 系统层的顺序读取同一套实体文件。</div>
         </div>
       </div>
     </section>

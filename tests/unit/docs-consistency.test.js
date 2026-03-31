@@ -41,6 +41,7 @@ describe('docs consistency', () => {
     expect(configReference).toContain('~/.hx/settings.yaml')
     expect(configReference).toContain('.hx/config.yaml')
     expect(guide).toContain('~/.claude/skills/')
+    expect(guide).toContain('~/.agents/skills/')
     expect(guide).not.toContain('~/.claude/commands/')
     expect(commandIndex).not.toContain('hx setup [--agent')
   })

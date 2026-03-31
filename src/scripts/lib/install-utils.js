@@ -1,12 +1,12 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'fs'
 import { basename, resolve } from 'path'
 
-export const SUPPORTED_AGENTS = ['claude', 'codex', 'cursor', 'gemini', 'kimi', 'windsurf']
+export const SUPPORTED_AGENTS = ['claude', 'agents']
 export const BUILTIN_CLI_COMMANDS = ['setup', 'migrate', 'version']
 const TEMPLATE_CACHE = new Map()
 
 export function getAgentSkillDir(agent) {
-  return `.${agent}/skills`
+  return agent === 'claude' ? '.claude/skills' : '.agents/skills'
 }
 
 export function resolveAgentTargets(agentOption) {

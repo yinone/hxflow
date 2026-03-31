@@ -1,5 +1,27 @@
 # Changelog
 
+## 3.1.0 - 2026-03-31
+
+### Changed
+
+- `hx setup` 不再出现 agent 候选列表，默认直接安装当前模型。
+- 安装入口收敛为两类固定目标：
+  - `~/.claude/skills/`
+  - `~/.agents/skills/`
+- 只有 `claude` 保留单独入口，其他 agent 统一并入 `agents`。
+- `~/.hx/settings.yaml` 现在只记录 `frameworkRoot`，不再写入 `agents`。
+- `hx migrate` 改为旧版本迁移命令，只负责把 `1.x / 2.x` 安装产物迁到当前模型。
+- `hx migrate` 默认重建 `claude + agents`，不再兼容旧的独立 agent 目录选择逻辑。
+- CLI 在当前工作目录已被删除时，仍可安全执行 `hx migrate` / `hx setup`。
+- README、guide、design 文档已同步到新的安装与迁移模型。
+
+### Validation
+
+- `npm run hx:test`
+- `npm pack --dry-run --cache /tmp/hx-npm-cache`
+- `8` 个测试文件通过
+- `33` 个测试通过
+
 ## 3.0.0 - 2026-03-31
 
 ### Changed

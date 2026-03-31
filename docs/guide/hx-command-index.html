@@ -76,8 +76,8 @@
               </tr>
             </thead>
             <tbody>
-              <tr class="grp-install"><td><span class="command-name">hx setup</span></td><td><span class="badge cli">CLI</span></td><td><span class="grp-text-install">安装与维护</span></td><td>手动重跑安装，修复 ~/.hx/ 与各 agent 的 skill 入口</td></tr>
-              <tr class="grp-install"><td><span class="command-name">hx migrate</span></td><td><span class="badge cli">CLI</span></td><td><span class="grp-text-install">安装与维护</span></td><td>迁移老版本安装产物并重跑 setup</td></tr>
+              <tr class="grp-install"><td><span class="command-name">hx setup</span></td><td><span class="badge cli">CLI</span></td><td><span class="grp-text-install">安装与维护</span></td><td>手动重跑安装，修复 ~/.hx/、~/.claude/skills/ 与 ~/.agents/skills/</td></tr>
+              <tr class="grp-install"><td><span class="command-name">hx migrate</span></td><td><span class="badge cli">CLI</span></td><td><span class="grp-text-install">安装与维护</span></td><td>将 1.x / 2.x 安装产物迁移到当前模型</td></tr>
               <tr class="grp-install"><td><span class="command-name">hx version</span></td><td><span class="badge cli">CLI</span></td><td><span class="grp-text-install">安装与维护</span></td><td>输出 CLI 版本</td></tr>
               <tr class="grp-init"><td><span class="command-name">/hx-init</span></td><td><span class="badge claude-cmd">Claude</span></td><td><span class="grp-text-init">项目初始化</span></td><td>分析项目结构，写入 .hx/config.yaml，注入 CLAUDE.md 标记块</td></tr>
               <tr class="grp-install"><td><span class="command-name">/hx-upgrade</span></td><td><span class="badge claude-cmd">Claude</span></td><td><span class="grp-text-install">安装与维护</span></td><td>升级框架并同步安装产物</td></tr>
@@ -110,11 +110,11 @@
             <div class="card-meta">Setup</div>
             <h3 class="card-title"><code class="command-name">hx setup</code></h3>
             <div class="command-syntax">hx setup [--dry-run]</div>
-            <p class="card-body">手动重跑安装逻辑，修复各 agent 的 skill 入口，初始化 ~/.hx/ 目录结构。</p>
+            <p class="card-body">手动重跑安装逻辑，修复固定的 skill 入口，初始化 ~/.hx/ 目录结构。</p>
             <div class="note-list">
               <p>会创建 <code>~/.hx/</code>（commands/、hooks/、pipelines/）目录结构。</p>
-              <p>首次无配置时会直接列出 agent 清单让用户选择；同一套 workflow skill 会安装到所选 agent 的 <code>skills</code> 目录，例如 <code>~/.claude/skills/</code>、<code>~/.codex/skills/</code>、<code>~/.cursor/skills/</code>。</p>
-              <p><code>~/.hx/settings.yaml</code> 不存在时创建，写入 frameworkRoot 和已选择的 agents；后续修复默认复用这份记录。</p>
+              <p>同一套 workflow skill 会固定安装到两个入口：<code>~/.claude/skills/</code> 与 <code>~/.agents/skills/</code>。</p>
+              <p><code>~/.hx/settings.yaml</code> 不存在时创建，只写入 frameworkRoot；后续修复直接按当前模型重跑。</p>
               <p>安装后需要先手动运行一次 <code>hx setup</code>；后续则主要用于修复或补装。</p>
             </div>
           </article>
@@ -122,11 +122,11 @@
             <div class="card-meta">Migrate</div>
             <h3 class="card-title"><code class="command-name">hx migrate</code></h3>
             <div class="command-syntax">hx migrate [--dry-run]</div>
-            <p class="card-body">迁移老版本安装产物到当前模型，再重跑 <code>hx setup</code>。</p>
+            <p class="card-body">将 1.x / 2.x 安装产物迁移到当前模型。</p>
             <div class="note-list">
-              <p>优先读取 <code>~/.hx/settings.yaml</code> 中已有的 agents。</p>
-              <p>若旧配置包含已废弃 agent，会自动忽略并继续迁移。</p>
-              <p>若缺少 settings，会尝试根据现有安装痕迹推断 agents。</p>
+              <p>优先使用显式传入的目标入口。</p>
+              <p>未指定目标时，默认迁移 <code>claude</code> 与 <code>agents</code> 两个入口。</p>
+              <p>迁移时会重跑 <code>hx setup</code>，按当前模型重建入口并清理遗留安装字段。</p>
             </div>
           </article>
           <article class="card command-card">

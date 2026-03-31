@@ -132,14 +132,13 @@ hx setup</code></pre>
           <article class="card">
             <div class="card-meta">资源写入</div>
             <h3 class="card-title">安装链写入目录</h3>
-            <pre><code>~/.hx/settings.yaml
+<pre><code>~/.hx/settings.yaml
 ~/.hx/commands/
 ~/.hx/hooks/
 ~/.hx/pipelines/
-~/.claude/skills/       ← agent skill 入口之一
-~/.codex/skills/
-~/.cursor/skills/       ← 其他 agent 同理</code></pre>
-            <p class="card-body">npm 安装会自动补齐这些入口；<code>hx setup</code> 首次会列出 agent 清单供用户选择，后续修复默认复用 <code>~/.hx/settings.yaml</code> 中记录的 agents。运行时仍按三层优先级路由到实体 command 文件。</p>
+~/.claude/skills/       ← Claude Code 专用入口
+~/.agents/skills/       ← 其他 agent 共用入口</code></pre>
+            <p class="card-body">运行 <code>hx setup</code> 会补齐这些入口。运行时仍按三层优先级路由到实体 command 文件。</p>
           </article>
         </div>
       </div>

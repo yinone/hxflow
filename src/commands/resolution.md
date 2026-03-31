@@ -25,7 +25,7 @@
 
 - `hx setup` 会根据这份规则生成：
   - `~/.claude/skills/*/SKILL.md`
-  - `~/.codex/skills/*/SKILL.md`
+  - `~/.agents/skills/*/SKILL.md`
 - 这些文件只负责把 skill 请求转发到最终命中的实体文件。
 - 适配层不承载 skill 业务逻辑。
 
