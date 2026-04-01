@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, wri
 import { basename, resolve } from 'path'
 
 export const SUPPORTED_AGENTS = ['claude', 'agents']
-export const BUILTIN_CLI_COMMANDS = ['setup', 'migrate', 'version']
+export const BUILTIN_CLI_COMMANDS = ['setup', 'migrate', 'version', 'cmd']
 const TEMPLATE_CACHE = new Map()
 
 export function getAgentSkillDir(agent) {
@@ -230,7 +230,7 @@ function buildAgentArtifactContent(spec, frameworkRoot, userHxDir) {
   return renderTemplate(template, {
     name: spec.name,
     description: spec.description,
-    runtimePath: resolve(frameworkRoot, 'commands', 'global-runtime.md'),
+    runtimePath: resolve(frameworkRoot, 'contracts', 'runtime-contract.md'),
     systemPath: resolve(frameworkRoot, 'commands', `${spec.name}.md`),
     userCommandPath: resolve(userHxDir, 'commands', `${spec.name}.md`),
   })

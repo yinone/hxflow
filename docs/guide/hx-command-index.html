@@ -219,11 +219,12 @@
             <div class="card-meta">Run（Claude）</div>
             <h3 class="card-title"><code class="command-name">/hx-run</code></h3>
             <div class="command-syntax">/hx-run [&lt;feature&gt;] [--plan-task &lt;TASK-ID&gt;]</div>
-            <p class="card-body">默认执行当前需求下的全部 pending 任务；<code>--plan-task</code> 仅用于高级模式。</p>
+            <p class="card-body">默认执行当前需求下所有依赖已满足的 pending 任务；<code>--plan-task</code> 仅用于高级模式。</p>
             <div class="note-list">
               <p>从 <code>.hx/config.yaml</code> 的 paths.* 字段读取需求文档、执行计划和进度文件路径。</p>
               <p>省略 <code>feature</code> 时，会优先从当前需求/计划上下文自动续接。</p>
-              <p>默认按计划顺序逐任务推进，并在每个任务完成后自动更新 progress。</p>
+              <p>默认先按依赖关系选择 runnable task；同一依赖层内若都标记允许并行，可交给多个子 agent 并发推进。</p>
+              <p>执行完成后，会再新开一个质量复查子 agent，主动寻找边界条件、异常分支、回归风险和验证不足。</p>
               <p>需要调试、重试或断点恢复时，再传 <code>--plan-task</code> 下钻到单个计划任务。</p>
             </div>
           </article>
@@ -233,8 +234,8 @@
             <div class="command-syntax">/hx-go [&lt;feature&gt;] [--from &lt;step-id&gt;]</div>
             <p class="card-body">全自动流水线，默认串起主路径；项目级 pipeline 可插入 review、clean 等辅助步骤。</p>
             <div class="note-list">
-              <p>按 <code>src/pipelines/README.md</code> 的公共规则读取 pipeline YAML（项目层 → 用户层 → 框架层），按步骤驱动执行。</p>
-              <p><code>--from &lt;step-id&gt;</code> 支持从指定步骤恢复（如 <code>--from run</code> 跳过 doc/plan）。</p>
+              <p>按 <code>src/contracts/resolution-contract.md</code> 解析 pipeline 来源，并按 <code>src/contracts/pipeline-contract.md</code> 的结构规则驱动执行。</p>
+              <p><code>--from &lt;step-id&gt;</code> 支持从指定步骤恢复（如 <code>--from run</code> 跳过 doc/plan）；未传时会按耐久产物自动判断恢复起点。</p>
               <p><code>run</code> 步骤默认执行整个需求；需要下钻单任务时应直接使用 <code>/hx-run --plan-task ...</code>。</p>
               <p>默认主路径为 <code>doc -&gt; plan -&gt; run -&gt; qa -&gt; mr</code>；更多步骤由 pipeline 覆盖控制。</p>
               <p>默认主路径只保留文档与计划两个确认点，后续可由项目级 pipeline 自行追加。</p>

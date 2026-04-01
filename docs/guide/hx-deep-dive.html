@@ -135,7 +135,7 @@
         </div>
         <div class="callout info">
           <span class="icon">i</span>
-          <div><strong>配置边界：</strong><code>~/.hx/settings.yaml</code> 只保存用户级安装设置；项目运行时配置以 <code>.hx/config.yaml</code> 为准。所有命令先继承 <code>src/commands/global-runtime.md</code>，再按项目层 → 用户层 → 框架层解析 commands / pipelines，并按固定顺序执行 hooks。</div>
+          <div><strong>配置边界：</strong><code>~/.hx/settings.yaml</code> 只保存用户级安装设置；项目运行时配置以 <code>.hx/config.yaml</code> 为准。所有命令先继承 <code>src/contracts/runtime-contract.md</code>，再按 <code>src/contracts/resolution-contract.md</code> 解析 commands / pipelines，并按固定顺序执行 hooks。</div>
         </div>
         <div class="callout info">
           <span class="icon">i</span>
@@ -200,7 +200,7 @@ hooks:
   - pre
   - post
 ---</code></pre>
-            <p class="card-body">只有命令 frontmatter 声明了 <code>hooks</code>，运行时才会按 <code>pre_run.md</code> / <code>post_run.md</code> 组装 Hook 链。<code>pre</code> 顺序为框架层 → 用户层 → 项目层，<code>post</code> 顺序相反。</p>
+            <p class="card-body">只有命令 frontmatter 声明了 <code>hooks</code>，运行时才会按 <code>pre_run.md</code> / <code>post_run.md</code> 组装 Hook 链。<code>pre</code> 顺序为框架层 → 用户层 → 项目层，<code>post</code> 顺序相反。主路径里像 <code>hx-doc</code>、<code>hx-plan</code>、<code>hx-run</code> 的强制复查步骤属于命令正文的一部分，不依赖项目 Hook 是否存在。</p>
           </article>
         </div>
       </div>
@@ -239,7 +239,7 @@ hooks:
       <div class="wrap">
         <div class="section-tag">Progress</div>
         <h2 class="section-title">计划与进度</h2>
-        <p class="section-desc">多个命令依赖 paths.progressFile 模板对应的 progress JSON 进行状态推断。</p>
+        <p class="section-desc">多个命令依赖 paths.progressFile 模板对应的 progress JSON 进行状态推断；文件同时承载 task 依赖与并行调度元数据。</p>
         <div class="grid grid-2">
           <article class="card">
             <div class="card-meta">计划生成</div>
@@ -248,11 +248,13 @@ hooks:
           </article>
           <article class="card">
             <div class="card-meta">状态流转</div>
-            <h3 class="card-title">任务状态至少涉及这些值</h3>
+            <h3 class="card-title">任务状态与调度字段</h3>
             <pre><code>pending
 in-progress
-done</code></pre>
-            <p class="card-body">任务状态默认由 <code>/hx-run</code> 自动更新；<code>/hx-ctx</code> 只在需要排错时单独使用。</p>
+done
+dependsOn: string[]
+parallelizable: boolean</code></pre>
+            <p class="card-body">任务状态默认由 <code>/hx-run</code> 自动更新；只有 <code>dependsOn</code> 全部满足的 pending task 才算 runnable。同一依赖层内若都允许并行，才可交给多个子 agent 并发处理。</p>
           </article>
         </div>
         <div class="foot-nav">

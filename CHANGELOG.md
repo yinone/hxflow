@@ -4,8 +4,8 @@
 
 ### Changed
 
-- 新增 `src/commands/global-runtime.md` 作为所有 `hx-*` 命令共享的全局运行规则入口。
-- 生成的 skill 入口现在会先加载全局运行规则，再执行具体命令正文。
+- 新增 `src/contracts/runtime-contract.md` 作为所有 `hx-*` 命令共享的运行时规则入口。
+- 生成的 skill 入口现在会先加载运行时规则，再执行具体命令正文。
 - `hx-go` 与命令契约文案收敛为“命令只负责业务步骤，不重复定义 command / hook / pipeline 规则”。
 - README 与 guide 文档同步到新的全局规则模型。
 

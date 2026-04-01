@@ -80,7 +80,7 @@
             <pre><code>项目级 commands/hooks/pipelines
 → 用户级 commands/hooks/pipelines
 → 框架内置资源</code></pre>
-            <p class="card-body">所有命令先继承 <code>src/commands/global-runtime.md</code>；<code>commands / pipelines</code> 命中即停止；<code>hooks</code> 不覆盖，而是按固定顺序组成中间件链；<code>~/.hx/settings.yaml</code> 不参与项目配置合并。</p>
+            <p class="card-body">所有命令先继承 <code>src/contracts/runtime-contract.md</code>；实体解析顺序统一看 <code>src/contracts/resolution-contract.md</code>；<code>hooks</code> 不覆盖，而是按固定顺序组成中间件链；<code>~/.hx/settings.yaml</code> 不参与项目配置合并。</p>
           </article>
         </div>
         <div class="callout info">
@@ -175,7 +175,7 @@ hooks:
 ~/.hx/hooks/post_run.md
 src/hooks/pre_run.md
 src/hooks/post_run.md</code></pre>
-            <p class="card-body">命名规则见 <code>src/hooks/README.md</code>。同名 Hook 可在三层同时存在，并按固定顺序串行执行。</p>
+            <p class="card-body">命名规则见 <code>src/contracts/hook-contract.md</code>。同名 Hook 可在三层同时存在，并按固定顺序串行执行。</p>
           </article>
         </div>
         <pre><code>启用逻辑:

@@ -1,6 +1,9 @@
 <!-- hx:auto:start -->
 # Golden Rules
 
+> Rules Version:
+> Updated At:
+
 ## 项目事实
 
 - 技术栈: {{projectFacts.techStack}}

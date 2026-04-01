@@ -28,18 +28,19 @@ const PACKAGE_JSON_PATH = resolve(__dirname, '..', 'package.json')
 const BUILTIN_SCRIPTS = {
   setup: 'hx-setup.js',
   migrate: 'hx-migrate.js',
+  cmd: 'hx-cmd.js',
 }
 const runtimeCwd = getSafeCwd()
 const projectRoot = findProjectRoot(runtimeCwd)
-const installedCommandSpecs = mergeCommandSpecs(
-  loadCommandSpecs(FRAMEWORK_COMMAND_DIR),
-  loadCommandSpecs(resolve(USER_HX_DIR, 'commands')),
-  loadCommandSpecs(resolve(projectRoot, '.hx', 'commands'))
-)
+const frameworkSpecs = loadCommandSpecs(FRAMEWORK_COMMAND_DIR)
+const userSpecs = loadCommandSpecs(resolve(USER_HX_DIR, 'commands'))
+const projectSpecs = loadCommandSpecs(resolve(projectRoot, '.hx', 'commands'))
+const installedCommandSpecs = mergeCommandSpecs(frameworkSpecs, userSpecs, projectSpecs)
 const installedCommandNames = new Set(installedCommandSpecs.map((spec) => spec.name))
 
 function printHelp() {
-  const contractList = formatCommandList(installedCommandSpecs.map((spec) => spec.name))
+  const frameworkContractList = formatCommandList(frameworkSpecs.map((spec) => spec.name))
+  const customSections = buildCustomCommandSections()
 
   console.log(`
   Harness Workflow CLI
@@ -49,25 +50,39 @@ function printHelp() {
   内置命令:
     setup     手动重跑全局安装/修复 ~/.hx 与各 agent skill 入口
     migrate   执行老版本安装产物迁移并重跑 setup
+    cmd       管理自定义命令（new / list / validate / remove）
     version   输出当前 CLI 版本
 
-  自定义工作流:
-    共享命令放在 ~/.hx/commands/hx-*.md，执行 hx setup 后生成适配层
-    项目级 .hx/commands/hx-*.md 只负责覆盖同名 contract
-    Claude 使用 /hx-*；Codex 使用 hx-*；除 setup / migrate / version 外，其余 hx-* 都不是本地 Node 子命令
-
-  当前可见命令 contract:
-${contractList}
-
+  框架工作流命令 contract:
+${frameworkContractList}
+${customSections}
   全局选项:
     --help    显示帮助
 
   示例:
     npm install -g @hxflow/cli
     hx setup                     # 首次安装或手动修复安装产物
+    hx cmd new deploy            # 创建自定义命令
+    hx cmd list                  # 列出所有自定义命令
     hx migrate                   # 从老版本安装产物迁移到当前模型
     hx version                   # 查看版本
   `)
+}
+
+function buildCustomCommandSections() {
+  const lines = []
+
+  if (projectSpecs.length > 0) {
+    lines.push(`  项目级自定义命令 (.hx/commands/):`)
+    lines.push(formatCommandList(projectSpecs.map((spec) => spec.name)))
+  }
+
+  if (userSpecs.length > 0) {
+    lines.push(`  用户级自定义命令 (~/.hx/commands/):`)
+    lines.push(formatCommandList(userSpecs.map((spec) => spec.name)))
+  }
+
+  return lines.length > 0 ? lines.join('\n') + '\n' : ''
 }
 
 function printVersion() {

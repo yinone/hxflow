@@ -205,7 +205,7 @@ CLAUDE.md / AGENTS.md          ← 注入 harness 标记块
             <div class="timeline-step">03</div>
             <div>
               <div class="timeline-title">执行需求</div>
-              <div class="timeline-body">执行 <code>/hx-run</code>，按计划顺序完成当前需求下的全部 pending 任务；命令会先自动完成当前需求的执行前预检。仅在调试/恢复单个计划任务时才传 <code>--plan-task</code>。</div>
+              <div class="timeline-body">执行 <code>/hx-run</code>，优先处理依赖已满足的 pending 任务；同一依赖层内若都允许并行，可交给多个子 agent 并发推进。命令会先自动完成当前需求的执行前预检。仅在调试/恢复单个计划任务时才传 <code>--plan-task</code>。</div>
             </div>
           </div>
           <div class="timeline-item">
@@ -307,12 +307,28 @@ $hx-go
 
 <span class="cg"># docs/plans/user-login-progress.json</span>
 {
-  “feature”: “user-login”,
-  “tasks”: [
-    { “id”: “TASK-BE-01”, “status”: “pending” }
+  "feature": "user-login",
+  "requirementDoc": "docs/requirement/user-login.md",
+  "planDoc": "docs/plans/user-login.md",
+  "createdAt": "2026-04-01T10:00:00+08:00",
+  "updatedAt": "2026-04-01T10:00:00+08:00",
+  "completedAt": null,
+  "lastRun": null,
+  "tasks": [
+    {
+      "id": "TASK-BE-01",
+      "name": "新增手机号登录接口",
+      "status": "pending",
+      "dependsOn": [],
+      "parallelizable": false,
+      "output": "",
+      "startedAt": null,
+      "completedAt": null,
+      "durationSeconds": null
+    }
   ]
 }</code></pre>
-            <p class="card-body">所以读到这些字段时可以直接这样理解：<code>feature</code> 说明”这是哪个需求”，执行规则由 <code>.hx/rules/</code> 中的项目规则文件统一决定。</p>
+            <p class="card-body">所以读到这些字段时可以直接这样理解：<code>feature</code> 说明“这是哪个需求”，<code>dependsOn</code> 定义 task 依赖，<code>parallelizable</code> 定义同一依赖层内是否允许并行执行。</p>
           </article>
         </div>
         <div class="callout info">

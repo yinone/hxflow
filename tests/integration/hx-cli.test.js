@@ -120,6 +120,6 @@ describe('hx cli integration', () => {
 
     expect(result.status).toBe(1)
     expect(result.stderr).toContain('未知命令: unknown-command')
-    expect(result.stderr).toContain('当前 CLI 仅直接执行: setup, migrate, version')
+    expect(result.stderr).toContain('当前 CLI 仅直接执行: setup, migrate, version, cmd')
   })
 })

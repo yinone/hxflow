@@ -168,7 +168,7 @@
               <div class="timeline-step">2</div>
               <div>
                 <div class="timeline-title">需求文档</div>
-                <div class="timeline-body"><code>/hx-doc</code> 创建需求文档；命令会基于当前需求上下文整理需求内容并生成项目内稳定的 <code>feature</code>，正常情况下不需要你手动处理。
+                <div class="timeline-body"><code>/hx-doc</code> 创建需求文档；命令会基于当前需求上下文整理需求内容并生成项目内稳定的 <code>feature</code>。产出后会再新开一个子 agent 复查需求事实、验收标准和头部元信息，主 agent 修正后再输出。
                 </div>
               </div>
             </div>
@@ -177,14 +177,14 @@
               <div>
                 <div class="timeline-title">执行计划</div>
                 <div class="timeline-body"><code>/hx-plan [&lt;feature&gt;]</code> 生成任务拆分和 progress
-                  JSON；若省略 feature，会优先从当前需求文档自动续接。需要排查输入问题时，可额外运行 <code>/hx-ctx</code> 做当前需求的预检诊断。</div>
+                  JSON；若省略 feature，会优先从当前需求文档自动续接。计划和进度初始化后会再新开一个子 agent 复查 TASK 拆分、验收标准以及 <code>dependsOn / parallelizable</code> 是否合理。需要排查输入问题时，可额外运行 <code>/hx-ctx</code> 做当前需求的预检诊断。</div>
               </div>
             </div>
             <div class="timeline-item">
               <div class="timeline-step">4</div>
               <div>
                 <div class="timeline-title">任务执行</div>
-                <div class="timeline-body"><code>/hx-run [&lt;feature&gt;] [--plan-task &lt;TASK-ID&gt;]</code> 默认按计划顺序执行整个需求下的 pending 任务；只在调试或恢复时才传 <code>--plan-task</code> 下钻到单任务。</div>
+                <div class="timeline-body"><code>/hx-run [&lt;feature&gt;] [--plan-task &lt;TASK-ID&gt;]</code> 默认先按 task 依赖关系选择 runnable task；同一依赖层内若都允许并行，可交给多个子 agent 并行处理，否则按计划顺序串行执行。执行结束后还会再新开一个质量复查子 agent 主动寻找边界条件、异常分支和回归风险。只在调试或恢复时才传 <code>--plan-task</code> 下钻到单任务。</div>
               </div>
             </div>
             <div class="timeline-item">
@@ -207,7 +207,7 @@
             <span class="icon">i</span>
             <div>
               <strong>一键模式：</strong><code>/hx-go [&lt;feature&gt;]</code> 读取 pipeline YAML
-              驱动默认主路径（<code>doc -> plan -> run -> qa -> mr</code>），支持 <code>--from &lt;step-id&gt;</code> 从指定阶段恢复。
+              驱动默认主路径（<code>doc -> plan -> run -> qa -> mr</code>），支持 <code>--from &lt;step-id&gt;</code> 从指定阶段恢复；未显式传入 <code>--from</code> 时，会按耐久产物自动判断最早未完成 step。
             </div>
           </div>
           <div class="callout tip">
@@ -272,7 +272,7 @@
             <article class="card">
               <div class="card-meta">配置真源</div>
               <h3 class="card-title">三层配置有固定解析顺序</h3>
-              <p class="card-body">项目层（<code>.hx/</code>）→ 用户层（<code>~/.hx/</code>）→ 系统层（框架内置）。全局规则入口是 <code>src/commands/global-runtime.md</code>；commands / pipelines 取第一个存在的文件；hooks 按固定顺序串行执行；<code>~/.hx/settings.yaml</code> 只保存安装级设置。</p>
+              <p class="card-body">项目层（<code>.hx/</code>）→ 用户层（<code>~/.hx/</code>）→ 系统层（框架内置）。运行时规则入口是 <code>src/contracts/runtime-contract.md</code>；实体解析顺序统一看 <code>src/contracts/resolution-contract.md</code>；hooks 按固定顺序串行执行；<code>~/.hx/settings.yaml</code> 只保存安装级设置。</p>
               <div class="path-strip">
                 <span class="pill">.hx/</span>
                 <span class="pill">~/.hx/</span>

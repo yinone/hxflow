@@ -1,6 +1,6 @@
 # Harness Workflow 默认流水线
 #
-# 覆盖顺序与命名规则见 src/pipelines/README.md。
+# 覆盖顺序与命名规则见 src/contracts/pipeline-contract.md。
 #
 # 结构约束：
 #   顶层必须包含 name 和 steps

@@ -28,6 +28,13 @@
   }
 ,
   {
+    "name": "hx-command-slimming",
+    "path": "docs/design/hx-command-slimming.md",
+    "type": "md",
+    "category": "docs/design"
+  }
+,
+  {
     "name": "hx-extensibility",
     "path": "docs/design/hx-extensibility.md",
     "type": "md",
@@ -102,20 +109,6 @@
     "path": "docs/guide/hx-quickstart.html",
     "type": "html",
     "category": "docs/guide"
-  }
-,
-  {
-    "name": "README",
-    "path": "src/commands/README.md",
-    "type": "md",
-    "category": "src/commands"
-  }
-,
-  {
-    "name": "global-runtime",
-    "path": "src/commands/global-runtime.md",
-    "type": "md",
-    "category": "src/commands"
   }
 ,
   {
@@ -238,17 +231,66 @@
   }
 ,
   {
-    "name": "resolution",
-    "path": "src/commands/resolution.md",
+    "name": "README",
+    "path": "src/contracts/README.md",
     "type": "md",
-    "category": "src/commands"
+    "category": "src/contracts"
   }
 ,
   {
-    "name": "README",
-    "path": "src/hooks/README.md",
+    "name": "command-contract",
+    "path": "src/contracts/command-contract.md",
     "type": "md",
-    "category": "src/hooks"
+    "category": "src/contracts"
+  }
+,
+  {
+    "name": "feature-contract",
+    "path": "src/contracts/feature-contract.md",
+    "type": "md",
+    "category": "src/contracts"
+  }
+,
+  {
+    "name": "hook-contract",
+    "path": "src/contracts/hook-contract.md",
+    "type": "md",
+    "category": "src/contracts"
+  }
+,
+  {
+    "name": "ownership-contract",
+    "path": "src/contracts/ownership-contract.md",
+    "type": "md",
+    "category": "src/contracts"
+  }
+,
+  {
+    "name": "pipeline-contract",
+    "path": "src/contracts/pipeline-contract.md",
+    "type": "md",
+    "category": "src/contracts"
+  }
+,
+  {
+    "name": "progress-contract",
+    "path": "src/contracts/progress-contract.md",
+    "type": "md",
+    "category": "src/contracts"
+  }
+,
+  {
+    "name": "resolution-contract",
+    "path": "src/contracts/resolution-contract.md",
+    "type": "md",
+    "category": "src/contracts"
+  }
+,
+  {
+    "name": "runtime-contract",
+    "path": "src/contracts/runtime-contract.md",
+    "type": "md",
+    "category": "src/contracts"
   }
 ,
   {
@@ -263,13 +305,6 @@
     "path": "src/hooks/pre_fix.md",
     "type": "md",
     "category": "src/hooks"
-  }
-,
-  {
-    "name": "README",
-    "path": "src/pipelines/README.md",
-    "type": "md",
-    "category": "src/pipelines"
   }
 ,
   {

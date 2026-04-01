@@ -1,0 +1,74 @@
+# Command Contract
+
+- 定义所有 `hx-*` 命令正文的公共写法。
+- `src/commands/` 只放命令特有内容。
+- 运行时解析、命令写权和对象 schema 不在本文定义。
+
+## Frontmatter
+
+- `name`
+- `description`
+- `usage`
+- `protected`
+- `hooks`
+- `protected: true` 表示不允许用户层和项目层覆盖。
+- `hooks` 只允许 `[pre]`、`[post]`、`[pre, post]`；缺失表示不支持 Hook。
+
+## 正文结构
+
+- 每个 `hx-*` 命令统一使用以下章节顺序：
+  - `## 目标`
+  - `## 何时使用`
+  - `## 输入`
+  - `## 执行步骤`
+  - `## 成功结果`
+  - `## 失败边界`
+  - `## 下一步`
+  - `## 失败处理`（仅在需要单独列出失败分支时出现）
+  - `## 约束`
+- `## 输入` 固定包含：`命令参数`、`必选参数`、`可选参数`、`默认值`、`依赖输入`
+- `命令参数` 只描述 CLI 可见参数模型，不写自由叙述。
+- 共享运行规则、解析顺序、对象写权和 schema 不在命令正文重复；只有命令特例才补充。
+
+## 参数对象约定
+
+- 命令运行时的 `arguments` 固定为结构化对象。
+- 固定字段：
+  - `raw`：原始参数字符串
+  - `positional`：位置参数数组
+- `options`：选项参数对象，key 为选项名，value 为字符串或布尔值
+- 示例：
+  - `hx-run user-login --plan-task TASK-FE-01`
+  - `raw = "user-login --plan-task TASK-FE-01"`
+  - `positional = ["user-login"]`
+  - `options = { "plan-task": "TASK-FE-01" }`
+
+## 结构化结果
+
+- 固定字段顺序：
+  1. `status`
+  2. `command`
+  3. `feature`
+  4. `summary`
+  5. `artifacts`
+  6. `issues`
+  7. `nextAction`
+- `post_*` Hook 的 `result` 输入直接复用这套结构化结果，不另起一套字段名。
+
+### `artifacts`
+
+- 类型：`Record<string, unknown>`
+- 只承载可复用产物。
+
+### `issues`
+
+- 类型：`Array<{ level: "info" | "warning" | "error"; code: string; message: string }>`
+- 即使为空，也必须返回数组
+- `level` 只允许 `info`、`warning`、`error`
+- `code` 必须稳定、可机读
+
+### `nextAction`
+
+- 类型：`{ command: string | null; reason: string }`
+- 即使没有推荐动作，也必须返回对象
+- 无推荐命令时，`command = null`

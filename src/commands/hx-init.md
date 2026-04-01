@@ -7,31 +7,43 @@ protected: true
 
 # 初始化项目规则事实
 
-参数: `$ARGUMENTS`（本命令不接受额外参数）
+## 目标
+
+- 基于当前仓库真实信号生成 `.hx/config.yaml`、规则文件和项目骨架。
+
+## 何时使用
+
+- 适用场景：首次接入 HXFlow，或项目骨架缺失、需要重新补全时。
+- 不适用场景：只是刷新规则自动区时，优先用 `hx-rules update`。
+
+## 输入
+
+- 命令参数：`$ARGUMENTS`
+- 必选参数：无
+- 可选参数：无
+- 默认值：无
+- 依赖输入：当前项目目录结构、依赖与构建文件、现有 `.hx/*`、`CLAUDE.md` / `AGENTS.md`、`src/templates/` 骨架文件
 
 ## 执行步骤
 
-1. 确定项目根：
-   - 优先使用当前工作目录中已存在的 `.hx/config.yaml`
-   - 若不存在，则向上查找 `.git`
-   - 若两者都不存在，明确告知用户当前目录无法判定为项目根，停止写入
-2. 分析项目真实信号，归纳项目事实：
-   - 依赖与构建入口，如 `package.json`、锁文件、`tsconfig.json`、`go.mod`、`Cargo.toml`、`pubspec.yaml`
-   - 常见源码目录，如 `src/`、`app/`、`lib/`、`server/`、`client/`、`cmd/`、`internal/`、`pkg/`
-   - 现有 `docs/**/*.md`、`.hx/` 和 lint / test / type / build 命令定义
+1. 确定项目根：优先使用已存在的 `.hx/config.yaml`，否则向上查找 `.git`。
+2. 扫描项目真实信号，包括依赖文件、构建入口、源码目录、文档目录和现有 `.hx/*`。
 3. 基于 `src/templates/config.yaml` 生成或补全 `.hx/config.yaml`。
-4. 基于 `src/templates/rules/*` 生成或更新：
-   - `.hx/rules/golden-rules.md`
-   - `.hx/rules/review-checklist.md`
-   - `.hx/rules/requirement-template.md`
-   - `.hx/rules/plan-template.md`
-5. 初始化或补全项目骨架，并更新 `CLAUDE.md` / `AGENTS.md` 标记块：
-   - `.hx/commands/README.md`
-   - `.hx/commands/hx-your-command.md.example`
-   - `.hx/hooks/README.md`
-   - `.hx/hooks/pre_run.md.example`
-   - `.hx/hooks/post_run.md.example`
-   - `.hx/pipelines/default.yaml`
+4. 基于 `src/templates/rules/*` 生成或更新固定规则文件。
+5. 补齐 `.hx/commands/`、`.hx/hooks/`、`.hx/pipelines/` 等骨架，并更新 `CLAUDE.md` / `AGENTS.md` 标记块。
+
+## 成功结果
+
+- 生成或补全项目配置、规则文件和基础骨架。
+
+## 失败边界
+
+- 无法判定项目根。
+- 模板缺失，或关键配置无法安全生成。
+
+## 下一步
+
+- 初始化完成后运行 `hx-doc` 或 `hx-rules`。
 
 ## 约束
 

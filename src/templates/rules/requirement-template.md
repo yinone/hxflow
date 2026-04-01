@@ -1,6 +1,11 @@
 <!-- hx:auto:start -->
 # Requirement Template
 
+> Feature:
+> Display Name:
+> Source ID:
+> Source Fingerprint:
+
 ## 背景
 
 - 业务背景:

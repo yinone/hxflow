@@ -2690,7 +2690,7 @@
           <div class="level">
             <div class="level-n">Phase 04 + 06</div>
             <div class="level-title">执行与校验</div>
-            <div class="level-body">Agent 按 TASK 顺序执行当前需求 → 自动回写 progress 状态 → 运行质量校验（lint / type / test /
+            <div class="level-body">Agent 先按 TASK 依赖关系选择 runnable task，并在允许时并行执行 → 自动回写 progress 状态 → 运行质量校验（lint / type / test /
               arch）。这是默认主路径。</div>
           </div>
           <div class="level">
@@ -3869,7 +3869,7 @@ AC: 组件自身无 API 调用，仅通过 onSubmit 暴露表单数据
             <div class="wf-step shared-s">
               <div class="wf-snum">03</div>
               <div class="wf-stitle">执行需求</div>
-              <div class="wf-sbody">由 /hx-run 自动完成执行前预检，并按计划顺序执行整个需求下的 pending 任务</div>
+              <div class="wf-sbody">由 /hx-run 自动完成执行前预检，优先执行依赖已满足的 pending task；同一依赖层内若允许并行，可交给多个子 agent 并发处理</div>
               <span class="wf-cmd">/hx-run [feature] [--plan-task &lt;TASK-ID&gt;]</span>
             </div>
             <div class="wf-step gate-s">
