@@ -27,6 +27,7 @@ describe('template structure', () => {
     for (const file of files) {
       const content = readFileSync(resolve(forwarderDir, file), 'utf8')
       expect(content).toContain('{{name}}')
+      expect(content).toContain('{{runtimePath}}')
       expect(content).toContain('{{systemPath}}')
       expect(content).toContain('skill 实体文件未找到')
 

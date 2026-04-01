@@ -151,11 +151,13 @@ describe('command contracts', () => {
 
   it('keeps hx-go and common docs wired to shared resolution rules', () => {
     const commandsReadme = readFileSync(resolve(COMMANDS_DIR, 'README.md'), 'utf8')
+    const globalRuntime = readFileSync(resolve(COMMANDS_DIR, 'global-runtime.md'), 'utf8')
     const resolution = readFileSync(resolve(COMMANDS_DIR, 'resolution.md'), 'utf8')
     const hxGo = readFileSync(resolve(COMMANDS_DIR, 'hx-go.md'), 'utf8')
 
-    expect(commandsReadme).toContain('src/commands/resolution.md')
-    expect(hxGo).toContain('src/commands/resolution.md')
+    expect(commandsReadme).toContain('src/commands/global-runtime.md')
+    expect(globalRuntime).toContain('command / hook / pipeline')
+    expect(hxGo).not.toContain('src/commands/resolution.md')
     expect(resolution).toContain('`protected: true` 的 skill 只允许读取框架层实体文件。')
     expect(resolution).toContain('~/.claude/skills/*/SKILL.md')
     expect(resolution).toContain('~/.agents/skills/*/SKILL.md')

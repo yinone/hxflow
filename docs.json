@@ -112,6 +112,13 @@
   }
 ,
   {
+    "name": "global-runtime",
+    "path": "src/commands/global-runtime.md",
+    "type": "md",
+    "category": "src/commands"
+  }
+,
+  {
     "name": "hx-clean",
     "path": "src/commands/hx-clean.md",
     "type": "md",

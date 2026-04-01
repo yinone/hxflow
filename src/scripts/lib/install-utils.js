@@ -230,6 +230,7 @@ function buildAgentArtifactContent(spec, frameworkRoot, userHxDir) {
   return renderTemplate(template, {
     name: spec.name,
     description: spec.description,
+    runtimePath: resolve(frameworkRoot, 'commands', 'global-runtime.md'),
     systemPath: resolve(frameworkRoot, 'commands', `${spec.name}.md`),
     userCommandPath: resolve(userHxDir, 'commands', `${spec.name}.md`),
   })

@@ -80,7 +80,7 @@
             <pre><code>项目级 commands/hooks/pipelines
 → 用户级 commands/hooks/pipelines
 → 框架内置资源</code></pre>
-            <p class="card-body"><code>commands / pipelines</code> 命中即停止；<code>hooks</code> 不覆盖，而是按固定顺序组成中间件链；<code>~/.hx/settings.yaml</code> 不参与项目配置合并。</p>
+            <p class="card-body">所有命令先继承 <code>src/commands/global-runtime.md</code>；<code>commands / pipelines</code> 命中即停止；<code>hooks</code> 不覆盖，而是按固定顺序组成中间件链；<code>~/.hx/settings.yaml</code> 不参与项目配置合并。</p>
           </article>
         </div>
         <div class="callout info">
@@ -179,7 +179,8 @@ src/hooks/post_run.md</code></pre>
           </article>
         </div>
         <pre><code>启用逻辑:
-读取命令 frontmatter 中的 hooks
+先加载全局运行规则
+→ 读取命令 frontmatter 中的 hooks
 → 对每个已声明阶段查找 pre_&lt;command&gt;.md / post_&lt;command&gt;.md
 → 组装 Hook 链
 

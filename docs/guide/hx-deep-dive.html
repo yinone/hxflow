@@ -135,7 +135,7 @@
         </div>
         <div class="callout info">
           <span class="icon">i</span>
-          <div><strong>配置边界：</strong><code>~/.hx/settings.yaml</code> 只保存用户级安装设置；项目运行时配置以 <code>.hx/config.yaml</code> 为准。commands / pipelines 仍按项目层 → 用户层 → 框架层覆盖解析，hooks 按固定顺序串行执行。</div>
+          <div><strong>配置边界：</strong><code>~/.hx/settings.yaml</code> 只保存用户级安装设置；项目运行时配置以 <code>.hx/config.yaml</code> 为准。所有命令先继承 <code>src/commands/global-runtime.md</code>，再按项目层 → 用户层 → 框架层解析 commands / pipelines，并按固定顺序执行 hooks。</div>
         </div>
         <div class="callout info">
           <span class="icon">i</span>

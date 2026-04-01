@@ -108,7 +108,7 @@
             <article class="card">
               <div class="card-meta">团队治理</div>
               <h3 class="card-title">统一团队差异</h3>
-              <p class="card-body">通过 <code>.hx/rules/*.md</code> 项目规则和 <code>.hx/config.yaml</code> 硬变量配置团队约束与门控命令。commands / pipelines 按项目 → 用户 → 系统覆盖解析，hooks 以中间件链方式叠加执行，支持无侵入自定义。</p>
+              <p class="card-body">通过 <code>.hx/rules/*.md</code> 项目规则和 <code>.hx/config.yaml</code> 硬变量配置团队约束与门控命令。所有命令先继承全局运行规则，再按项目 → 用户 → 系统解析 commands / pipelines，并以中间件链方式叠加 hooks。</p>
             </article>
             <article class="card">
               <div class="card-meta">质量闭环</div>
@@ -272,7 +272,7 @@
             <article class="card">
               <div class="card-meta">配置真源</div>
               <h3 class="card-title">三层配置有固定解析顺序</h3>
-              <p class="card-body">项目层（<code>.hx/</code>）→ 用户层（<code>~/.hx/</code>）→ 系统层（框架内置）。commands / pipelines 取第一个存在的文件；hooks 按固定顺序串行执行；<code>~/.hx/settings.yaml</code> 只保存安装级设置，项目运行时配置以 <code>.hx/config.yaml</code> 为准。</p>
+              <p class="card-body">项目层（<code>.hx/</code>）→ 用户层（<code>~/.hx/</code>）→ 系统层（框架内置）。全局规则入口是 <code>src/commands/global-runtime.md</code>；commands / pipelines 取第一个存在的文件；hooks 按固定顺序串行执行；<code>~/.hx/settings.yaml</code> 只保存安装级设置。</p>
               <div class="path-strip">
                 <span class="pill">.hx/</span>
                 <span class="pill">~/.hx/</span>

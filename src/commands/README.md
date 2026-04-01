@@ -2,6 +2,7 @@
 
 - 这里是工作流 skill 契约目录，也是 frontmatter 的公共约定。
 - skill 是否可覆盖、是否支持 Hook，不应靠正文约定判断，而应以前置元数据为准。
+- 所有命令默认先继承 `src/commands/global-runtime.md` 的全局运行规则，再执行各自正文。
 
 ## 标准字段
 
@@ -34,6 +35,6 @@
 ## 说明
 
 - `protected` 和 `hooks` 都是框架私有字段。
-- skill 三层覆盖顺序、`protected` 的运行时解析方式，以及 agent 适配层职责见 `src/commands/resolution.md`。
-- Hook 文件命名、查找顺序和加载规则见 `src/hooks/README.md`。
+- `src/commands/global-runtime.md` 是所有命令共享的全局规则入口。
+- `src/commands/resolution.md`、`src/hooks/README.md`、`src/pipelines/README.md` 是这套全局规则的细化说明。
 - 若要调整私有字段语义，应优先修改这份公共约定，再同步修改消费逻辑。

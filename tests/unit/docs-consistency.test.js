@@ -40,6 +40,7 @@ describe('docs consistency', () => {
     expect(guide).toContain('3 个内置命令（setup / migrate / version）')
     expect(configReference).toContain('~/.hx/settings.yaml')
     expect(configReference).toContain('.hx/config.yaml')
+    expect(readme).toContain('src/commands/global-runtime.md')
     expect(guide).toContain('~/.claude/skills/')
     expect(guide).toContain('~/.agents/skills/')
     expect(guide).not.toContain('~/.claude/commands/')
