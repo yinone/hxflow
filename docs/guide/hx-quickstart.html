@@ -311,7 +311,7 @@ bin/hx.js                     <span class="cm"># CLI 入口，只负责内置维
 src/scripts/hx-setup.js       <span class="cm"># 安装与修复全局入口</span>
 src/scripts/lib/              <span class="cm"># 安装链和命令元数据工具</span>
 src/commands/*.md             <span class="cm"># hx-init / hx-doc / hx-go 等 workflow skill 契约</span>
-src/pipelines/default.yaml    <span class="cm"># 默认主路径：doc -> plan -> run -> qa -> mr</span>
+src/pipelines/default.yaml    <span class="cm"># 默认主路径：doc -> plan -> run -> check -> mr</span>
 docs/guide/*.html             <span class="cm"># 面向团队的静态文档</span></code></pre>
         <div class="repo-map">
           <article class="map-card">
@@ -449,7 +449,7 @@ docs/guide/*.html             <span class="cm"># 面向团队的静态文档</sp
             <div class="timeline-step">C</div>
             <div>
               <div class="timeline-title">需求级：优先走主路径</div>
-              <div class="timeline-body">最推荐的主路径是 <code>hx-doc → hx-plan → hx-run → hx-qa → hx-mr</code>。不想手动分步时，直接用 <code>hx-go</code> 读取 pipeline 一次性调度这条链路。</div>
+              <div class="timeline-body">最推荐的主路径是 <code>hx-doc → hx-plan → hx-run → hx-check → hx-mr</code>。不想手动分步时，直接用 <code>hx-go</code> 读取 pipeline 一次性调度这条链路。</div>
             </div>
           </div>
         </div>
@@ -476,21 +476,21 @@ hx setup
 /hx-doc "用户登录页支持手机号登录"
 /hx-plan
 /hx-run
-/hx-qa
+/hx-check
 /hx-mr
 
 <span class="cm">Codex:</span>
 $hx-doc "用户登录页支持手机号登录"
 $hx-plan
 $hx-run
-$hx-qa
+$hx-check
 $hx-mr</code></pre>
             <p class="card-body">主路径里通常不需要你手写 <code>feature</code>，因为 <code>hx-doc</code> 会自动生成，后续步骤会自动续接。只有冲突、恢复或多需求并行时才显式指定。</p>
           </article>
         </div>
         <div class="callout info">
           <span class="icon">i</span>
-          <div><strong>本仓库里的默认主路径事实：</strong><code>src/pipelines/default.yaml</code> 当前定义的步骤就是 <code>doc -> plan -> run -> qa -> mr</code>，其中 <code>doc</code> 和 <code>plan</code> 默认带 checkpoint，执行完后会等待用户确认。</div>
+          <div><strong>本仓库里的默认主路径事实：</strong><code>src/pipelines/default.yaml</code> 当前定义的步骤就是 <code>doc -> plan -> run -> check -> mr</code>，其中 <code>doc</code> 和 <code>plan</code> 默认带 checkpoint，执行完后会等待用户确认。</div>
         </div>
       </div>
     </section>

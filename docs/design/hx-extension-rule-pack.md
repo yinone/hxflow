@@ -58,7 +58,7 @@
 
 运行时仍保持不变：
 
-- `hx-doc`、`hx-plan`、`hx-run`、`hx-review`、`hx-qa` 等命令只读取编译后的项目规则
+- `hx-doc`、`hx-plan`、`hx-run`、`hx-check` 等命令只读取编译后的项目规则
 
 ---
 

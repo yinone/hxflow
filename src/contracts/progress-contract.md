@@ -18,8 +18,10 @@
 
 ## 文件路径
 
-- 默认路径：`docs/plans/{feature}-progress.json`
+- 活跃路径：`docs/plans/{feature}-progress.json`
+- 归档路径：`docs/archive/{feature}/{feature}-progress.json`
 - 一个 `feature` 对应一个 `progress.json`
+- `hx-mr` 完成后文件从活跃路径移至归档路径；`hx-run` 定位失败时自动从归档路径还原至活跃路径
 
 ## 标准结构
 
@@ -332,11 +334,16 @@ pending → in-progress → done
 
 - 只读展示，不写
 
-### hx-ctx
+### hx-check
 
-- 只读校验，不写
 - 校验时以 `src/templates/progress.schema.json` 为准
 - 推荐直接调用：`validateProgressFile(filePath)`、`validateProgressData(data)`
+
+### hx-run
+
+- 调度前先校验 `requirementDoc`、`planDoc`、`progressFile`、规则文件和 `gates`
+- 调度前必须调用：`validateProgressFile(filePath)`、`validateProgressData(data)`
+- 校验失败时立即停止，不允许进入后续调度和回写
 
 ## 计算规则
 

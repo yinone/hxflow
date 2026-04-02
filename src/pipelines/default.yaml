@@ -31,10 +31,10 @@ steps:
     name: 执行需求
     command: hx-run
 
-  - id: qa
+  - id: check
     phase: Phase 06
-    name: 最终质量校验
-    command: hx-qa
+    name: 核心检查
+    command: hx-check
 
   - id: mr
     phase: Phase 08

@@ -181,7 +181,7 @@ CLAUDE.md / AGENTS.md          ← 注入 harness 标记块
       <div class="wrap">
         <div class="section-tag">Workflow</div>
         <h2 class="section-title">执行链路</h2>
-        <p class="section-desc">支持一键自动化（/hx-go）和手动逐步执行两种模式。主路径默认是 <code>/hx-doc → /hx-plan → /hx-run → /hx-qa → /hx-mr</code>。</p>
+        <p class="section-desc">支持一键自动化（/hx-go）和手动逐步执行两种模式。主路径默认是 <code>/hx-doc → /hx-plan → /hx-run → /hx-check → /hx-mr</code>。</p>
         <div class="callout tip">
           <span class="icon">✓</span>
           <div><strong>推荐：</strong>优先使用 <code>/hx-go</code> 一键执行主路径。只有在需要断点恢复或手动指定时，才显式传入 <code>feature</code>。</div>
@@ -205,14 +205,14 @@ CLAUDE.md / AGENTS.md          ← 注入 harness 标记块
             <div class="timeline-step">03</div>
             <div>
               <div class="timeline-title">执行需求</div>
-              <div class="timeline-body">执行 <code>/hx-run</code>，优先处理依赖已满足的 pending 任务；同一依赖层内若都允许并行，可交给多个子 agent 并发推进。命令会先自动完成当前需求的执行前预检。仅在调试/恢复单个计划任务时才传 <code>--plan-task</code>。</div>
+              <div class="timeline-body">执行 <code>/hx-run</code>，优先处理依赖已满足的 pending 任务；同一依赖层内若都允许并行，可交给多个子 agent 并发推进。仅在调试或恢复单个计划任务时才传 <code>--plan-task</code>。</div>
             </div>
           </div>
           <div class="timeline-item">
             <div class="timeline-step">04</div>
             <div>
-                <div class="timeline-title">质量校验</div>
-                <div class="timeline-body">执行 <code>/hx-qa</code> 运行主路径质量校验。若需要人工审查、失败修复或工程清理，再按需使用 <code>/hx-review</code>、<code>/hx-fix</code>、<code>/hx-clean</code>。</div>
+                <div class="timeline-title">核心检查</div>
+                <div class="timeline-body">执行 <code>/hx-check</code> 统一运行预检、审查、质量门和工程卫生扫描。存在失败项时转到 <code>/hx-fix</code>，全部通过后继续交付。</div>
             </div>
           </div>
           <div class="timeline-item">
@@ -227,14 +227,14 @@ CLAUDE.md / AGENTS.md          ← 注入 harness 标记块
 /hx-doc "用户登录页支持手机号登录"
 /hx-plan
 /hx-run
-/hx-qa
+/hx-check
 /hx-mr
 
 <span class="cg"># 手动逐步执行（Codex）</span>
 $hx-doc "用户登录页支持手机号登录"
 $hx-plan
 $hx-run
-$hx-qa
+$hx-check
 $hx-mr
 
 <span class="cg"># 或一键执行（Claude）</span>
@@ -247,7 +247,7 @@ $hx-go
 /hx-go user-login --from run</code></pre>
         <div class="callout tip">
           <span class="icon">✓</span>
-          <div><strong>可选诊断：</strong>若 <code>/hx-run</code> 因输入不完整而停止，可额外执行 <code>/hx-ctx</code> 查看具体缺失项。</div>
+          <div><strong>恢复建议：</strong>若 <code>/hx-run</code> 或 <code>/hx-check</code> 失败，优先使用 <code>/hx-fix</code> 修复，再重跑对应步骤。</div>
         </div>
       </div>
     </section>
@@ -273,7 +273,7 @@ $hx-go
 /hx-doc "用户登录页支持手机号登录"
 /hx-plan
 /hx-run
-/hx-qa
+/hx-check
 /hx-mr
 
 <span class="cg"># 或者直接一键跑主路径</span>

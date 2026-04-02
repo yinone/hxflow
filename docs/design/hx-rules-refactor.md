@@ -146,8 +146,8 @@ hooks:
 - 运行时只依赖项目内配置、规则和文档
 - `hx-go` 只负责按 pipeline 调度命令
 - `hx-run` 只更新进度状态，不扩写计划内容
-- `hx-review` 以实际 diff 和项目规则为准
-- `hx-qa` 只执行 `config.gates`
+- `hx-check` 统一承接预检、审查、质量门和工程卫生扫描
+- `hx-check --scope qa` 只执行 `config.gates`
 
 ---
 

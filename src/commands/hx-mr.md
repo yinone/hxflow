@@ -15,8 +15,8 @@ hooks:
 
 ## 何时使用
 
-- 适用场景：需求实现和质量校验已经完成，准备创建或更新 Merge Request。
-- 不适用场景：需求尚未完成、`progressFile` 还不完整时，优先先完成 `hx-run` 或 `hx-qa`。
+- 适用场景：需求实现和核心检查已经完成，准备创建或更新 Merge Request。
+- 不适用场景：需求尚未完成、`progressFile` 还不完整时，优先先完成 `hx-run` 或 `hx-check`。
 
 ## 输入
 
@@ -33,11 +33,13 @@ hooks:
 3. 读取项目 `.hx/config.yaml`、`~/.hx/settings.yaml`、当前需求对应的 `requirementDoc` 与 `progressFile`。
 4. 收集事实来源：需求摘要、验收标准、任务完成状态、`git log <target>..HEAD --oneline` 和 `git diff <target>...HEAD --stat`。
 5. 生成 MR 标题和 Markdown 描述，覆盖需求背景、变更说明、AC 验收清单、任务完成情况和测试说明。
+6. 将 `docs/plans/{feature}.md` 和 `docs/plans/{feature}-progress.json` 移动到 `docs/archive/{feature}/`，完成归档。
 
 ## 成功结果
 
 - 输出可直接使用的 MR 标题。
 - 输出可直接粘贴到平台中的 Markdown 描述。
+- `docs/plans/{feature}.md` 和 `docs/plans/{feature}-progress.json` 已归档至 `docs/archive/{feature}/`。
 
 ## 失败边界
 
@@ -53,3 +55,5 @@ hooks:
 - `feature` 的续接规则全部以 `src/contracts/feature-contract.md` 为准
 - 读取需求文档头部时，必须遵守 `src/contracts/feature-contract.md` 的固定头部解析规则
 - `feature` 只允许读取已有需求上下文，不允许在 MR 阶段生成或重算
+- 归档目标路径固定为 `docs/archive/{feature}/`，不允许自定义
+- 归档前必须确认 `progressFile` 所有 task 均为 `done`，否则停止归档并返回原因

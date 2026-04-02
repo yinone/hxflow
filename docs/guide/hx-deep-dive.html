@@ -71,17 +71,17 @@
           <article class="card">
             <div class="card-meta">Core 01-02</div>
             <h3 class="card-title">准备输入</h3>
-            <p class="card-body"><code>/hx-doc</code>、<code>/hx-plan</code> 负责建立需求文档、计划和 progress 状态；<code>/hx-ctx</code> 是可选的预检诊断工具。</p>
+            <p class="card-body"><code>/hx-doc</code>、<code>/hx-plan</code> 负责建立需求文档、计划和 progress 状态；<code>/hx-status</code> 负责观察当前链路状态。</p>
           </article>
           <article class="card">
             <div class="card-meta">Core 03-04</div>
             <h3 class="card-title">执行与校验</h3>
-            <p class="card-body"><code>/hx-run</code> 默认执行整个需求，<code>/hx-qa</code> 完成主路径质量校验。</p>
+            <p class="card-body"><code>/hx-run</code> 默认执行整个需求，<code>/hx-check</code> 完成主路径核心检查。</p>
           </article>
           <article class="card">
             <div class="card-meta">Auxiliary</div>
             <h3 class="card-title">辅助能力</h3>
-            <p class="card-body"><code>/hx-review</code>、<code>/hx-fix</code>、<code>/hx-clean</code> 与 <code>/hx-mr</code> 在需要人工复核、失败修复、工程扫描或交付整理时启用。</p>
+            <p class="card-body"><code>/hx-fix</code> 与 <code>/hx-mr</code> 在检查失败恢复或交付整理时启用；预检、审查、质量门和工程扫描都已收口到 <code>/hx-check</code>。</p>
           </article>
         </div>
       </div>
@@ -213,19 +213,19 @@ hooks:
         <p class="section-desc">质量控制由主路径校验和按需辅助能力两部分组成。</p>
         <div class="grid grid-3">
           <article class="card">
-            <div class="card-meta">可选预检</div>
-            <h3 class="card-title"><code>/hx-ctx</code></h3>
-            <p class="card-body">/hx-ctx 面向当前需求做轻量预检，主要用于排查文档、计划、进度文件或规则文件缺失；正常主流程由 <code>/hx-run</code> 自动完成同等检查。</p>
+            <div class="card-meta">统一检查</div>
+            <h3 class="card-title"><code>/hx-check</code></h3>
+            <p class="card-body">统一承接审查、质量门和工程卫生扫描。可用 <code>--scope review|qa|clean|all</code> 限定范围。</p>
           </article>
           <article class="card">
-            <div class="card-meta">质量校验</div>
-            <h3 class="card-title"><code>/hx-qa</code></h3>
-            <p class="card-body">按固定顺序执行 <code>lint → build → type → test</code>，只跑 <code>.hx/config.yaml</code> 中实际定义过的步骤，遇到失败立即停止。</p>
+            <div class="card-meta">恢复修复</div>
+            <h3 class="card-title"><code>/hx-fix</code></h3>
+            <p class="card-body">读取最近一次失败上下文、日志或文件范围，按项目规则修复问题并准备重新进入 <code>/hx-run</code> 或 <code>/hx-check</code>。</p>
           </article>
           <article class="card">
-            <div class="card-meta">按需补充</div>
-            <h3 class="card-title"><code>/hx-review</code> / <code>/hx-fix</code></h3>
-            <p class="card-body"><code>review</code> 输出检查清单；<code>fix</code> 根据日志或测试输出生成修复 Prompt。它们不是每次交付都必须手动走的固定阶段。</p>
+            <div class="card-meta">质量门</div>
+            <h3 class="card-title"><code>qa scope</code></h3>
+            <p class="card-body"><code>/hx-check --scope qa</code> 按固定顺序执行 <code>lint → build → type → test</code>，只跑 <code>.hx/config.yaml</code> 中实际定义过的步骤，遇到失败立即停止。</p>
           </article>
         </div>
         <div class="callout warn">
@@ -268,7 +268,7 @@ parallelizable: boolean</code></pre>
       <div class="wrap">
         <div class="section-tag">Pipeline</div>
         <h2 class="section-title">流水线编排</h2>
-        <p class="section-desc"><code>/hx-go</code> 由流水线 YAML 驱动，支持三层覆盖和断点恢复；默认项目内置主路径是 <code>doc -> plan -> run -> qa -> mr</code>。</p>
+        <p class="section-desc"><code>/hx-go</code> 由流水线 YAML 驱动，支持三层覆盖和断点恢复；默认项目内置主路径是 <code>doc -> plan -> run -> check -> mr</code>。</p>
         <div class="grid grid-2">
           <article class="card">
             <div class="card-meta">查找顺序</div>
@@ -291,7 +291,7 @@ parallelizable: boolean</code></pre>
   - id: run
     command: hx-run
     on_fail: stop</code></pre>
-            <p class="card-body"><code>checkpoint</code> 暂停等待用户确认；<code>on_fail: stop</code> 失败时终止流水线。若团队需要，也可以在项目级 pipeline 中显式插入 <code>ctx</code>、<code>review</code> 或 <code>clean</code>。</p>
+            <p class="card-body"><code>checkpoint</code> 暂停等待用户确认；<code>on_fail: stop</code> 失败时终止流水线。若团队需要，也可以在项目级 pipeline 中显式插入 <code>review</code> 或 <code>clean</code>。</p>
           </article>
         </div>
         <div class="callout tip">

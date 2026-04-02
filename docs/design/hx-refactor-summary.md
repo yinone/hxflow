@@ -188,7 +188,7 @@ Hook 公共规范已收敛为抽象接口。
 - 文档一致性测试补充：
   - 不再公开强调 `--agent`
   - README 不再出现 `.hx/skills`
-  - `hx-upgrade` 公开用法改为 `hx-upgrade [--dry-run]`
+  - 维护入口收口为 `hx-cli <doctor|upgrade|uninstall|issue> [options]`
 
 最新回归结果：
 
@@ -200,7 +200,7 @@ Hook 公共规范已收敛为抽象接口。
 
 重构完成后，框架可以概括为：
 
-- 主链路以 `hx-doc -> hx-plan -> hx-run -> hx-qa -> hx-mr` 为核心
+- 主链路以 `hx-doc -> hx-plan -> hx-run -> hx-check -> hx-mr` 为核心
 - `feature` 是项目内稳定需求标识
 - Hook 是抽象扩展接口，按中间件链执行
 - framework 内部以 `commands` 组织

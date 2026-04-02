@@ -29,7 +29,7 @@ usage: hx-go [<feature>] [--from <step-id>] [--pipeline <name>]
 2. 读取 `src/contracts/feature-contract.md`，确定当前 feature。
 3. 按全局 pipeline 规则加载目标流水线，并解析各个 step 对应的命令实体。
 4. 确定恢复起点：若显式传入 `--from`，从该 step 开始；否则按耐久产物自动判断最早未完成 step。
-5. 自动恢复时，按固定规则判断 `doc`、`plan`、`run` 是否已完成；`qa`、`mr` 视为必须重新执行的 step。
+5. 自动恢复时，按固定规则判断 `doc`、`plan`、`run` 是否已完成；`check`、`mr` 视为必须重新执行的 step。
 6. 从恢复起点开始顺序调度子命令，直到 pipeline 结束或某一步失败。
 
 ## 成功结果

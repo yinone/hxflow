@@ -10,49 +10,36 @@ const commandFiles = readdirSync(COMMANDS_DIR)
   .sort()
 
 const PROTECTED_COMMANDS = [
-  'hx-doctor',
+  'hx-cli',
   'hx-init',
-  'hx-issue',
   'hx-status',
-  'hx-uninstall',
-  'hx-upgrade',
 ]
 
 const HOOKED_COMMANDS = [
-  'hx-clean',
+  'hx-check',
   'hx-doc',
   'hx-fix',
   'hx-mr',
   'hx-plan',
-  'hx-review',
   'hx-run',
 ]
 
 const FAILURE_HANDLING_COMMANDS = [
-  'hx-doctor',
-  'hx-issue',
-  'hx-uninstall',
-  'hx-upgrade',
+  'hx-cli',
 ]
 
 const ALL_COMMANDS = [
-  'hx-clean',
-  'hx-ctx',
+  'hx-check',
+  'hx-cli',
   'hx-doc',
-  'hx-doctor',
   'hx-fix',
   'hx-go',
   'hx-init',
-  'hx-issue',
   'hx-mr',
   'hx-plan',
-  'hx-qa',
-  'hx-review',
   'hx-rules',
   'hx-run',
   'hx-status',
-  'hx-uninstall',
-  'hx-upgrade',
 ]
 
 function parseFrontmatter(content) {
@@ -217,12 +204,12 @@ describe('command contracts', () => {
   it('keeps the main-chain parameter model aligned', () => {
     const hxDoc = readFileSync(resolve(COMMANDS_DIR, 'hx-doc.md'), 'utf8')
     const featureContract = readFileSync(resolve(CONTRACTS_DIR, 'feature-contract.md'), 'utf8')
+    const hxCheck = readFileSync(resolve(COMMANDS_DIR, 'hx-check.md'), 'utf8')
     const hxGo = readFileSync(resolve(COMMANDS_DIR, 'hx-go.md'), 'utf8')
     const hxRun = readFileSync(resolve(COMMANDS_DIR, 'hx-run.md'), 'utf8')
     const hxPlan = readFileSync(resolve(COMMANDS_DIR, 'hx-plan.md'), 'utf8')
     const hxMr = readFileSync(resolve(COMMANDS_DIR, 'hx-mr.md'), 'utf8')
-    const hxReview = readFileSync(resolve(COMMANDS_DIR, 'hx-review.md'), 'utf8')
-    const hxUpgrade = readFileSync(resolve(COMMANDS_DIR, 'hx-upgrade.md'), 'utf8')
+    const hxCli = readFileSync(resolve(COMMANDS_DIR, 'hx-cli.md'), 'utf8')
     const readme = readFileSync(resolve(process.cwd(), 'README.md'), 'utf8')
 
     expect(hxDoc).not.toContain('--task <task-id>')
@@ -252,6 +239,10 @@ describe('command contracts', () => {
     expect(hxPlan).toContain('planDoc')
     expect(hxPlan).toContain('progressFile')
     expect(hxPlan).toContain('主 agent 必须根据评审结论修正')
+    expect(hxCheck).toContain('usage: hx-check [--scope <review|qa|clean|all>]')
+    expect(hxCheck).toContain('审查、质量门和工程卫生扫描')
+    expect(hxCheck).toContain('review-checklist.md')
+    expect(hxCheck).toContain('gates.*')
     expect(hxRun).toContain('src/contracts/feature-contract.md')
     expect(hxRun).toContain('src/contracts/progress-contract.md')
     expect(hxRun).toContain('调度规则')
@@ -260,8 +251,10 @@ describe('command contracts', () => {
     expect(hxRun).toContain('recoverable')
     expect(hxRun).toContain('不重复执行阶段一')
     expect(hxRun).toContain('`lastRun` 与 task 状态必须保持一致')
-    expect(hxRun).toContain('进入调度前调用')
+    expect(hxRun).toContain('在进入调度前调用')
     expect(hxRun).toContain('不得在坏状态的 `progressFile` 上继续执行')
+    expect(hxRun).toContain('输入完整性校验是固定步骤')
+    expect(hxRun).toContain('校验 `requirementDoc`、`planDoc`、`progressFile`、规则文件和 `gates`')
     expect(hxRun).toContain('validateProgressFile(progressFile)')
     expect(hxRun).toContain('质量复查子 agent')
     expect(hxRun).toContain('边界条件')
@@ -277,13 +270,12 @@ describe('command contracts', () => {
     expect(hxGo).toContain('`doc`')
     expect(hxGo).toContain('`plan`')
     expect(hxGo).toContain('`run`')
-    expect(hxGo).toContain('`qa`、`mr`')
+    expect(hxGo).toContain('`check`、`mr`')
     expect(hxGo).toContain('不得跳过最早未完成 step')
-    expect(hxReview).toContain('机验项')
-    expect(hxReview).toContain('人工审查项')
-    expect(hxReview).toContain('机验项必须优先通过工具执行')
-    expect(hxUpgrade).toContain('usage: hx-upgrade [--dry-run]')
-    expect(hxUpgrade).not.toContain('--agent <')
+    expect(hxCli).toContain('usage: hx-cli <doctor|upgrade|uninstall|issue> [options]')
+    expect(hxCli).toContain('`<doctor|upgrade|uninstall|issue>`')
+    expect(hxCli).toContain('`--dry-run`、`--target <dir>`、`--title <title>`')
+    expect(hxCli).not.toContain('--agent <')
     expect(readme).toContain('hx migrate')
   })
 })

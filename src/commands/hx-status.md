@@ -27,9 +27,9 @@ protected: true
 ## 执行步骤
 
 1. 读取 `paths.progressFile`，默认使用 `docs/plans/{feature}-progress.json`。
-2. 扫描全部进度文件；若指定了 `feature`，则只读取对应文件。
+2. 只扫描 `docs/plans/`，不扫描 `docs/archive/`；若指定了 `feature`，则只读取对应文件。
 3. 输出总任务数、已完成数、待完成数；指定 feature 时列出所有任务的 id、名称、状态和 `completedAt`。
-4. 高亮下一个 `pending` 任务，或在全部完成时给出交付建议。
+4. 存在阻断或中断时高亮原因，全部完成时给出交付建议。
 
 ## 成功结果
 
@@ -42,7 +42,7 @@ protected: true
 
 ## 下一步
 
-- 存在未完成任务时运行 `hx-run <feature>`；全部完成时运行 `hx-clean`。
+- 存在未完成任务时运行 `hx-run <feature>`；全部完成时运行 `hx-check` 或 `hx-mr`。
 
 ## 约束
 

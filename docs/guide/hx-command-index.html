@@ -52,8 +52,8 @@
         <a class="btn-ghost" href="hx-config-reference.html">配置参考</a>
       </div>
         <div class="hero-stats">
-          <div class="metric"><div class="metric-value">3</div><div class="metric-label">CLI 命令</div></div>
-        <div class="metric"><div class="metric-value">12</div><div class="metric-label">Agent 命令</div></div>
+          <div class="metric"><div class="metric-value">4</div><div class="metric-label">CLI 命令</div></div>
+        <div class="metric"><div class="metric-value">11</div><div class="metric-label">Agent 命令</div></div>
         <div class="metric"><div class="metric-value">1</div><div class="metric-label">入口文件 bin/hx.js</div></div>
       </div>
     </div>
@@ -64,7 +64,7 @@
       <div class="wrap">
         <div class="section-tag">Overview</div>
         <h2 class="section-title">命令总览</h2>
-        <p class="section-desc">当前版本包含 3 个 CLI 子命令和 15 个 Agent 命令，数量以 <code>bin/hx.js</code> 和 <code>src/commands/</code> 为准。主路径命令为 <code>/hx-doc → /hx-plan → /hx-run → /hx-qa → /hx-mr</code>。</p>
+        <p class="section-desc">当前版本包含 4 个 CLI 子命令和 11 个 Agent 命令，数量以 <code>bin/hx.js</code> 和 <code>src/commands/</code> 为准。主路径命令为 <code>/hx-doc → /hx-plan → /hx-run → /hx-check → /hx-mr</code>。</p>
         <div class="table-wrap">
           <table>
             <thead>
@@ -78,21 +78,18 @@
             <tbody>
               <tr class="grp-install"><td><span class="command-name">hx setup</span></td><td><span class="badge cli">CLI</span></td><td><span class="grp-text-install">安装与维护</span></td><td>手动重跑安装，修复 ~/.hx/、~/.claude/skills/ 与 ~/.agents/skills/</td></tr>
               <tr class="grp-install"><td><span class="command-name">hx migrate</span></td><td><span class="badge cli">CLI</span></td><td><span class="grp-text-install">安装与维护</span></td><td>将 1.x / 2.x 安装产物迁移到当前模型</td></tr>
+              <tr class="grp-install"><td><span class="command-name">hx cmd</span></td><td><span class="badge cli">CLI</span></td><td><span class="grp-text-install">安装与维护</span></td><td>管理自定义命令（new / list / validate / remove）</td></tr>
               <tr class="grp-install"><td><span class="command-name">hx version</span></td><td><span class="badge cli">CLI</span></td><td><span class="grp-text-install">安装与维护</span></td><td>输出 CLI 版本</td></tr>
               <tr class="grp-init"><td><span class="command-name">/hx-init</span></td><td><span class="badge claude-cmd">Claude</span></td><td><span class="grp-text-init">项目初始化</span></td><td>分析项目结构，写入 .hx/config.yaml，注入 CLAUDE.md 标记块</td></tr>
-              <tr class="grp-install"><td><span class="command-name">/hx-upgrade</span></td><td><span class="badge claude-cmd">Claude</span></td><td><span class="grp-text-install">安装与维护</span></td><td>升级框架并同步安装产物</td></tr>
-              <tr class="grp-install"><td><span class="command-name">/hx-uninstall</span></td><td><span class="badge claude-cmd">Claude</span></td><td><span class="grp-text-install">安装与维护</span></td><td>卸载安装痕迹</td></tr>
-              <tr class="grp-install"><td><span class="command-name">/hx-doctor</span></td><td><span class="badge claude-cmd">Claude</span></td><td><span class="grp-text-install">安装与维护</span></td><td>检测环境、安装与项目配置健康状态</td></tr>
+              <tr class="grp-init"><td><span class="command-name">/hx-rules</span></td><td><span class="badge claude-cmd">Claude</span></td><td><span class="grp-text-init">项目初始化</span></td><td>查看或更新项目规则事实</td></tr>
+              <tr class="grp-install"><td><span class="command-name">/hx-cli</span></td><td><span class="badge claude-cmd">Claude</span></td><td><span class="grp-text-install">安装与维护</span></td><td>统一执行 doctor、upgrade、uninstall、issue 四类维护动作</td></tr>
               <tr class="grp-plan"><td><span class="command-name">/hx-doc</span></td><td><span class="badge claude-cmd">Claude</span></td><td><span class="grp-text-plan">文档与计划</span></td><td>获取需求并创建需求文档（团队模板）</td></tr>
               <tr class="grp-plan"><td><span class="command-name">/hx-plan</span></td><td><span class="badge claude-cmd">Claude</span></td><td><span class="grp-text-plan">文档与计划</span></td><td>生成执行计划和 progress JSON</td></tr>
-              <tr class="grp-plan"><td><span class="command-name">/hx-ctx</span></td><td><span class="badge claude-cmd">Claude</span></td><td><span class="grp-text-plan">文档与计划</span></td><td>当前需求执行前预检（可选诊断）</td></tr>
               <tr class="grp-plan"><td><span class="command-name">/hx-status</span></td><td><span class="badge claude-cmd">Claude</span></td><td><span class="grp-text-plan">文档与计划</span></td><td>查看任务进度（进度条 + 状态汇总）</td></tr>
               <tr class="grp-exec"><td><span class="command-name">/hx-run</span></td><td><span class="badge claude-cmd">Claude</span></td><td><span class="grp-text-exec">执行与复核</span></td><td>默认执行整个需求；必要时可下钻到单个任务</td></tr>
               <tr class="grp-exec"><td><span class="command-name">/hx-go</span></td><td><span class="badge claude-cmd">Claude</span></td><td><span class="grp-text-exec">执行与复核</span></td><td>全自动流水线（读取 pipeline YAML 驱动，支持 --from 恢复）</td></tr>
-              <tr class="grp-exec"><td><span class="command-name">/hx-review</span></td><td><span class="badge claude-cmd">Claude</span></td><td><span class="grp-text-exec">执行与复核</span></td><td>按团队审查清单审查 diff</td></tr>
-              <tr class="grp-exec"><td><span class="command-name">/hx-fix</span></td><td><span class="badge claude-cmd">Claude</span></td><td><span class="grp-text-exec">执行与复核</span></td><td>读取 Review 意见按团队规范修复</td></tr>
-              <tr class="grp-quality"><td><span class="command-name">/hx-qa</span></td><td><span class="badge claude-cmd">Claude</span></td><td><span class="grp-text-quality">质量与交付</span></td><td>运行团队对应的质量校验命令</td></tr>
-              <tr class="grp-quality"><td><span class="command-name">/hx-clean</span></td><td><span class="badge claude-cmd">Claude</span></td><td><span class="grp-text-quality">质量与交付</span></td><td>工程清理扫描（全局 + 团队专项）</td></tr>
+              <tr class="grp-exec"><td><span class="command-name">/hx-fix</span></td><td><span class="badge claude-cmd">Claude</span></td><td><span class="grp-text-exec">执行与复核</span></td><td>读取失败上下文并按团队规范修复</td></tr>
+              <tr class="grp-quality"><td><span class="command-name">/hx-check</span></td><td><span class="badge claude-cmd">Claude</span></td><td><span class="grp-text-quality">质量与交付</span></td><td>统一执行预检、审查、质量门和工程卫生扫描</td></tr>
               <tr class="grp-quality"><td><span class="command-name">/hx-mr</span></td><td><span class="badge claude-cmd">Claude</span></td><td><span class="grp-text-quality">质量与交付</span></td><td>输出 MR 创建上下文</td></tr>
             </tbody>
           </table>
@@ -104,7 +101,7 @@
       <div class="wrap">
         <div class="section-tag">Bootstrap</div>
         <h2 class="section-title">安装与维护命令</h2>
-        <p class="section-desc">CLI 只保留安装入口和版本查询；其余维护动作改为 Agent 命令执行。</p>
+        <p class="section-desc">CLI 只保留安装、迁移、自定义命令管理和版本查询；其余维护动作改为 Agent 命令执行。</p>
         <div class="command-grid">
           <article class="card command-card">
             <div class="card-meta">Setup</div>
@@ -147,10 +144,20 @@
             <p class="card-body">输出当前 CLI 版本号。也支持 <code>hx --version</code> 与 <code>hx -v</code>。</p>
           </article>
           <article class="card command-card">
+            <div class="card-meta">Cmd</div>
+            <h3 class="card-title"><code class="command-name">hx cmd</code></h3>
+            <div class="command-syntax">hx cmd &lt;new|list|validate|remove&gt; ...</div>
+            <p class="card-body">管理项目或用户级自定义命令。</p>
+            <div class="note-list">
+              <p>用于创建、校验和移除自定义 <code>hx-*.md</code> 命令实体。</p>
+              <p>不参与主路径执行，只负责命令脚手架和清单管理。</p>
+            </div>
+          </article>
+          <article class="card command-card">
             <div class="card-meta">Maintenance（Agent）</div>
-            <h3 class="card-title"><code class="command-name">/hx-upgrade / /hx-uninstall / /hx-doctor</code></h3>
-            <div class="command-syntax">在 Claude / Codex 会话中运行</div>
-            <p class="card-body">升级、卸载和诊断都通过 Agent 命令执行，不再依赖本地 CLI 子命令。</p>
+            <h3 class="card-title"><code class="command-name">/hx-cli</code></h3>
+            <div class="command-syntax">/hx-cli &lt;doctor|upgrade|uninstall|issue&gt; [options]</div>
+            <p class="card-body">统一承接框架诊断、升级、卸载和问题反馈，不再把四个维护动作拆成独立命令。</p>
           </article>
         </div>
       </div>
@@ -185,13 +192,13 @@
             </div>
           </article>
           <article class="card command-card">
-            <div class="card-meta">Ctx（Claude）</div>
-            <h3 class="card-title"><code class="command-name">/hx-ctx</code></h3>
-            <div class="command-syntax">/hx-ctx [&lt;feature&gt;]</div>
-            <p class="card-body">面向当前需求做执行前预检，主要用于排查输入不完整或规则文件缺失。</p>
+            <div class="card-meta">Rules（Claude）</div>
+            <h3 class="card-title"><code class="command-name">/hx-rules</code></h3>
+            <div class="command-syntax">/hx-rules [update]</div>
+            <p class="card-body">查看或更新当前项目规则事实。</p>
             <div class="note-list">
-              <p>正常主流程不用先单独运行；<code>/hx-run</code> 会自动完成同等预检。</p>
-              <p>仅在 <code>/hx-run</code> 因文档、计划或 progress 文件异常而停止时，用它查看具体缺失项。</p>
+              <p>默认查看项目已有规则、模板和自动区内容。</p>
+              <p>传 <code>update</code> 时只刷新自动区，不覆盖手动区。</p>
             </div>
           </article>
           <article class="card command-card">
@@ -232,30 +239,22 @@
             <div class="card-meta">Go（Claude）</div>
             <h3 class="card-title"><code class="command-name">/hx-go</code></h3>
             <div class="command-syntax">/hx-go [&lt;feature&gt;] [--from &lt;step-id&gt;]</div>
-            <p class="card-body">全自动流水线，默认串起主路径；项目级 pipeline 可插入 review、clean 等辅助步骤。</p>
+            <p class="card-body">全自动流水线，默认串起主路径；项目级 pipeline 可插入自定义步骤。</p>
             <div class="note-list">
               <p>按 <code>src/contracts/resolution-contract.md</code> 解析 pipeline 来源，并按 <code>src/contracts/pipeline-contract.md</code> 的结构规则驱动执行。</p>
               <p><code>--from &lt;step-id&gt;</code> 支持从指定步骤恢复（如 <code>--from run</code> 跳过 doc/plan）；未传时会按耐久产物自动判断恢复起点。</p>
               <p><code>run</code> 步骤默认执行整个需求；需要下钻单任务时应直接使用 <code>/hx-run --plan-task ...</code>。</p>
-              <p>默认主路径为 <code>doc -&gt; plan -&gt; run -&gt; qa -&gt; mr</code>；更多步骤由 pipeline 覆盖控制。</p>
+              <p>默认主路径为 <code>doc -&gt; plan -&gt; run -&gt; check -&gt; mr</code>；更多步骤由 pipeline 覆盖控制。</p>
               <p>默认主路径只保留文档与计划两个确认点，后续可由项目级 pipeline 自行追加。</p>
-            </div>
-          </article>
-          <article class="card command-card">
-            <div class="card-meta">Review（Claude）</div>
-            <h3 class="card-title"><code class="command-name">/hx-review</code></h3>
-            <div class="command-syntax">/hx-review</div>
-            <p class="card-body">按团队审查清单审查 diff。</p>
-            <div class="note-list">
-              <p>读取 <code>.hx/rules/*.md</code> 项目规则，在基础清单后追加团队专属检查项。</p>
             </div>
           </article>
           <article class="card command-card">
             <div class="card-meta">Fix（Claude）</div>
             <h3 class="card-title"><code class="command-name">/hx-fix</code></h3>
-            <div class="command-syntax">/hx-fix</div>
-            <p class="card-body">读取 Review 意见按团队规范修复。</p>
+            <div class="command-syntax">/hx-fix [--log &lt;text&gt;] [--file &lt;path&gt;]</div>
+            <p class="card-body">读取最近一次失败上下文、日志或文件范围并按团队规范修复。</p>
             <div class="note-list">
+              <p>适合处理 <code>/hx-run</code> 或 <code>/hx-check</code> 失败后的恢复场景。</p>
               <p>会加载 <code>.hx/rules/golden-rules.md</code> 和 fix Hook。</p>
             </div>
           </article>
@@ -270,23 +269,13 @@
         <p class="section-desc">该组命令在 Claude Code 或 Codex 中运行，负责执行后的校验和交付。</p>
         <div class="command-grid">
           <article class="card command-card">
-            <div class="card-meta">QA（Claude）</div>
-            <h3 class="card-title"><code class="command-name">/hx-qa</code></h3>
-            <div class="command-syntax">/hx-qa</div>
-            <p class="card-body">从 <code>.hx/config.yaml</code> 的 <code>gates</code> 中按顺序执行质量校验。</p>
+            <div class="card-meta">Check（Claude）</div>
+            <h3 class="card-title"><code class="command-name">/hx-check</code></h3>
+            <div class="command-syntax">/hx-check [--scope &lt;review|qa|clean|all&gt;]</div>
+            <p class="card-body">统一执行审查、质量门和工程卫生扫描。</p>
             <div class="note-list">
-              <p>固定顺序 <code>lint → build → type → test</code>，只执行已定义步骤。</p>
+              <p><code>--scope qa</code> 固定顺序执行 <code>lint → build → type → test</code>，只跑已定义 gate。</p>
               <p>任一步骤失败后停止，输出失败详情供 <code>/hx-fix</code> 使用。</p>
-            </div>
-          </article>
-          <article class="card command-card">
-            <div class="card-meta">Clean（Claude）</div>
-            <h3 class="card-title"><code class="command-name">/hx-clean</code></h3>
-            <div class="command-syntax">/hx-clean</div>
-            <p class="card-body">工程清理扫描（全局 + 团队专项）。</p>
-            <div class="note-list">
-              <p>扫描 <code>src/</code> 下的 <code>console.log</code>、<code>: any</code>、裸 <code>throw new Error</code>、TODO 等模式。</p>
-              <p><code>.hx/rules/</code> 中的项目规则可追加专项扫描约定。</p>
             </div>
           </article>
           <article class="card command-card">
@@ -315,7 +304,7 @@
 
   <footer>
     <div class="footer-inner">
-      <p>HXFLOW · 命令索引 · 5 CLI + 12 Agent 命令</p>
+      <p>HXFLOW · 命令索引 · 4 CLI + 11 Agent 命令</p>
       <p><a href="hx-guide.html">查看总览</a></p>
     </div>
   </footer>

@@ -2685,7 +2685,7 @@
           <div class="level">
             <div class="level-n">Phase 01 — 03</div>
             <div class="level-title">准备阶段</div>
-            <div class="level-body">从 DevOps 平台拉取任务 → 结构化需求文档 → 执行计划拆分 → 执行前预检。确保 Agent 拿到的输入完整、准确、无歧义。</div>
+            <div class="level-body">从 DevOps 平台拉取任务 → 结构化需求文档 → 执行计划拆分。输入完整性检查统一收口到 <code>/hx-check</code>。</div>
           </div>
           <div class="level">
             <div class="level-n">Phase 04 + 06</div>
@@ -2696,7 +2696,7 @@
           <div class="level">
             <div class="level-n">Phase 08 + Auxiliary</div>
             <div class="level-title">交付与补充治理</div>
-            <div class="level-body">生成 MR 上下文并交付；<code>/hx-ctx</code>、<code>/hx-review</code>、<code>/hx-fix</code>、<code>/hx-clean</code> 作为按需插入的辅助能力，用于预检、人工审查、失败修复和工程扫描。</div>
+            <div class="level-body">生成 MR 上下文并交付；<code>/hx-check</code> 与 <code>/hx-fix</code> 作为按需插入的检查和恢复能力。</div>
           </div>
         </div>
 
@@ -2714,7 +2714,7 @@
             <div class="im-step">执行引擎</div>
             <div class="im-title">Claude Code + Skills</div>
             <div class="im-body">所有 Phase 通过 <code>/hx-*</code> workflow skill 契约和三层覆盖规则适配团队差异。一键
-              <code>/hx-go</code> 默认跑完主路径 <code>doc → plan → run → qa → mr</code>；辅助步骤可通过项目级 pipeline 按需插入。
+              <code>/hx-go</code> 默认跑完主路径 <code>doc → plan → run → check → mr</code>；辅助步骤可通过项目级 pipeline 按需插入。
             </div>
           </div>
           <div class="install-method">
@@ -3869,14 +3869,14 @@ AC: 组件自身无 API 调用，仅通过 onSubmit 暴露表单数据
             <div class="wf-step shared-s">
               <div class="wf-snum">03</div>
               <div class="wf-stitle">执行需求</div>
-              <div class="wf-sbody">由 /hx-run 自动完成执行前预检，优先执行依赖已满足的 pending task；同一依赖层内若允许并行，可交给多个子 agent 并发处理</div>
+              <div class="wf-sbody">优先执行依赖已满足的 pending task；同一依赖层内若允许并行，可交给多个子 agent 并发处理</div>
               <span class="wf-cmd">/hx-run [feature] [--plan-task &lt;TASK-ID&gt;]</span>
             </div>
             <div class="wf-step gate-s">
               <div class="wf-snum">✓</div>
-              <div class="wf-stitle">质量校验</div>
-              <div class="wf-sbody">按 <code>.hx/config.yaml</code> 中的 <code>gates</code> 执行对应门控命令；失败则停下等待修复</div>
-              <span class="wf-cmd">/hx-qa</span>
+              <div class="wf-stitle">核心检查</div>
+              <div class="wf-sbody">统一执行预检、审查、质量门和工程卫生扫描；失败则停下等待修复</div>
+              <span class="wf-cmd">/hx-check</span>
             </div>
           </div>
 
@@ -3910,33 +3910,32 @@ AC: 组件自身无 API 调用，仅通过 onSubmit 暴露表单数据
           <div class="wf-row">
             <div class="wf-step shared-s">
               <div class="wf-snum">CTX</div>
-              <div class="wf-stitle">执行前预检</div>
-              <div class="wf-sbody">当 /hx-run 因输入不完整而停止时，额外运行 /hx-ctx 查看缺失项</div>
-              <span class="wf-cmd">/hx-ctx [feature]</span>
+              <div class="wf-stitle">核心检查</div>
+              <div class="wf-sbody">通过 scope 统一覆盖预检、审查、质量门和工程卫生扫描</div>
+              <span class="wf-cmd">/hx-check [--scope ...]</span>
             </div>
             <div class="wf-step gate-s">
               <div class="wf-snum">RV</div>
-              <div class="wf-stitle">人工 Review</div>
-              <div class="wf-sbody">按团队审查清单检查架构合规性、AI 特征问题</div>
-              <span class="wf-cmd">/hx-review</span>
+              <div class="wf-stitle">失败修复</div>
+              <div class="wf-sbody">读取最近一次失败上下文、日志或文件范围，修复后重跑相关步骤</div>
+              <span class="wf-cmd">/hx-fix</span>
             </div>
             <div class="wf-step shared-s">
               <div class="wf-snum">FX</div>
-              <div class="wf-stitle">失败修复</div>
-              <div class="wf-sbody">读取 Review 意见或质量校验失败日志，生成修复 Prompt 并重跑相关步骤</div>
-              <span class="wf-cmd">/hx-fix</span>
+              <div class="wf-stitle">状态观察</div>
+              <div class="wf-sbody">查看当前 feature 的 progress 状态、下一个任务和推荐动作</div>
+              <span class="wf-cmd">/hx-status [feature]</span>
             </div>
             <div class="wf-step block-s">
-              <div class="wf-snum">CL</div>
-              <div class="wf-stitle">工程清理扫描</div>
-              <div class="wf-sbody">发现新规律、残留 TODO 或工程异味时做额外扫描沉淀</div>
-              <span class="wf-cmd">/hx-clean</span>
+              <div class="wf-snum">RS</div>
+              <div class="wf-stitle">规则同步</div>
+              <div class="wf-sbody">查看或刷新项目规则事实，确保命令读取到最新约束</div>
+              <span class="wf-cmd">/hx-rules [update]</span>
             </div>
           </div>
         </div>
       </div>
     </section>
-
     <!-- ══════ SKILLS ══════ -->
     <section id="skills">
       <div class="wrap">
@@ -4562,7 +4561,7 @@ git log --since="14 days ago" --format="" --name-only \
           </div>
           <div class="pa-row opt-row">
             <div class="pa-label ex">⑤ 验收动作</div>
-            <div class="pa-content">「完成后运行 <code>/hx-qa</code>，所有检查通过后开 PR，并更新进度文件中 TASK-BE-03 状态为完成」
+            <div class="pa-content">「完成后运行 <code>/hx-check</code>，所有检查通过后开 PR，并更新进度文件中 TASK-BE-03 状态为完成」
             </div>
             <div class="pa-note">告诉 Agent 「完成」的标准是什么，以及完成后做什么。没有这一步，Agent 不知道何时停止。</div>
           </div>
@@ -4610,7 +4609,7 @@ git log --since="14 days ago" --format="" --name-only \
 日志字段遵循 <span class="cv">.hx/rules/golden-rules.md</span> 中的 GP-BASE-002
 
 <span class="cm"># ⑥ 验收动作</span>
-完成后运行 <span class="ck">/hx-qa</span>，全部通过后开 PR
+完成后运行 <span class="ck">/hx-check</span>，全部通过后开 PR
 并将 <span class="cv">{TASK-ID}</span> 在 <span class="cv">{进度文件路径}</span> 中标记为「done」
 </pre>
           </div>
@@ -4642,7 +4641,7 @@ git log --since="14 days ago" --format="" --name-only \
 <span class="ck">修复要求：</span>
 - 不改变 <span class="cv">{不能动的接口/类型}</span> 的签名
 - 修复后写一个能复现此 Bug 的回归测试
-- 运行 <span class="ck">/hx-qa</span> 确认测试通过后开 PR
+- 运行 <span class="ck">/hx-check</span> 确认检查通过后开 PR
 
 <span class="cm"># 注意：不要写"我觉得问题是……"——让 Agent 自己读日志定位
   # 你的猜测可能是错的，会误导 Agent</span>
@@ -4833,7 +4832,7 @@ git log --since="14 days ago" --format="" --name-only \
               <div class="anti-label bad">避免</div>只描述「做什么」，不说「做完后做什么」——Agent 不知道何时停止，容易持续修改或重复执行
             </div>
             <div class="anti-fix">
-              <div class="anti-label fix">替换为</div>「完成后运行 <code>/hx-qa</code>，全部通过后开 PR，并更新 TASK-XX
+              <div class="anti-label fix">替换为</div>「完成后运行 <code>/hx-check</code>，全部通过后开 PR，并更新 TASK-XX
               进度为 done」
             </div>
           </div>
@@ -4925,7 +4924,7 @@ git log --since="14 days ago" --format="" --name-only \
           <div class="dd-col">
             <div class="dd-head do">✓ 会提升质量的写法</div>
             <div class="dd-body">
-              <span class="ok">「按照 TASK-BE-03，完成后 /hx-qa 通过」</span>
+              <span class="ok">「按照 TASK-BE-03，完成后 /hx-check 通过」</span>
               <span class="cm">// 具体任务 + 具体验收，可复现</span>
 
               <span class="ok">「满足 AC-001、AC-002、AC-003」</span>
@@ -5088,8 +5087,8 @@ git log --since="14 days ago" --format="" --name-only \
 
 <span class="cm"># 自定义 Skill 命令</span>
 <span class="ck">/hx-go</span> <span class="cm">全自动流水线</span>
-<span class="ck">/hx-run</span> <span class="cm">执行单个 TASK</span>
-<span class="ck">/hx-review</span> <span class="cm">代码审查</span>
+<span class="ck">/hx-run</span> <span class="cm">执行当前需求</span>
+<span class="ck">/hx-check --scope review</span> <span class="cm">代码审查</span>
 </pre>
             </div>
           </div>

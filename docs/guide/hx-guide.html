@@ -114,7 +114,7 @@
               <div class="card-meta">质量闭环</div>
               <h3 class="card-title">形成质量闭环</h3>
               <p class="card-body">
-                <code>/hx-qa</code> 与 <code>/hx-mr</code> 负责主路径收口；<code>/hx-review</code>、<code>/hx-fix</code>、<code>/hx-clean</code> 作为按需启用的辅助能力补充质量治理。</p>
+                <code>/hx-check</code>、<code>/hx-fix</code> 与 <code>/hx-mr</code> 负责主路径收口和恢复闭环。</p>
             </article>
           </div>
           <div class="callout info">
@@ -154,7 +154,7 @@
         <div class="wrap">
           <div class="section-tag">Workflow</div>
           <h2 class="section-title">核心链路</h2>
-          <p class="section-desc">标准链路为“准备输入 → 执行需求 → 质量校验 → 交付”。可使用 <code>/hx-go</code> 一键驱动，也可逐步手动控制；<code>/hx-ctx</code>、<code>/hx-review</code>、<code>/hx-fix</code>、<code>/hx-clean</code> 为按需辅助命令。</p>
+          <p class="section-desc">标准链路为“准备输入 → 执行需求 → 核心检查 → 交付”。可使用 <code>/hx-go</code> 一键驱动，也可逐步手动控制；<code>/hx-check</code> 统一承接预检、审查、质量门和工程卫生扫描，<code>/hx-fix</code> 负责失败恢复。</p>
           <div class="timeline">
             <div class="timeline-item">
               <div class="timeline-step">1</div>
@@ -177,7 +177,7 @@
               <div>
                 <div class="timeline-title">执行计划</div>
                 <div class="timeline-body"><code>/hx-plan [&lt;feature&gt;]</code> 生成任务拆分和 progress
-                  JSON；若省略 feature，会优先从当前需求文档自动续接。计划和进度初始化后会再新开一个子 agent 复查 TASK 拆分、验收标准以及 <code>dependsOn / parallelizable</code> 是否合理。需要排查输入问题时，可额外运行 <code>/hx-ctx</code> 做当前需求的预检诊断。</div>
+                  JSON；若省略 feature，会优先从当前需求文档自动续接。计划和进度初始化后会再新开一个子 agent 复查 TASK 拆分、验收标准以及 <code>dependsOn / parallelizable</code> 是否合理。</div>
               </div>
             </div>
             <div class="timeline-item">
@@ -190,15 +190,15 @@
             <div class="timeline-item">
               <div class="timeline-step">5</div>
               <div>
-                <div class="timeline-title">质量校验</div>
-                <div class="timeline-body"><code>/hx-qa</code> 执行主路径质量校验。若需要补充人工审查或失败修复，再按需使用 <code>/hx-review</code> 和 <code>/hx-fix</code>；正常情况下进度由 <code>/hx-run</code> 自动更新。</div>
+                <div class="timeline-title">核心检查</div>
+                <div class="timeline-body"><code>/hx-check</code> 统一执行预检、审查、质量门和工程卫生扫描。存在失败项时进入 <code>/hx-fix</code>；全部通过后继续交付。</div>
               </div>
             </div>
             <div class="timeline-item">
               <div class="timeline-step">6</div>
               <div>
                 <div class="timeline-title">交付与沉淀</div>
-                <div class="timeline-body"><code>/hx-mr</code> 汇总 MR 上下文并输出交付物；<code>/hx-clean</code> 用于需要额外做工程清理扫描时沉淀问题模式。
+                <div class="timeline-body"><code>/hx-mr</code> 汇总 MR 上下文并输出交付物；交付前如需再次确认质量，只需重复运行 <code>/hx-check</code>。
                 </div>
               </div>
             </div>
@@ -207,7 +207,7 @@
             <span class="icon">i</span>
             <div>
               <strong>一键模式：</strong><code>/hx-go [&lt;feature&gt;]</code> 读取 pipeline YAML
-              驱动默认主路径（<code>doc -> plan -> run -> qa -> mr</code>），支持 <code>--from &lt;step-id&gt;</code> 从指定阶段恢复；未显式传入 <code>--from</code> 时，会按耐久产物自动判断最早未完成 step。
+              驱动默认主路径（<code>doc -> plan -> run -> check -> mr</code>），支持 <code>--from &lt;step-id&gt;</code> 从指定阶段恢复；未显式传入 <code>--from</code> 时，会按耐久产物自动判断最早未完成 step。
             </div>
           </div>
           <div class="callout tip">

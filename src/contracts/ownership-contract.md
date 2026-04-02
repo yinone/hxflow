@@ -19,7 +19,7 @@
 |------|------|
 | `hx-plan` | 唯一负责创建 `planDoc` 和 `progressFile` 骨架的命令。必须基于 `src/templates/progress.json` 和 `src/templates/progress.schema.json` 初始化固定字段；不负责写真实运行结果。 |
 | `hx-run` | 唯一负责更新 `progressFile` 运行态字段的命令。进入调度前必须执行 `validateProgressFile(progressFile)`；校验失败时立即停止。负责维护 `updatedAt`、`completedAt`、`lastRun`、`tasks[].status`、`tasks[].output`、`tasks[].startedAt`、`tasks[].completedAt`、`tasks[].durationSeconds`；只允许更新固定 schema 内已存在字段的值，不允许扩写结构；恢复 `recoverable` task 时必须保留原有 `startedAt`，不得重写阶段一。 |
-| 只读命令 | `hx-ctx`、`hx-review`、`hx-qa`、`hx-mr` 只允许读取 `progressFile` 和相关产物，不拥有写权。 |
+| 只读命令 | `hx-check`、`hx-mr` 只允许读取 `progressFile` 和相关产物，不拥有写权。 |
 
 ## 边界
 
