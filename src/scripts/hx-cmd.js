@@ -14,11 +14,12 @@ import { execFileSync } from 'child_process'
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'fs'
 import { homedir } from 'os'
 import { dirname, resolve } from 'path'
+import * as readline from 'readline'
 import { fileURLToPath } from 'url'
 
 import { parseArgs } from './lib/config-utils.js'
-import { loadCommandSpecs } from './lib/install-utils.js'
-import { USER_HX_DIR, findProjectRoot, getSafeCwd } from './lib/resolve-context.js'
+import { generateSkillFilesForAgent, getAgentSkillDir, loadCommandSpecs, SUPPORTED_AGENTS } from './lib/install-utils.js'
+import { FRAMEWORK_ROOT, USER_HX_DIR, findProjectRoot, getSafeCwd } from './lib/resolve-context.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const SETUP_SCRIPT = resolve(__dirname, 'hx-setup.js')
@@ -35,7 +36,7 @@ if (!subcommand || options.help) {
 
 switch (subcommand) {
   case 'new':
-    runNew(positional.slice(1), options)
+    await runNew(positional.slice(1), options)
     break
   case 'list':
     runList()
@@ -54,7 +55,7 @@ switch (subcommand) {
 
 // ── 子命令实现 ────────────────────────────────────────────────────────────────
 
-function runNew(args, opts) {
+async function runNew(args, opts) {
   const rawName = args[0]
   if (!rawName) {
     console.error('  用法: hx cmd new <name> [--description <desc>] [--scope project|user] [--hooks]')
@@ -64,7 +65,14 @@ function runNew(args, opts) {
   const name = rawName.startsWith('hx-') ? rawName : `hx-${rawName}`
   const description = opts.description || opts.d || `${name} 自定义命令`
   const withHooks = Boolean(opts.hooks)
-  const scope = resolveScope(opts.scope)
+  const scope = await resolveScope(opts.scope)
+
+  if (scope === 'project' && !isValidProjectRoot(projectRoot)) {
+    console.error('  错误：未检测到项目根目录（需包含 .hx/config.yaml 或 .git）。')
+    console.error('  请在项目根目录下运行此命令，或使用 --scope user 创建用户级命令。')
+    process.exit(1)
+  }
+
   const targetDir =
     scope === 'project'
       ? resolve(projectRoot, '.hx', 'commands')
@@ -91,8 +99,29 @@ function runNew(args, opts) {
 
   writeFileSync(filePath, content, 'utf8')
   console.log(`\n  已创建 ${filePath}`)
-  console.log('  正在重新生成 Skill 入口...\n')
-  runSetup()
+  console.log('  正在生成 Skill 入口...\n')
+
+  const spec = { name, description, protected: false }
+  const summary = { created: [], updated: [], removed: [], skipped: [], warnings: [] }
+
+  const skillRoot = scope === 'project' ? projectRoot : homedir()
+
+  for (const agent of SUPPORTED_AGENTS) {
+    const skillDir = resolve(skillRoot, getAgentSkillDir(agent))
+    generateSkillFilesForAgent(agent, [spec], skillDir, FRAMEWORK_ROOT, USER_HX_DIR, summary, { createDir: true })
+  }
+
+  for (const [title, items, marker] of [
+    ['创建', summary.created, '+'],
+    ['更新', summary.updated, '~'],
+    ['跳过', summary.skipped, '-'],
+    ['警告', summary.warnings, '!'],
+  ]) {
+    if (items.length === 0) continue
+    console.log(`  ${title}:`)
+    for (const item of items) console.log(`    ${marker} ${item}`)
+  }
+  console.log('\n  完成。\n')
 }
 
 function runList() {
@@ -223,10 +252,23 @@ function runRemove(args, opts) {
 
 // ── 工具函数 ──────────────────────────────────────────────────────────────────
 
-function resolveScope(scopeOption) {
+function isValidProjectRoot(dir) {
+  return existsSync(resolve(dir, '.hx', 'config.yaml')) || existsSync(resolve(dir, '.git'))
+}
+
+async function resolveScope(scopeOption) {
   if (scopeOption === 'user') return 'user'
   if (scopeOption === 'project') return 'project'
-  return 'project'
+
+  if (!process.stdin.isTTY) return 'project'
+
+  return new Promise((resolvePromise) => {
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
+    rl.question('  安装范围 [p] 项目级  [u] 用户级 (默认: p): ', (answer) => {
+      rl.close()
+      resolvePromise(answer.trim().toLowerCase() === 'u' ? 'user' : 'project')
+    })
+  })
 }
 
 function buildCommandTemplate(name, description, withHooks) {

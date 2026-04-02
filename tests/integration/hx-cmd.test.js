@@ -89,6 +89,7 @@ describe('hx cmd', () => {
 
     it('errors if command already exists', () => {
       const projectDir = createTempDir('hx-cmd-new-exists-')
+      mkdirSync(resolve(projectDir, '.git'), { recursive: true })
       const commandsDir = resolve(projectDir, '.hx', 'commands')
       mkdirSync(commandsDir, { recursive: true })
       writeFileSync(resolve(commandsDir, 'hx-deploy.md'), '---\nname: hx-deploy\ndescription: test\n---\n')

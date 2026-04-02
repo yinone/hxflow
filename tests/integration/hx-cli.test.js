@@ -28,9 +28,24 @@ afterEach(() => {
 
 describe('hx cli integration', () => {
   it('prints help and version', () => {
-    expect(runNode(['bin/hx.js', '--help'])).toContain('Harness Workflow CLI')
-    expect(runNode(['bin/hx.js', '--help'])).toContain('migrate')
+    const help = runNode(['bin/hx.js', '--help'])
+    expect(help).toContain('Harness Workflow CLI')
+    expect(help).toContain('migrate')
+    expect(help).toContain('upgrade')
     expect(runNode(['bin/hx.js', 'version'])).toMatch(/hx v\d+\.\d+\.\d+/)
+  })
+
+  it('runs upgrade with dry-run', () => {
+    const result = spawnSync(
+      process.execPath,
+      ['bin/hx.js', 'upgrade', '--dry-run'],
+      { cwd: process.cwd(), encoding: 'utf8' }
+    )
+
+    expect(result.status).toBe(0)
+    expect(result.stdout).toContain('Harness Workflow · upgrade (dry-run)')
+    expect(result.stdout).toContain('[dry-run] npm install -g')
+    expect(result.stdout).toContain('[dry-run] hx setup')
   })
 
   it('runs migrate with current default targets', () => {
@@ -120,6 +135,6 @@ describe('hx cli integration', () => {
 
     expect(result.status).toBe(1)
     expect(result.stderr).toContain('未知命令: unknown-command')
-    expect(result.stderr).toContain('当前 CLI 仅直接执行: setup, migrate, version, cmd')
+    expect(result.stderr).toContain('当前 CLI 仅直接执行: setup, migrate, upgrade, version, cmd')
   })
 })

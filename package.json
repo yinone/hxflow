@@ -19,6 +19,7 @@
     "src/scripts/hx-cmd.js",
     "src/scripts/hx-migrate.js",
     "src/scripts/hx-setup.js",
+    "src/scripts/hx-upgrade.js",
     "src/scripts/lib/config-utils.js",
     "src/scripts/lib/install-utils.js",
     "src/scripts/lib/progress-schema.js",

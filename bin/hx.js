@@ -28,6 +28,7 @@ const PACKAGE_JSON_PATH = resolve(__dirname, '..', 'package.json')
 const BUILTIN_SCRIPTS = {
   setup: 'hx-setup.js',
   migrate: 'hx-migrate.js',
+  upgrade: 'hx-upgrade.js',
   cmd: 'hx-cmd.js',
 }
 const runtimeCwd = getSafeCwd()
@@ -50,6 +51,7 @@ function printHelp() {
   内置命令:
     setup     手动重跑全局安装/修复 ~/.hx 与各 agent skill 入口
     migrate   执行老版本安装产物迁移并重跑 setup
+    upgrade   升级 @hxflow/cli 到最新版本并重跑 setup
     cmd       管理自定义命令（new / list / validate / remove）
     version   输出当前 CLI 版本
 
