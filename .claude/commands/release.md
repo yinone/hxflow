@@ -54,7 +54,7 @@ git status --porcelain
 git branch --show-current
 ```
 
-确认工作区干净、package.json 存在，记录当前版本号和 `publishConfig.registry`。
+确认工作区干净、package.json 存在，记录当前版本号（`OLD_VERSION`）和 `publishConfig.registry`。
 
 ### 4. 运行测试（除非 --skip-tests）
 
@@ -72,20 +72,58 @@ npm version <bump-type> --no-git-tag-version
 
 记新版本号为 `NEW_VERSION`。
 
-### 6. Commit 版本变更
+### 6. 更新 CHANGELOG.md
+
+收集自上一个 tag 以来的所有 commit：
 
 ```bash
-git add package.json
+git log v<OLD_VERSION>..HEAD --pretty=format:"%s" --no-merges
+```
+
+若不存在上一个 tag，则收集全部 commit：
+
+```bash
+git log --pretty=format:"%s" --no-merges
+```
+
+按 commit type 分组，在 `CHANGELOG.md` 头部插入以下格式的条目：
+
+```markdown
+## v<NEW_VERSION> — <YYYY-MM-DD>
+
+### 新功能
+- <feat commit 描述>
+
+### 修复
+- <fix commit 描述>
+
+### 重构
+- <refactor commit 描述>
+
+### 其他
+- <chore/docs/test/style commit 描述>
+```
+
+只保留有内容的分组，忽略 `chore: release v*` 类的版本提交。
+
+```bash
+git add CHANGELOG.md
+```
+
+### 7. Commit 版本变更与 Changelog
+
+```bash
+git add package.json CHANGELOG.md
 git commit -m "chore: release v<NEW_VERSION>"
 ```
 
-### 7. 打 Git Tag
+### 8. 打 Git Tag
 
 ```bash
 git tag v<NEW_VERSION>
 ```
 
-### 8. 发布到 npm 仓库
+### 9. 发布到 npm 仓库
 
 ```bash
 npm publish
@@ -96,7 +134,7 @@ npm publish
 - 回滚 commit：`git reset --soft HEAD~1`
 - 报告错误原因，停止
 
-### 9. 推送到 GitLab
+### 10. 推送到 GitLab
 
 ```bash
 git push
@@ -105,7 +143,7 @@ git push origin v<NEW_VERSION>
 
 推送失败时报告错误，tag 和 commit 已在本地，提示用户手动 push。
 
-### 10. 输出发布报告
+### 11. 输出发布报告
 
 ```
 ── 发布完成 ─────────────────────────────
@@ -120,10 +158,10 @@ git push origin v<NEW_VERSION>
 
 ## --dry-run 模式
 
-每个步骤前输出 `[dry-run]` 前缀，不执行任何写操作（git commit / npm version / npm publish / git push 均跳过）。
+每个步骤前输出 `[dry-run]` 前缀，不执行任何写操作（git commit / npm version / npm publish / git push / CHANGELOG 写入均跳过，但会打印将要写入的 changelog 内容）。
 
 ## 说明
 
 - `.npmrc` 中须提前配置私有仓库认证 token，否则 `npm publish` 报 401
 - `publishConfig.registry` 决定发布目标，本项目指向 `https://npm.cdfsunrise.com/`
-- 本命令不修改 `CHANGELOG`
+- CHANGELOG.md 不存在时自动创建
