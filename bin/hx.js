@@ -30,7 +30,6 @@ const BUILTIN_SCRIPTS = {
   migrate: 'hx-migrate.js',
   upgrade: 'hx-upgrade.js',
   uninstall: 'hx-uninstall.js',
-  cmd: 'hx-cmd.js',
 }
 const runtimeCwd = getSafeCwd()
 const projectRoot = findProjectRoot(runtimeCwd)
@@ -54,7 +53,6 @@ function printHelp() {
     migrate   执行老版本安装产物迁移并重跑 setup
     upgrade   升级 @hxflow/cli 到最新版本并重跑 setup
     uninstall 移除 Harness Workflow 安装产物
-    cmd       管理自定义命令（new / list / validate / remove）
     version   输出当前 CLI 版本
 
   框架工作流命令 contract:
@@ -66,9 +64,8 @@ ${customSections}
   示例:
     npm install -g @hxflow/cli
     hx setup                     # 首次安装或手动修复安装产物
-    hx cmd new deploy            # 创建自定义命令
-    hx cmd list                  # 列出所有自定义命令
     hx migrate                   # 从老版本安装产物迁移到当前模型
+    hx upgrade                   # 升级到最新版本
     hx version                   # 查看版本
   `)
 }

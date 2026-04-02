@@ -16,7 +16,6 @@
     "src/hooks/**/*",
     "src/templates/**/*",
     "src/pipelines/**/*",
-    "src/scripts/hx-cmd.js",
     "src/scripts/hx-migrate.js",
     "src/scripts/hx-setup.js",
     "src/scripts/hx-upgrade.js",
