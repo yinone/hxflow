@@ -28,13 +28,6 @@
   }
 ,
   {
-    "name": "TODO",
-    "path": "TODO.md",
-    "type": "md",
-    "category": "根目录"
-  }
-,
-  {
     "name": "hx-command-slimming",
     "path": "docs/design/hx-command-slimming.md",
     "type": "md",
