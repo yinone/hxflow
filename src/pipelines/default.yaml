@@ -17,14 +17,14 @@ steps:
     name: 需求文档
     command: hx-doc
     checkpoint:
-      message: 展示生成的需求文档，等待用户确认内容正确后继续
+      message: 基于生成的需求文档 summary 评审完整性与可执行性；通过后继续，需修改则返回明确修正意见
 
   - id: plan
     phase: Phase 02
     name: 执行计划
     command: hx-plan
     checkpoint:
-      message: 展示任务列表（TASK 数量、名称、层级），等待用户确认后继续
+      message: 基于任务拆分 summary 评审边界、验收标准与调度元数据；通过后继续，需修改则返回明确修正意见
 
   - id: run
     phase: Phase 04

@@ -265,7 +265,7 @@
         </article>
         <article class="strip-card">
           <h3>一句话落地</h3>
-          <p>机器级先装包并补齐入口，项目级再跑 <code>hx-init</code>，需求级优先走 <code>hx-go</code> 或主路径链路。</p>
+          <p>机器级先装包并补齐入口，项目级做一次 <code>hx-init</code> 首次初始化，需求级优先走 <code>hx-go</code> 或主路径链路。</p>
         </article>
       </div>
     </div>
@@ -410,7 +410,7 @@ docs/guide/*.html             <span class="cm"># 面向团队的静态文档</sp
           <article class="phase-card">
             <div class="phase-tag">Rules Lookup</div>
             <h3>项目规则</h3>
-            <p><code>.hx/rules/*.md</code> 由 <code>/hx-init</code> 生成骨架，团队在手动区写入规则后永久保留。<code>/hx-rules update</code> 可更新自动区，不影响手动区内容。</p>
+            <p><code>.hx/rules/*.md</code> 由 <code>/hx-init</code> 在首次接入或骨架缺失时生成骨架，团队在手动区写入规则后永久保留。<code>/hx-rules update</code> 可更新自动区，不影响手动区内容。</p>
           </article>
           <article class="phase-card">
             <div class="phase-tag">Pipeline Override</div>
@@ -441,8 +441,8 @@ docs/guide/*.html             <span class="cm"># 面向团队的静态文档</sp
           <div class="timeline-item">
             <div class="timeline-step">B</div>
             <div>
-              <div class="timeline-title">项目级：初始化当前仓库</div>
-              <div class="timeline-body">在 Agent 会话里运行 <code>hx-init</code>。它会分析项目结构、生成项目规则、写入 <code>.hx/config.yaml</code>、项目级目录骨架和默认 pipeline，并在 <code>CLAUDE.md</code> / <code>AGENTS.md</code> 中注入 Harness 标记块。</div>
+              <div class="timeline-title">项目级：首次初始化当前仓库</div>
+              <div class="timeline-body">在 Agent 会话里首次运行 <code>hx-init</code>。它会分析项目结构、生成项目规则、写入 <code>.hx/config.yaml</code>、项目级目录骨架和默认 pipeline，并在 <code>CLAUDE.md</code> / <code>AGENTS.md</code> 中注入 Harness 标记块。项目已完整初始化后，不需要重复执行；后续更新自动区优先用 <code>hx-rules update</code>。</div>
             </div>
           </div>
           <div class="timeline-item">
@@ -461,7 +461,7 @@ docs/guide/*.html             <span class="cm"># 面向团队的静态文档</sp
 npm install -g @hxflow/cli --registry https://npm.cdfsunrise.com/
 hx setup
 
-<span class="cg"># 2. 新项目做一次</span>
+<span class="cg"># 2. 新项目首次初始化</span>
 <span class="cm">Claude:</span> /hx-init
 <span class="cm">Codex:</span>  $hx-init
 
@@ -490,7 +490,7 @@ $hx-mr</code></pre>
         </div>
         <div class="callout info">
           <span class="icon">i</span>
-          <div><strong>本仓库里的默认主路径事实：</strong><code>src/pipelines/default.yaml</code> 当前定义的步骤就是 <code>doc -> plan -> run -> check -> mr</code>，其中 <code>doc</code> 和 <code>plan</code> 默认带 checkpoint，执行完后会等待用户确认。</div>
+          <div><strong>本仓库里的默认主路径事实：</strong><code>src/pipelines/default.yaml</code> 当前定义的步骤就是 <code>doc -> plan -> run -> check -> mr</code>，其中 <code>doc</code> 和 <code>plan</code> 默认带 checkpoint，执行完后会触发子 agent 评审；连续 2 轮仍不通过时停止并要求人工介入。</div>
         </div>
       </div>
     </section>
@@ -509,7 +509,7 @@ $hx-mr</code></pre>
           <article class="map-card">
             <div class="map-path">.hx/rules/</div>
             <h3>改团队规则</h3>
-            <p>当团队需要自己的架构约定、黄金原则时，编辑 <code>.hx/rules/golden-rules.md</code> 及其他规则文件。<code>/hx-init</code> 负责生成初始骨架，手动区内容永久保留。</p>
+            <p>当团队需要自己的架构约定、黄金原则时，编辑 <code>.hx/rules/golden-rules.md</code> 及其他规则文件。<code>/hx-init</code> 负责生成初始骨架，后续更新自动区优先走 <code>/hx-rules update</code>，手动区内容永久保留。</p>
           </article>
           <article class="map-card">
             <div class="map-path">.hx/commands/*.md</div>
@@ -538,7 +538,7 @@ npm run hx:test:integration</code></pre>
           <article class="card">
             <div class="card-meta">规则共享策略</div>
             <h3 class="card-title">共享策略</h3>
-            <p class="card-body">团队规则直接落在项目层的 <code>.hx/rules/</code>，由 <code>/hx-init</code> 和 <code>/hx-rules update</code> 维护。这样系统层升级时，团队手动写入的规则不会被覆盖。</p>
+            <p class="card-body">团队规则直接落在项目层的 <code>.hx/rules/</code>，由 <code>/hx-init</code> 负责首次骨架生成、由 <code>/hx-rules update</code> 负责后续自动区刷新。这样系统层升级时，团队手动写入的规则不会被覆盖。</p>
           </article>
         </div>
       </div>
@@ -564,7 +564,7 @@ npm run hx:test:integration</code></pre>
             <h3>环节二：跑一次主路径</h3>
             <ul>
               <li>确认装包后的全局入口已经可用；若异常，再手动执行 <code>hx setup</code> 修复。</li>
-              <li>项目级执行 <code>/hx-init</code> 或 <code>$hx-init</code>。</li>
+              <li>项目级首次执行 <code>/hx-init</code> 或 <code>$hx-init</code>。</li>
               <li>需求级执行 <code>/hx-go</code>，或至少手动跑一遍 <code>/hx-doc → /hx-plan</code>。</li>
             </ul>
           </article>

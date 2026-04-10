@@ -52,8 +52,6 @@ hooks:
 
 ## 约束
 
-- `feature` 的续接规则全部以 `src/contracts/feature-contract.md` 为准
-- 读取需求文档头部时，必须遵守 `src/contracts/feature-contract.md` 的固定头部解析规则
-- `feature` 只允许读取已有需求上下文，不允许在 MR 阶段生成或重算
+- `feature` 只允许读取已有需求上下文，不允许在 MR 阶段生成或重算；读取需求文档头部须遵守固定头部解析规则
 - 归档目标路径固定为 `docs/archive/{feature}/`，不允许自定义
 - 归档前必须确认 `progressFile` 所有 task 均为 `done`，否则停止归档并返回原因

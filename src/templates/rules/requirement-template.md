@@ -5,6 +5,7 @@
 > Display Name:
 > Source ID:
 > Source Fingerprint:
+> Type: feature
 
 ## 背景
 

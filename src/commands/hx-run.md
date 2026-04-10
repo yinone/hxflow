@@ -55,10 +55,8 @@ hooks:
 - 执行时只依赖当前项目内的配置、规则和文档
 - 调度前的输入完整性校验是固定步骤，不是独立命令，也不能被项目覆盖移除
 - 默认执行整个 feature；`--plan-task` 仅用于调试和恢复单个计划任务
-- `feature` 只允许续接已有需求上下文，不允许在执行阶段生成或修改
-- 续接 `feature` 时，读取需求文档头部必须遵守 `src/contracts/feature-contract.md` 的固定头部解析规则
-- 进入调度前必须先执行 `validateProgressFile(progressFile)`
-- `progressFile` 的调度规则、回写规则和字段约束全部以 `src/contracts/progress-contract.md` 为准
+- `feature` 只允许续接已有需求上下文，不允许在执行阶段生成或修改；续接时须遵守固定头部解析规则
+- 进入调度前必须先执行 `validateProgressFile(progressFile)`；调度规则、回写规则和字段约束以 `src/contracts/progress-contract.md` 为准
 - 断点恢复时必须优先处理 `recoverable` 的 `in-progress` task
 - `lastRun` 与 task 状态必须保持一致
 - 每次回写 `progressFile` 后都必须执行 `validateProgressFile`

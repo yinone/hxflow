@@ -21,6 +21,7 @@
 - Hook：`src/contracts/hook-contract.md`
 - pipeline：`src/contracts/pipeline-contract.md`
 - 写权边界：`src/contracts/ownership-contract.md`
+- checkpoint 评审：`src/contracts/checkpoint-contract.md`
 
 ## 执行入口
 

@@ -128,7 +128,7 @@
                   <div><code>.hx/pipelines/</code>（项目流水线）</div>
                   <div><code>.hx/config.yaml</code></div>
                 </td>
-                <td>项目专属覆盖，优先级最高。由 /hx-init 初始化 .hx/config.yaml 与 .hx/rules/。</td>
+                <td>项目专属覆盖，优先级最高。由 /hx-init 在首次接入或骨架缺失时初始化 .hx/config.yaml 与 .hx/rules/。</td>
               </tr>
             </tbody>
           </table>
@@ -148,7 +148,7 @@
       <div class="wrap">
         <div class="section-tag">Rules Runtime</div>
         <h2 class="section-title">规则运行时</h2>
-        <p class="section-desc">项目规则以静态文件方式存储在 <code>.hx/rules/</code> 目录，由 <code>/hx-init</code> 生成骨架，Agent 命令在执行时直接读取。无运行时查找链，无继承逻辑。</p>
+        <p class="section-desc">项目规则以静态文件方式存储在 <code>.hx/rules/</code> 目录，由 <code>/hx-init</code> 在首次接入或骨架缺失时生成骨架，Agent 命令在执行时直接读取。无运行时查找链，无继承逻辑。</p>
         <div class="grid grid-2">
           <article class="card">
             <div class="card-meta">规则入口</div>
@@ -161,7 +161,7 @@
           <article class="card">
             <div class="card-meta">初始化与更新</div>
             <h3 class="card-title">规则文件的生命周期</h3>
-            <pre><code>/hx-init      → 生成 .hx/rules/*.md 骨架
+            <pre><code>/hx-init      → 首次初始化或补齐缺失骨架
 手动编辑      → 写入手动区（永久保留）
 /hx-rules update → 更新自动区，不覆盖手动区</code></pre>
             <p class="card-body">手动区与自动区由注释分隔，更新只触及自动区。</p>
@@ -287,11 +287,11 @@ parallelizable: boolean</code></pre>
     name: 需求文档
     command: hx-doc
     checkpoint:
-      message: 确认后继续
+      message: 子 agent 评审通过后继续
   - id: run
     command: hx-run
     on_fail: stop</code></pre>
-            <p class="card-body"><code>checkpoint</code> 暂停等待用户确认；<code>on_fail: stop</code> 失败时终止流水线。若团队需要，也可以在项目级 pipeline 中显式插入 <code>review</code> 或 <code>clean</code>。</p>
+            <p class="card-body"><code>checkpoint</code> 会在步骤完成后触发子 agent 评审；通过则继续，连续 2 轮仍不通过则终止流水线并要求人工介入。<code>on_fail: stop</code> 失败时终止流水线。若团队需要，也可以在项目级 pipeline 中显式插入 <code>review</code> 或 <code>clean</code>。</p>
           </article>
         </div>
         <div class="callout tip">

@@ -128,8 +128,8 @@ hooks:
 - `.hx/commands/README.md`
 - `.hx/commands/hx-your-command.md.example`
 - `.hx/hooks/README.md`
-- `.hx/hooks/run-pre.md.example`
-- `.hx/hooks/run-post.md.example`
+- `.hx/hooks/pre_run.md.example`
+- `.hx/hooks/post_run.md.example`
 - `.hx/pipelines/default.yaml`
 
 并在项目根更新：
@@ -184,7 +184,7 @@ src/pipelines/default.yaml
 
 当前项目已经完成的不是“概念迁移”，而是一套稳定的项目规则生成机制：
 
-- 用 `hx-init` 建立项目规则骨架
+- 用 `hx-init` 在首次接入或骨架缺失时建立项目规则骨架
 - 用 `hx-rules update` 刷新自动区
 - 用 `.hx/config.yaml` 承载硬变量
 - 用 `.hx/rules/*.md` 承载解释性规则

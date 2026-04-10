@@ -80,7 +80,7 @@
               <tr class="grp-install"><td><span class="command-name">hx migrate</span></td><td><span class="badge cli">CLI</span></td><td><span class="grp-text-install">安装与维护</span></td><td>将 1.x / 2.x 安装产物迁移到当前模型</td></tr>
               <tr class="grp-install"><td><span class="command-name">hx cmd</span></td><td><span class="badge cli">CLI</span></td><td><span class="grp-text-install">安装与维护</span></td><td>管理自定义命令（new / list / validate / remove）</td></tr>
               <tr class="grp-install"><td><span class="command-name">hx version</span></td><td><span class="badge cli">CLI</span></td><td><span class="grp-text-install">安装与维护</span></td><td>输出 CLI 版本</td></tr>
-              <tr class="grp-init"><td><span class="command-name">/hx-init</span></td><td><span class="badge claude-cmd">Claude</span></td><td><span class="grp-text-init">项目初始化</span></td><td>分析项目结构，写入 .hx/config.yaml，注入 CLAUDE.md 标记块</td></tr>
+              <tr class="grp-init"><td><span class="command-name">/hx-init</span></td><td><span class="badge claude-cmd">Claude</span></td><td><span class="grp-text-init">项目初始化</span></td><td>首次接入或骨架缺失时，分析项目结构并补齐项目级初始化产物</td></tr>
               <tr class="grp-init"><td><span class="command-name">/hx-rules</span></td><td><span class="badge claude-cmd">Claude</span></td><td><span class="grp-text-init">项目初始化</span></td><td>查看或更新项目规则事实</td></tr>
               <tr class="grp-install"><td><span class="command-name">/hx-cli</span></td><td><span class="badge claude-cmd">Claude</span></td><td><span class="grp-text-install">安装与维护</span></td><td>统一执行 doctor、upgrade、uninstall、issue 四类维护动作</td></tr>
               <tr class="grp-plan"><td><span class="command-name">/hx-doc</span></td><td><span class="badge claude-cmd">Claude</span></td><td><span class="grp-text-plan">文档与计划</span></td><td>获取需求并创建需求文档（团队模板）</td></tr>
@@ -130,11 +130,12 @@
             <div class="card-meta">Init（Claude）</div>
             <h3 class="card-title"><code class="command-name">/hx-init</code></h3>
             <div class="command-syntax">/hx-init</div>
-            <p class="card-body">在 Claude Code 或 Codex 中运行。分析项目结构，补齐项目配置、规则和目录骨架。</p>
+            <p class="card-body">在 Claude Code 或 Codex 中运行。用于首次初始化项目，或在骨架缺失时补齐项目配置、规则和目录骨架。</p>
             <div class="note-list">
               <p>会写入 <code>.hx/config.yaml</code>（<code>paths</code> + <code>gates</code>）。</p>
               <p>在 <code>CLAUDE.md</code> / <code>AGENTS.md</code> 中注入 harness 标记块。</p>
               <p>生成 <code>.hx/rules/*.md</code> 项目规则文件骨架。</p>
+              <p>已完整初始化的项目不必重复执行；后续刷新自动区优先用 <code>/hx-rules update</code>。</p>
             </div>
           </article>
           <article class="card command-card">

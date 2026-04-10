@@ -32,16 +32,10 @@
 
 ## 参数对象约定
 
-- 命令运行时的 `arguments` 固定为结构化对象。
-- 固定字段：
+- 命令运行时的 `arguments` 固定为结构化对象：
   - `raw`：原始参数字符串
   - `positional`：位置参数数组
-- `options`：选项参数对象，key 为选项名，value 为字符串或布尔值
-- 示例：
-  - `hx-run user-login --plan-task TASK-FE-01`
-  - `raw = "user-login --plan-task TASK-FE-01"`
-  - `positional = ["user-login"]`
-  - `options = { "plan-task": "TASK-FE-01" }`
+  - `options`：选项参数对象（key 为选项名，value 为字符串或布尔值）
 
 ## 结构化结果
 

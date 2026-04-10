@@ -21,13 +21,6 @@
   }
 ,
   {
-    "name": "README",
-    "path": "README.md",
-    "type": "md",
-    "category": "根目录"
-  }
-,
-  {
     "name": "hx-command-slimming",
     "path": "docs/design/hx-command-slimming.md",
     "type": "md",
@@ -112,6 +105,13 @@
   }
 ,
   {
+    "name": "README",
+    "path": "README.md",
+    "type": "md",
+    "category": "根目录"
+  }
+,
+  {
     "name": "hx-check",
     "path": "src/commands/hx-check.md",
     "type": "md",
@@ -189,8 +189,8 @@
   }
 ,
   {
-    "name": "README",
-    "path": "src/contracts/README.md",
+    "name": "checkpoint-contract",
+    "path": "src/contracts/checkpoint-contract.md",
     "type": "md",
     "category": "src/contracts"
   }
@@ -238,6 +238,13 @@
   }
 ,
   {
+    "name": "README",
+    "path": "src/contracts/README.md",
+    "type": "md",
+    "category": "src/contracts"
+  }
+,
+  {
     "name": "resolution-contract",
     "path": "src/contracts/resolution-contract.md",
     "type": "md",
@@ -280,6 +287,20 @@
   }
 ,
   {
+    "name": "bugfix-plan-template",
+    "path": "src/templates/rules/bugfix-plan-template.md",
+    "type": "md",
+    "category": "src/templates/rules"
+  }
+,
+  {
+    "name": "bugfix-requirement-template",
+    "path": "src/templates/rules/bugfix-requirement-template.md",
+    "type": "md",
+    "category": "src/templates/rules"
+  }
+,
+  {
     "name": "golden-rules",
     "path": "src/templates/rules/golden-rules.md",
     "type": "md",
@@ -305,5 +326,12 @@
     "path": "src/templates/rules/review-checklist.md",
     "type": "md",
     "category": "src/templates/rules"
+  }
+,
+  {
+    "name": "TODO",
+    "path": "TODO.md",
+    "type": "md",
+    "category": "根目录"
   }
 ]

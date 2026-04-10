@@ -21,7 +21,7 @@ usage: hx-go [<feature>] [--from <step-id>] [--pipeline <name>]
 - 必选参数：无
 - 可选参数：`<feature>`、`--from <step-id>`、`--pipeline <name>`
 - 默认值：未传 `<feature>` 时按当前需求上下文自动续接；未传 `--pipeline` 时使用默认 pipeline；未传 `--from` 时自动判定恢复起点
-- 依赖输入：`src/contracts/feature-contract.md`、pipeline 定义、子命令 contract、耐久产物（`requirementDoc` / `planDoc` / `progressFile`）
+- 依赖输入：`src/contracts/feature-contract.md`、pipeline 定义、子命令 contract、耐久产物（`requirementDoc` / `planDoc` / `progressFile`）、`src/contracts/checkpoint-contract.md`（当 step 含 `checkpoint.message` 时）
 
 ## 执行步骤
 
@@ -31,6 +31,7 @@ usage: hx-go [<feature>] [--from <step-id>] [--pipeline <name>]
 4. 确定恢复起点：若显式传入 `--from`，从该 step 开始；否则按耐久产物自动判断最早未完成 step。
 5. 自动恢复时，按固定规则判断 `doc`、`plan`、`run` 是否已完成；`check`、`mr` 视为必须重新执行的 step。
 6. 从恢复起点开始顺序调度子命令，直到 pipeline 结束或某一步失败。
+7. 当 step 含 `checkpoint.message` 时，新开子 agent 按 `src/contracts/checkpoint-contract.md` 执行评审：子 agent 基于 summary 和 message 判断是否通过；通过则继续下一步，需修改则注入 `context.checkpointFeedback` 后重新执行当前 step；同一 step 连续 2 轮仍未通过时，停止 pipeline 并要求人工介入。
 
 ## 成功结果
 
@@ -42,6 +43,7 @@ usage: hx-go [<feature>] [--from <step-id>] [--pipeline <name>]
 - `--from <step-id>` 非法，或目标 step 不存在于 pipeline。
 - 目标 pipeline 不存在，或某个 step 无法解析到命令实体。
 - 子命令失败，或自动恢复无法唯一确定起点。
+- checkpoint 评审连续 2 轮仍未通过，或 checkpoint 子 agent 超时/异常。
 
 ## 下一步
 
@@ -56,3 +58,4 @@ usage: hx-go [<feature>] [--from <step-id>] [--pipeline <name>]
 - `--from <step-id>` 必须作为显式恢复锚点，且命中的 step 必须存在于目标 pipeline
 - 自动恢复时，不得跳过最早未完成 step
 - 没有耐久完成标记的 step 不得自动判定为已完成
+- checkpoint 的重跑与停止规则全部以 `src/contracts/checkpoint-contract.md` 为准

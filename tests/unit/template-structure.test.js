@@ -16,6 +16,7 @@ describe('template structure', () => {
     expect(configTemplate).toContain('progressFile: {{paths.progressFile}}')
     expect(configTemplate).toContain('lint: {{gates.lint}}')
     expect(configTemplate).toContain('test: {{gates.test}}')
+
   })
 
   it('keeps progress json template as the single fixed schema sample', () => {
@@ -86,6 +87,8 @@ describe('template structure', () => {
     const files = readdirSync(rulesDir).sort()
 
     expect(files).toEqual([
+      'bugfix-plan-template.md',
+      'bugfix-requirement-template.md',
       'golden-rules.md',
       'plan-template.md',
       'requirement-template.md',
@@ -131,6 +134,8 @@ describe('template structure', () => {
     expect(pipelineRules).toContain('`id` 同时是 `hx-go --from <step-id>` 的恢复锚点')
     expect(pipelineRules).toContain('自动恢复位置')
     expect(pipelineRules).toContain('没有耐久完成标记的 step')
+    expect(pipelineRules).toContain('checkpoint.message')
+    expect(pipelineRules).toContain('src/contracts/checkpoint-contract.md')
     expect(defaultPipeline).toContain('name: 全自动流水线（主路径）')
     expect(ids.length).toBeGreaterThan(0)
     expect(new Set(ids).size).toBe(ids.length)

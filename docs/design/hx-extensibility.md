@@ -31,7 +31,7 @@
 
 当前行为：
 
-- `hx-init` 会扫描项目并写入默认值
+- `hx-init` 会在首次接入或骨架缺失时扫描项目并写入默认值
 - 若项目已有配置，则只补全缺失字段
 - 默认模板会根据现有目录信号在 `docs/requirement`、`docs/req`、`workflow/requirements` 等路径间做保守选择
 

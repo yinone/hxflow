@@ -25,41 +25,7 @@
 
 ## 标准结构
 
-```json
-{
-  "feature": "user-login",
-  "requirementDoc": "docs/requirement/user-login.md",
-  "planDoc": "docs/plans/user-login.md",
-  "createdAt": "2026-04-01T10:00:00+08:00",
-  "updatedAt": "2026-04-01T11:20:00+08:00",
-  "completedAt": null,
-  "lastRun": null,
-  "tasks": [
-    {
-      "id": "TASK-BE-01",
-      "name": "新增手机号登录接口",
-      "status": "done",
-      "dependsOn": [],
-      "parallelizable": false,
-      "output": "接口已实现并通过测试",
-      "startedAt": "2026-04-01T10:10:00+08:00",
-      "completedAt": "2026-04-01T10:30:00+08:00",
-      "durationSeconds": 1200
-    },
-    {
-      "id": "TASK-FE-01",
-      "name": "接入手机号登录表单",
-      "status": "pending",
-      "dependsOn": ["TASK-BE-01"],
-      "parallelizable": true,
-      "output": "",
-      "startedAt": null,
-      "completedAt": null,
-      "durationSeconds": null
-    }
-  ]
-}
-```
+结构详见 `src/templates/progress.json` 与 `src/templates/progress.schema.json`。
 
 ## 顶层字段
 
@@ -78,28 +44,9 @@
 
 ## lastRun
 
-`lastRun` 只有两种合法形态。
+`lastRun` 只有两种合法形态：`"lastRun": null`（未执行过）或固定 6 字段对象（已执行过至少一个 task）。其他取值视为非法。
 
-### 1. 未执行过任何 task
-
-```json
-"lastRun": null
-```
-
-### 2. 已执行过至少一个 task
-
-```json
-"lastRun": {
-  "taskId": "TASK-BE-01",
-  "taskName": "新增手机号登录接口",
-  "status": "done",
-  "exitStatus": "succeeded",
-  "exitReason": "",
-  "ranAt": "2026-04-01T10:30:00+08:00"
-}
-```
-
-除以上两种形态外，其他取值都视为非法。
+示例：`{"taskId": "TASK-BE-01", "taskName": "...", "status": "done", "exitStatus": "succeeded", "exitReason": "", "ranAt": "..."}`
 
 ### 字段
 
@@ -128,12 +75,6 @@ aborted
 blocked
 timeout
 ```
-
-- `succeeded`：本次 task 执行成功结束
-- `failed`：执行过程中出现错误并失败退出
-- `aborted`：执行被人工或系统中断
-- `blocked`：执行被外部依赖、前置条件或环境问题阻塞
-- `timeout`：执行超时退出
 
 ### exitReason 规则
 
@@ -186,44 +127,11 @@ timeout
 
 ### 内容要求
 
-`status = done` 时，output 必须覆盖以下信息：
-
-- 实际发生的变更动作（新增 / 修改 / 删除）
-- 涉及的核心文件或模块（不超过 3 个，超出则写"等 N 个文件"）
-- 验证结果（通过 / 测试跳过 / 仅冒烟通过等）
-
-格式建议：
-
-```text
-<动作> <文件/模块>；<验证结果>
-```
-
-## 状态枚举
-
-```text
-pending
-in-progress
-done
-```
+`status = done` 时，output 必须覆盖：变更动作、涉及的核心文件或模块（不超过 3 个）、验证结果。
 
 ## 状态转移规则
 
-### 合法路径
-
-```text
-pending → in-progress → done
-```
-
-这是唯一合法的正向转移路径。
-
-### 禁止路径
-
-| 转移 | 禁止原因 |
-|------|---------|
-| `pending → done` | 必须先经过 `in-progress`，跳过表示任务未被实际执行 |
-| `done → in-progress` | 已完成的 task 不允许重新执行 |
-| `done → pending` | 已完成的 task 不允许回退 |
-| `in-progress → pending` | 执行中的 task 不允许回退到未执行状态 |
+合法路径：`pending → in-progress → done`（唯一合法正向路径，不可逆，不可跳步）。
 
 ### hx-run 的两阶段写入要求
 
@@ -312,32 +220,17 @@ pending → in-progress → done
 - `--plan-task` 允许指定 `pending` 或 `in-progress` task，但禁止指定 `done` task
 - 若指定的 `--plan-task` 不满足 `recoverable` 或 `runnable` 条件，必须停止并返回原因
 
-`hx-run` 更新 `lastRun` 的规则固定如下：
+## lastRun 回写规则
 
-- 每次 task 执行结束后，必须回写 `lastRun`
-- 成功和异常退出都必须更新 `lastRun`
+- 每次 task 执行结束后，必须回写 `lastRun`（成功和异常退出均须更新）
 - 回写值必须来自刚刚结束执行的那个 task
-- `taskId` 取该 task 的 `id`
-- `taskName` 取该 task 的 `name`
-- `status` 取该 task 回写后的最新 `status`
-- `exitStatus` 取本次执行的退出状态
-- `exitReason` 取本次退出原因
-- `ranAt` 取本次回写时刻，格式必须是 ISO 8601
+- `taskId` 取该 task 的 `id`；`taskName` 取 `name`；`status` 取回写后的最新 `status`；`exitStatus` 取本次执行退出状态；`exitReason` 取退出原因；`ranAt` 取回写时刻（ISO 8601）
 
 并行场景附加约束：
 
 - 并行执行时，每个 agent 都必须在自己的阶段二回写 `lastRun`
 - 回写前必须重新读取文件，不得将启动时读取的 `lastRun` 值写回
 - 若回写时发现文件中 `lastRun.ranAt` 晚于本次 `ranAt`，仍以本次为准覆盖写入
-
-### hx-status
-
-- 只读展示，不写
-
-### hx-check
-
-- 校验时以 `src/templates/progress.schema.json` 为准
-- 推荐直接调用：`validateProgressFile(filePath)`、`validateProgressData(data)`
 
 ### hx-run
 

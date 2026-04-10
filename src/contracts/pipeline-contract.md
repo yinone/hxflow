@@ -19,7 +19,7 @@
 ### step 可选字段
 
 - `phase`：展示用字符串
-- `checkpoint.message`：非空字符串，存在时表示该步骤执行后暂停等待确认
+- `checkpoint.message`：非空字符串，存在时表示该步骤执行后暂停等待子 agent 评审，详见 `src/contracts/checkpoint-contract.md`
 - `on_fail`：失败策略，当前只允许 `stop`
 
 ## 恢复规则

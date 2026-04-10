@@ -101,7 +101,7 @@
           <article class="card">
             <div class="card-meta">术语 02</div>
             <h3 class="card-title"><code>.hx/rules/*.md</code> 项目规则文件</h3>
-            <p class="card-body">它是”本项目执行时遵守的团队规则”。由 <code>/hx-init</code> 生成骨架，存放在 <code>.hx/rules/</code> 目录。其中 <code>golden-rules.md</code> 包含团队黄金原则；手动区的内容永久保留，不会被 <code>/hx-rules update</code> 覆盖。</p>
+            <p class="card-body">它是”本项目执行时遵守的团队规则”。由 <code>/hx-init</code> 在首次接入或骨架缺失时生成骨架，存放在 <code>.hx/rules/</code> 目录。其中 <code>golden-rules.md</code> 包含团队黄金原则；手动区的内容永久保留，不会被 <code>/hx-rules update</code> 覆盖。</p>
           </article>
         </div>
         <div class="callout info">
@@ -115,7 +115,7 @@
       <div class="wrap">
         <div class="section-tag">Install</div>
         <h2 class="section-title">安装</h2>
-        <p class="section-desc">安装 npm 包后会自动补齐全局入口；需要手动修复时再执行 <code>hx setup</code>。随后在 Claude Code 中运行 <code>/hx-init</code>（Codex 中运行 <code>$hx-init</code>）初始化项目。</p>
+        <p class="section-desc">安装 npm 包后会自动补齐全局入口；需要手动修复时再执行 <code>hx setup</code>。随后在 Claude Code 中运行 <code>/hx-init</code>（Codex 中运行 <code>$hx-init</code>）完成项目首次初始化；已完整初始化的项目无需重复执行，后续更新自动区优先用 <code>/hx-rules update</code>。</p>
         <div class="grid grid-2">
           <article class="card">
             <div class="card-meta">终端操作</div>
@@ -148,7 +148,7 @@ hx setup</code></pre>
       <div class="wrap">
         <div class="section-tag">Init</div>
         <h2 class="section-title">项目初始化（Agent 命令）</h2>
-        <p class="section-desc">在 Claude Code 或 Codex 中运行；自动分析项目结构，生成配置与规则文件骨架。</p>
+        <p class="section-desc">在 Claude Code 或 Codex 中运行；用于首次初始化项目，或在骨架缺失时补齐配置与规则文件骨架。</p>
         <pre><code><span class="cg"># 在 Claude Code 中运行（自动分析项目结构）</span>
 /hx-init
 
@@ -171,7 +171,7 @@ CLAUDE.md / AGENTS.md          ← 注入 harness 标记块
           <article class="card">
             <div class="card-meta">约束</div>
             <h3 class="card-title">项目主入口是 <code>.hx/config.yaml</code></h3>
-            <p class="card-body">Agent 会分析技术栈、门控命令和目录结构，显式写入可编辑的默认配置与样板文件，避免用户后续再猜入口位置。</p>
+            <p class="card-body">Agent 会分析技术栈、门控命令和目录结构，显式写入可编辑的默认配置与样板文件，避免用户后续再猜入口位置。若这些文件已经完整存在，则无需重复运行 <code>/hx-init</code>。</p>
           </article>
         </div>
       </div>
@@ -361,12 +361,12 @@ $hx-go
           <article class="card">
             <div class="card-meta">错误 03</div>
             <h3 class="card-title">安装链没有跑通，或没有运行 hx-init</h3>
-            <p class="card-body">装包阶段会自动初始化全局入口与目录结构；<code>hx-init</code> 初始化项目配置。如果缺少全局入口，优先重装包或手动执行 <code>hx setup</code> 修复。</p>
+            <p class="card-body">装包阶段会自动初始化全局入口与目录结构；<code>hx-init</code> 负责项目首次初始化或缺失骨架补齐。如果缺少全局入口，优先重装包或手动执行 <code>hx setup</code> 修复。</p>
           </article>
           <article class="card">
             <div class="card-meta">错误 04</div>
             <h3 class="card-title">将 hx setup 和 /hx-init 搞混</h3>
-            <p class="card-body"><code>hx setup</code> 是机器级修复入口；<code>/hx-init</code> 是每个新项目都要执行的项目级初始化。</p>
+            <p class="card-body"><code>hx setup</code> 是机器级修复入口；<code>/hx-init</code> 是项目首次接入或骨架缺失时使用的项目级初始化。项目已经完整初始化后，通常不需要重复执行。</p>
           </article>
           <article class="card">
             <div class="card-meta">错误 05</div>

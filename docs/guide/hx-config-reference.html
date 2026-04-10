@@ -144,7 +144,7 @@ src            → src</code></pre>
         </div>
         <div class="callout warn">
           <span class="icon">!</span>
-          <div><strong>约定：</strong><code>/hx-init</code> 会自动检测项目目录结构，并把最终生效的 paths 配置显式写入 <code>.hx/config.yaml</code>。</div>
+          <div><strong>约定：</strong><code>/hx-init</code> 会在首次接入或骨架缺失时自动检测项目目录结构，并把最终生效的 paths 配置显式写入 <code>.hx/config.yaml</code>。</div>
         </div>
       </div>
     </section>
@@ -195,14 +195,14 @@ Pre Hook（框架层 → 用户层 → 项目层）
       <div class="wrap">
         <div class="section-tag">Project Rules</div>
         <h2 class="section-title">项目规则</h2>
-        <p class="section-desc">项目规则以 Markdown 文件形式存放在 <code>.hx/rules/</code> 目录，由 <code>/hx-init</code> 生成骨架，团队手动编辑后永久保留。</p>
+        <p class="section-desc">项目规则以 Markdown 文件形式存放在 <code>.hx/rules/</code> 目录，由 <code>/hx-init</code> 在首次接入或骨架缺失时生成，团队手动编辑后永久保留。</p>
         <pre><code>&lt;project&gt;/.hx/rules/golden-rules.md   ← 团队黄金原则
 &lt;project&gt;/.hx/rules/*.md             ← 其他专项规则文件</code></pre>
         <div class="grid grid-2">
           <article class="card">
             <div class="card-meta">初始化</div>
             <h3 class="card-title">由 <code>/hx-init</code> 生成骨架</h3>
-            <p class="card-body"><code>/hx-init</code> 分析项目结构后，直接写入项目级规则起始文件到 <code>.hx/rules/</code>。生成的文件分为 <code>hx:auto</code> 区和 <code>hx:manual</code> 区。</p>
+            <p class="card-body"><code>/hx-init</code> 分析项目结构后，直接写入项目级规则起始文件到 <code>.hx/rules/</code>。生成的文件分为 <code>hx:auto</code> 区和 <code>hx:manual</code> 区；已完整初始化的项目通常不需要重复执行。</p>
           </article>
           <article class="card">
             <div class="card-meta">手动区永久保留</div>

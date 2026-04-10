@@ -41,3 +41,27 @@
 ## Prompt 写作规范
 
 仓库内的命令契约、模板文案和 Agent prompt 统一采用简洁风格：先写目标，再写边界，最后写输出要求，避免长段背景铺垫。优先使用短句、动词开头和可执行表述，例如“扫描项目并生成 `.hx/config.yaml`”，不要写成宽泛口号。单个要点尽量只表达一个约束；能用 3 条说清的内容，不要扩成 8 条。示例、路径和命令保留，重复解释、情绪化措辞和空泛形容词删除。
+
+<!-- hx:guide:start -->
+## HX Guide
+
+- 项目初始化入口：`.hx/config.yaml`
+- 源码路径模板：`src`
+- 需求文档模板：`docs/requirement/{feature}.md`
+- 计划文档模板：`docs/plans/{feature}.md`
+- 进度文件模板：`docs/plans/{feature}-progress.json`
+- 当前质量门：`test = npm run hx:test`
+- 当前未配置质量门：`lint`、`build`、`type`
+- `CLAUDE.md` 当前是到本文件的软链，项目级规则以本文件为准
+<!-- hx:guide:end -->
+
+<!-- hx:self-hosting:start -->
+## HX Self-Hosting Constraints
+
+- 先区分两层：`src/*` 是框架定义，`.hx/*` 是当前仓库作为使用者的落地结果。
+- 改命令行为、运行时规则、默认骨架时，优先修改 `src/commands/*`、`src/contracts/*`、`src/templates/*`、`src/pipelines/*`，不要把 `.hx/*` 当成事实源。
+- `.hx/config.yaml`、`.hx/rules/*`、`.hx/pipelines/*` 只用于验证 `hx-init` / `hx-rules` 的落地效果；若要调整默认值或模板，回到框架层修改。
+- 任何影响 `hx-init`、规则模板、pipeline 或命令契约的改动，都必须同时检查当前仓库 `.hx/*` 的生成结果是否仍与设计一致。
+- 文档、命令契约、模板三者必须同步收口；不能只改其中一层而让 self-hosting 结果漂移。
+- 将当前仓库视为 `hxflow` 的第一验收用例：如果新流程不能在本仓库顺畅运行，优先视为框架设计未收口。
+<!-- hx:self-hosting:end -->
