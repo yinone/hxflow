@@ -1,10 +1,13 @@
 #!/usr/bin/env node
 
 /**
- * hx-fix.ts — 错误修复 orchestrator
+ * hx-fix.ts — 错误修复事实工具
  *
- * 收集错误上下文（文件/日志/gate 输出），输出 actionRequired:true 供 AI 修复。
- * 后置验证（gate）为可选，由 AI 在修复后通过 hx check 触发。
+ * 用法：
+ *   hx fix context [<feature>] [--log <text>] [--file <path>]
+ *       收集错误上下文（日志/文件/gate 输出）供 AI 修复
+ *
+ * 所有子命令输出 JSON 到 stdout，失败时 exit 1。
  */
 
 import { existsSync, readFileSync } from 'fs'
@@ -15,50 +18,58 @@ import { parseArgs } from './lib/config-utils.ts'
 import { FRAMEWORK_ROOT, findProjectRoot, getSafeCwd } from './lib/resolve-context.ts'
 
 const argv = process.argv.slice(2)
-const { positional, options } = parseArgs(argv)
+const [sub, ...rest] = argv
+const { positional, options } = parseArgs(rest)
 const [feature] = positional
-const logArg = options.log ?? null
-const fileArg = options.file ?? null
 
-const projectRoot = findProjectRoot(getSafeCwd())
+function out(data: unknown) {
+  console.log(JSON.stringify(data, null, 2))
+}
 
-// 1. 加载 gates 配置
-const gates = loadGates(projectRoot)
-const testCommand = gates.test ?? null
-
-// 2. 收集错误上下文
-const errorContext = collectErrorContext({ logArg, fileArg, testCommand, projectRoot })
-if (!errorContext.ok) {
-  console.log(JSON.stringify({
-    ok: false,
-    actionRequired: false,
-    feature: feature ?? null,
-    errorSource: errorContext.source,
-    reason: errorContext.reason,
-    nextAction: feature ? `hx fix ${feature}` : 'hx fix',
-  }, null, 2))
+function err(message: string): never {
+  console.error(JSON.stringify({ ok: false, error: message }))
   process.exit(1)
 }
 
-// 3. 收集辅助上下文
-const goldenRules = resolveRuleFile(projectRoot, 'golden-rules.md')
-const changedFiles = runGit(projectRoot, 'diff', '--name-only', 'HEAD').split('\n').filter(Boolean)
+const projectRoot = findProjectRoot(getSafeCwd())
 
-// 4. 输出上下文供 AI 修复
-console.log(JSON.stringify({
-  ok: true,
-  actionRequired: true,
-  feature: feature ?? null,
-  errorSource: errorContext.source,
-  context: {
-    errorLog: errorContext.log,
-    goldenRules,
-    changedFiles,
-    projectRoot,
-    verifyCommand: testCommand,
-  },
-  nextAction: feature ? `hx check ${feature}` : 'hx check',
-}, null, 2))
+switch (sub) {
+  case 'context': {
+    const logArg = options.log ?? null
+    const fileArg = options.file ?? null
+
+    const gates = loadGates(projectRoot)
+    const testCommand = gates.test ?? null
+
+    const errorContext = collectErrorContext({ logArg: logArg as string | null, fileArg: fileArg as string | null, testCommand, projectRoot })
+    if (!errorContext.ok) {
+      out({
+        ok: false,
+        feature: feature ?? null,
+        errorSource: errorContext.source,
+        reason: errorContext.reason,
+      })
+      process.exit(1)
+    }
+
+    const goldenRules = resolveRuleFile(projectRoot, 'golden-rules.md')
+    const changedFiles = runGit(projectRoot, 'diff', '--name-only', 'HEAD').split('\n').filter(Boolean)
+
+    out({
+      ok: true,
+      feature: feature ?? null,
+      errorSource: errorContext.source,
+      errorLog: errorContext.log,
+      goldenRules,
+      changedFiles,
+      verifyCommand: testCommand,
+    })
+    break
+  }
+
+  default:
+    err(`未知子命令 "${sub ?? ''}"，可用：context`)
+}
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -87,7 +98,7 @@ function collectErrorContext(input: {
     return {
       ok: false,
       source: 'none',
-      reason: '未传 --log / --file，且 .hx/config.yaml 未配置 gates.test，无法自动收集错误上下文。请先运行 hx check 收集问题。',
+      reason: '未传 --log / --file，且 .hx/config.yaml 未配置 gates.test，无法自动收集错误上下文。',
     }
   }
 

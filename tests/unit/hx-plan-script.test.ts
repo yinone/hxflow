@@ -46,7 +46,7 @@ function createProject() {
 describe('hx-plan script', () => {
   it('outputs context for AI when plan does not exist (phase 1)', () => {
     const projectRoot = createProject()
-    const result = spawnSync('bun', [SCRIPT_PATH, 'AUTH-001'], {
+    const result = spawnSync('bun', [SCRIPT_PATH, 'context', 'AUTH-001'], {
       cwd: projectRoot,
       encoding: 'utf8',
     })
@@ -54,8 +54,6 @@ describe('hx-plan script', () => {
     expect(result.status).toBe(0)
     const summary = JSON.parse(result.stdout)
     expect(summary.ok).toBe(true)
-    expect(summary.actionRequired).toBe(true)
-    expect(summary.completed).toBe(false)
     expect(summary.feature).toBe('AUTH-001')
     expect(normalizeTmpPath(summary.planDoc)).toBe(
       normalizeTmpPath(join(projectRoot, 'docs', 'plans', 'AUTH-001.md')),
@@ -63,13 +61,11 @@ describe('hx-plan script', () => {
     expect(normalizeTmpPath(summary.progressFile)).toBe(
       normalizeTmpPath(join(projectRoot, 'docs', 'plans', 'AUTH-001-progress.json')),
     )
-    expect(summary.context).toBeDefined()
-    expect(summary.context.requirementContent).toContain('AUTH-001')
-    expect(summary.context.planTemplate).toBeTruthy()
-    expect(summary.nextAction).toBe('hx plan AUTH-001')
+    expect(summary.requirementContent).toContain('AUTH-001')
+    expect(summary.planTemplate).toBeTruthy()
   })
 
-  it('validates progressFile and reports completed when plan and progress exist (phase 2)', () => {
+  it('validates progressFile and reports tasks when plan and progress exist (phase 2)', () => {
     const projectRoot = createProject()
     // AI writes these files after phase 1
     writeFileSync(
@@ -95,7 +91,7 @@ describe('hx-plan script', () => {
       'utf8',
     )
 
-    const result = spawnSync('bun', [SCRIPT_PATH, 'AUTH-001'], {
+    const result = spawnSync('bun', [SCRIPT_PATH, 'validate', 'AUTH-001'], {
       cwd: projectRoot,
       encoding: 'utf8',
     })
@@ -103,15 +99,12 @@ describe('hx-plan script', () => {
     expect(result.status).toBe(0)
     const summary = JSON.parse(result.stdout)
     expect(summary.ok).toBe(true)
-    expect(summary.actionRequired).toBe(false)
-    expect(summary.completed).toBe(true)
     expect(summary.feature).toBe('AUTH-001')
+    expect(summary.errors).toEqual([])
     expect(summary.tasks).toEqual([
       { id: 'TASK-1', name: '实现登录接口', status: 'pending', dependsOn: [], parallelizable: false },
       { id: 'TASK-2', name: '接入登录页', status: 'pending', dependsOn: ['TASK-1'], parallelizable: true },
     ])
-    expect(summary.validation.valid).toBe(true)
-    expect(summary.nextAction).toBe('hx run AUTH-001')
   })
 
   it('fails with structured output when progressFile has invalid schema', () => {
@@ -124,7 +117,7 @@ describe('hx-plan script', () => {
       'utf8',
     )
 
-    const result = spawnSync('bun', [SCRIPT_PATH, 'AUTH-001'], {
+    const result = spawnSync('bun', [SCRIPT_PATH, 'validate', 'AUTH-001'], {
       cwd: projectRoot,
       encoding: 'utf8',
     })
@@ -132,10 +125,6 @@ describe('hx-plan script', () => {
     expect(result.status).toBe(1)
     const summary = JSON.parse(result.stdout)
     expect(summary.ok).toBe(false)
-    expect(summary.actionRequired).toBe(false)
-    expect(summary.completed).toBe(false)
-    expect(summary.validation.valid).toBe(false)
-    expect(summary.validation.errors.length).toBeGreaterThan(0)
-    expect(summary.nextAction).toBe('hx fix AUTH-001')
+    expect(summary.errors.length).toBeGreaterThan(0)
   })
 })

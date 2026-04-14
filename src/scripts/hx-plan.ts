@@ -1,10 +1,13 @@
 #!/usr/bin/env node
 
 /**
- * hx-plan.ts — 执行计划 orchestrator
+ * hx-plan.ts — 执行计划事实工具
  *
- * 第一次调用（planDoc 不存在）：收集需求/模板/规则上下文，输出供 AI 生成计划。
- * 第二次调用（planDoc 已写入）：验证 progressFile schema，输出完成状态。
+ * 用法：
+ *   hx plan context <feature>       收集生成计划所需的事实（需求、模板、规则）
+ *   hx plan validate <feature>      校验已存在的 planDoc + progressFile
+ *
+ * 所有子命令输出 JSON 到 stdout，失败时 exit 1。
  */
 
 import { existsSync, readFileSync } from 'fs'
@@ -22,148 +25,115 @@ import { getProgressSchemaPaths, validateProgressFile } from './lib/progress-sch
 import type { ProgressData } from './lib/types.ts'
 
 const argv = process.argv.slice(2)
-const { positional } = parseArgs(argv)
+const [sub, ...rest] = argv
+const { positional } = parseArgs(rest)
 const [feature] = positional
 
-if (!feature) {
-  console.error('用法: hx plan <feature>')
+function out(data: unknown) {
+  console.log(JSON.stringify(data, null, 2))
+}
+
+function err(message: string): never {
+  console.error(JSON.stringify({ ok: false, error: message }))
   process.exit(1)
 }
 
 const projectRoot = findProjectRoot(getSafeCwd())
 
-// 1. 定位并验证需求文档
-const requirementDoc = getRequirementDocPath(projectRoot, feature)
-if (!existsSync(requirementDoc)) {
-  console.error(`❌ 需求文档不存在: ${requirementDoc}`)
-  console.error(`   请先运行 hx doc ${feature}`)
-  process.exit(1)
-}
+switch (sub) {
+  case 'context': {
+    if (!feature) err('用法：hx plan context <feature>')
 
-// 2. 解析 feature 头部（固化解析，不由 AI 解释）
-let parsedHeader
-try {
-  parsedHeader = parseFeatureHeaderFile(requirementDoc)
-} catch (err) {
-  console.error(`❌ 需求文档头部解析失败: ${err.message}`)
-  process.exit(1)
-}
+    const requirementDoc = getRequirementDocPath(projectRoot, feature)
+    if (!existsSync(requirementDoc)) err(`需求文档不存在: ${requirementDoc}，请先运行 hx doc context ${feature}`)
 
-// 3. 读取文档类型（> Type: 字段）
-const reqContent = readFileSync(requirementDoc, 'utf8')
-const typeMatch = reqContent.match(/^>\s*Type:\s*(.+)$/m)
-const docType = typeMatch ? typeMatch[1].trim().toLowerCase() : 'feature'
+    let parsedHeader
+    try {
+      parsedHeader = parseFeatureHeaderFile(requirementDoc)
+    } catch (error) {
+      err(`需求文档头部解析失败: ${error instanceof Error ? error.message : String(error)}`)
+    }
 
-// 4. 选择计划模板（项目层优先，回退框架层）
-const templateName = docType === 'bugfix' ? 'bugfix-plan-template.md' : 'plan-template.md'
-const projectTemplatePath = resolve(projectRoot, '.hx', 'rules', templateName)
-const frameworkTemplatePath = resolve(FRAMEWORK_ROOT, 'templates', 'rules', templateName)
-const templatePath = existsSync(projectTemplatePath) ? projectTemplatePath : frameworkTemplatePath
+    const reqContent = readFileSync(requirementDoc, 'utf8')
+    const typeMatch = reqContent.match(/^>\s*Type:\s*(.+)$/m)
+    const docType = typeMatch ? typeMatch[1].trim().toLowerCase() : 'feature'
 
-// 5. 检查现有产物
-const planDoc = getActivePlanDocPath(projectRoot, feature)
-const progressFile = getActiveProgressFilePath(projectRoot, feature)
-const { schemaPath, templatePath: progressTemplatePath } = getProgressSchemaPaths()
-const planTemplateContent = readFileSync(templatePath, 'utf8')
+    const templateName = docType === 'bugfix' ? 'bugfix-plan-template.md' : 'plan-template.md'
+    const projectTemplatePath = resolve(projectRoot, '.hx', 'rules', templateName)
+    const frameworkTemplatePath = resolve(FRAMEWORK_ROOT, 'templates', 'rules', templateName)
+    const templatePath = existsSync(projectTemplatePath) ? projectTemplatePath : frameworkTemplatePath
 
-const planExists = existsSync(planDoc)
-const progressExists = existsSync(progressFile)
+    const planDoc = getActivePlanDocPath(projectRoot, feature)
+    const progressFile = getActiveProgressFilePath(projectRoot, feature)
+    const { schemaPath, templatePath: progressTemplatePath } = getProgressSchemaPaths()
+    const planTemplateContent = readFileSync(templatePath, 'utf8')
+    const goldenRules = resolveRuleFile(projectRoot, 'golden-rules.md')
+    const progressTemplateContent = existsSync(progressTemplatePath) ? readFileSync(progressTemplatePath, 'utf8') : null
 
-// ── 阶段二：planDoc 已存在 → 校验 progressFile ──────────────────────────────
-if (planExists && progressExists) {
-  const validation = validateProgressFile(progressFile)
-  if (!validation.valid) {
-    printSummary({
-      ok: false,
-      actionRequired: false,
-      completed: false,
+    out({
+      ok: true,
+      feature: parsedHeader.feature,
+      displayName: parsedHeader.displayName,
+      sourceId: parsedHeader.sourceId,
+      docType,
+      planDoc,
+      progressFile,
+      planExists: existsSync(planDoc),
+      progressExists: existsSync(progressFile),
+      requirementContent: reqContent,
+      planTemplate: planTemplateContent,
+      goldenRules,
+      progressTemplate: progressTemplateContent,
+      progressSchemaPath: schemaPath,
+    })
+    break
+  }
+
+  case 'validate': {
+    if (!feature) err('用法：hx plan validate <feature>')
+
+    const planDoc = getActivePlanDocPath(projectRoot, feature)
+    const progressFile = getActiveProgressFilePath(projectRoot, feature)
+    const planExists = existsSync(planDoc)
+    const progressExists = existsSync(progressFile)
+
+    if (!planExists) {
+      out({ ok: false, feature, planDoc, progressFile, planExists, progressExists, errors: ['planDoc 不存在'] })
+      process.exit(1)
+    }
+
+    if (!progressExists) {
+      out({ ok: false, feature, planDoc, progressFile, planExists, progressExists, errors: ['progressFile 不存在'] })
+      process.exit(1)
+    }
+
+    const validation = validateProgressFile(progressFile)
+    if (!validation.valid) {
+      out({ ok: false, feature, planDoc, progressFile, planExists, progressExists, errors: validation.errors })
+      process.exit(1)
+    }
+
+    const data = validation.data as ProgressData
+    out({
+      ok: true,
       feature,
       planDoc,
       progressFile,
-      tasks: [],
-      validation,
-      nextAction: `hx fix ${feature}`,
+      planExists,
+      progressExists,
+      errors: [],
+      tasks: data.tasks.map((t) => ({ id: t.id, name: t.name, status: t.status, dependsOn: t.dependsOn, parallelizable: t.parallelizable })),
     })
-    process.exit(1)
+    break
   }
 
-  const data = validation.data as ProgressData
-  printSummary({
-    ok: true,
-    actionRequired: false,
-    completed: true,
-    feature,
-    planDoc,
-    progressFile,
-    tasks: data.tasks.map((t) => ({ id: t.id, name: t.name, status: t.status, dependsOn: t.dependsOn, parallelizable: t.parallelizable })),
-    validation: { valid: true, errors: [] },
-    nextAction: `hx run ${feature}`,
-  })
-  process.exit(0)
+  default:
+    err(`未知子命令 "${sub ?? ''}"，可用：context / validate`)
 }
-
-// ── 阶段一：planDoc 不存在 → 收集上下文，供 AI 生成 ──────────────────────────
-const goldenRules = resolveRuleFile(projectRoot, 'golden-rules.md')
-const progressTemplateContent = existsSync(progressTemplatePath) ? readFileSync(progressTemplatePath, 'utf8') : null
-
-printSummary({
-  ok: true,
-  actionRequired: true,
-  completed: false,
-  feature,
-  planDoc,
-  progressFile,
-  tasks: [],
-  validation: { valid: true, errors: [] },
-  nextAction: `hx plan ${feature}`,
-  context: {
-    feature: parsedHeader.feature,
-    displayName: parsedHeader.displayName,
-    sourceId: parsedHeader.sourceId,
-    docType,
-    requirementContent: reqContent,
-    planTemplate: planTemplateContent,
-    goldenRules,
-    progressTemplate: progressTemplateContent,
-    progressSchemaPath: schemaPath,
-    expectedOutput: { planDoc, progressFile },
-  },
-})
 
 function resolveRuleFile(root: string, name: string): string | null {
   const projectFile = resolve(root, '.hx', 'rules', name)
   const frameworkFile = resolve(FRAMEWORK_ROOT, 'templates', 'rules', name)
   const targetPath = existsSync(projectFile) ? projectFile : frameworkFile
   return existsSync(targetPath) ? readFileSync(targetPath, 'utf8') : null
-}
-
-function toProjectRelativePath(filePath: string): string {
-  return filePath.startsWith(`${projectRoot}/`) ? filePath.slice(projectRoot.length + 1) : filePath
-}
-
-function printSummary(summary: {
-  ok: boolean
-  actionRequired: boolean
-  completed: boolean
-  feature: string
-  planDoc: string
-  progressFile: string
-  tasks: Array<{ id: string; name: string; status?: string; dependsOn: string[]; parallelizable: boolean }>
-  validation: { valid: boolean; errors: string[] }
-  nextAction: string
-  context?: Record<string, unknown>
-}) {
-  const out: Record<string, unknown> = {
-    ok: summary.ok,
-    actionRequired: summary.actionRequired,
-    completed: summary.completed,
-    feature: summary.feature,
-    planDoc: summary.planDoc,
-    progressFile: summary.progressFile,
-    tasks: summary.tasks,
-    validation: summary.validation,
-    nextAction: summary.nextAction,
-  }
-  if (summary.context) out.context = summary.context
-  console.log(JSON.stringify(out, null, 2))
 }

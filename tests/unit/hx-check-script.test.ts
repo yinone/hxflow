@@ -108,7 +108,6 @@ describe('hx-check script', () => {
     expect(result.status).toBe(0)
     expect(JSON.parse(result.stdout)).toEqual({
       ok: true,
-      actionRequired: false,
       feature: 'AUTH-001',
       scope: 'qa',
       qa: {
@@ -131,7 +130,7 @@ describe('hx-check script', () => {
       review: {
         enabled: false,
         ok: true,
-        actionRequired: false,
+        needsAiReview: false,
         context: null,
         summary: '未执行 review',
         reason: null,
@@ -139,16 +138,15 @@ describe('hx-check script', () => {
       clean: {
         enabled: false,
         ok: true,
-        actionRequired: false,
+        needsAiReview: false,
         context: null,
         summary: '未执行 clean',
         reason: null,
       },
-      nextAction: 'hx mr AUTH-001',
     })
   })
 
-  it('outputs actionRequired context for review and clean scopes', () => {
+  it('outputs needsAiReview context for review and clean scopes', () => {
     const projectRoot = setupProject('echo qa-pass')
     const result = spawnSync('bun', [SCRIPT_PATH, 'AUTH-001', '--scope', 'all'], {
       cwd: projectRoot,
@@ -158,24 +156,22 @@ describe('hx-check script', () => {
     expect(result.status).toBe(1)
     const summary = JSON.parse(result.stdout)
     expect(summary.ok).toBe(false)
-    expect(summary.actionRequired).toBe(true)
     expect(summary.feature).toBe('AUTH-001')
     expect(summary.scope).toBe('all')
     expect(summary.qa.ok).toBe(true)
     expect(summary.review).toMatchObject({
       enabled: true,
       ok: true,
-      actionRequired: true,
+      needsAiReview: true,
     })
     expect(summary.clean).toMatchObject({
       enabled: true,
       ok: true,
-      actionRequired: true,
+      needsAiReview: true,
     })
     expect(summary.review.context).toBeDefined()
     expect(summary.review.context.kind).toBe('review')
     expect(summary.clean.context).toBeDefined()
     expect(summary.clean.context.kind).toBe('clean')
-    expect(summary.nextAction).toBe('hx check AUTH-001')
   })
 })

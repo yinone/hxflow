@@ -76,9 +76,9 @@ function createProject(taskStatus: 'done' | 'pending') {
 }
 
 describe('hx-mr script', () => {
-  it('outputs actionRequired context for MR generation and archives active artifacts', () => {
+  it('context subcommand outputs flat MR facts when all tasks done', () => {
     const projectRoot = createProject('done')
-    const result = spawnSync('bun', [SCRIPT_PATH, 'AUTH-001'], {
+    const result = spawnSync('bun', [SCRIPT_PATH, 'context', 'AUTH-001'], {
       cwd: projectRoot,
       encoding: 'utf8',
     })
@@ -86,19 +86,34 @@ describe('hx-mr script', () => {
     expect(result.status).toBe(0)
     const summary = JSON.parse(result.stdout)
     expect(summary.ok).toBe(true)
-    expect(summary.actionRequired).toBe(true)
     expect(summary.feature).toBe('AUTH-001')
-    expect(summary.progressSummary).toBe('1/1 个任务完成')
-    expect(summary.archive).toMatchObject({ performed: true })
-    expect(summary.archive.archived.map((item: string) => normalizeTmpPath(item))).toEqual([
+    expect(summary.displayName).toBe('用户登录')
+    expect(summary.sourceId).toBe('TS-1')
+    expect(summary.allDone).toBe(true)
+    expect(summary.pendingIds).toEqual([])
+    expect(summary.progress.doneCount).toBe(1)
+    expect(summary.progress.totalCount).toBe(1)
+    expect(summary.git).toBeDefined()
+    expect(summary.git.targetBranch).toBeDefined()
+    expect(summary.git.currentBranch).toBeDefined()
+  })
+
+  it('archive subcommand moves active artifacts to archive dir', () => {
+    const projectRoot = createProject('done')
+    const result = spawnSync('bun', [SCRIPT_PATH, 'archive', 'AUTH-001'], {
+      cwd: projectRoot,
+      encoding: 'utf8',
+    })
+
+    expect(result.status).toBe(0)
+    const summary = JSON.parse(result.stdout)
+    expect(summary.ok).toBe(true)
+    expect(summary.feature).toBe('AUTH-001')
+    expect(summary.performed).toBe(true)
+    expect(summary.archived.map((item: string) => normalizeTmpPath(item))).toEqual([
       normalizeTmpPath(join(projectRoot, 'docs', 'archive', 'AUTH-001', 'AUTH-001.md')),
       normalizeTmpPath(join(projectRoot, 'docs', 'archive', 'AUTH-001', 'AUTH-001-progress.json')),
     ])
-    expect(summary.context).toBeDefined()
-    expect(summary.context.git).toBeDefined()
-    expect(summary.context.progress.doneCount).toBe(1)
-    expect(summary.context.progress.totalCount).toBe(1)
-    expect(summary.nextAction).toBe('hx mr AUTH-001')
 
     // archive moved the files
     expect(existsSync(join(projectRoot, 'docs', 'plans', 'AUTH-001.md'))).toBe(false)
@@ -106,30 +121,21 @@ describe('hx-mr script', () => {
     expect(existsSync(join(projectRoot, 'docs', 'archive', 'AUTH-001', 'AUTH-001.md'))).toBe(true)
   })
 
-  it('fails before calling AI when progress still has pending tasks', () => {
+  it('context subcommand reports pending tasks when progress has unfinished work', () => {
     const projectRoot = createProject('pending')
-    const result = spawnSync('bun', [SCRIPT_PATH, 'AUTH-001'], {
+    const result = spawnSync('bun', [SCRIPT_PATH, 'context', 'AUTH-001'], {
       cwd: projectRoot,
       encoding: 'utf8',
     })
 
-    expect(result.status).toBe(1)
+    expect(result.status).toBe(0)
     const summary = JSON.parse(result.stdout)
-    expect(summary).toEqual({
-      ok: false,
-      feature: 'AUTH-001',
-      progressFile: summary.progressFile,
-      progressSummary: '0/1 个任务完成',
-      currentBranch: '（尚未执行）',
-      targetBranch: 'main',
-      mr: null,
-      archive: {
-        performed: false,
-        archived: [],
-      },
-      nextAction: 'hx run AUTH-001',
-      reason: '存在未完成任务: TASK-1',
-    })
+    expect(summary.ok).toBe(true)
+    expect(summary.feature).toBe('AUTH-001')
+    expect(summary.allDone).toBe(false)
+    expect(summary.pendingIds).toEqual(['TASK-1'])
+    expect(summary.progress.doneCount).toBe(0)
+    expect(summary.progress.totalCount).toBe(1)
     expect(normalizeTmpPath(summary.progressFile)).toBe(
       normalizeTmpPath(join(projectRoot, 'docs', 'plans', 'AUTH-001-progress.json')),
     )

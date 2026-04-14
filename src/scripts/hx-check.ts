@@ -14,7 +14,7 @@ import { resolve } from 'path'
 import { parseArgs } from './lib/config-utils.ts'
 import { FRAMEWORK_ROOT, findProjectRoot, getSafeCwd } from './lib/resolve-context.ts'
 
-const VALID_SCOPES = ['review', 'qa', 'clean', 'all'] as const
+const VALID_SCOPES = ['review', 'qa', 'clean', 'all', 'facts'] as const
 const GATE_ORDER = ['lint', 'build', 'type', 'test'] as const
 
 type CheckScope = (typeof VALID_SCOPES)[number]
@@ -34,7 +34,7 @@ interface ScopeResult {
   ok: boolean
   summary?: string
   reason?: string
-  actionRequired?: boolean
+  needsAiReview?: boolean
   context?: Record<string, unknown>
 }
 
@@ -62,6 +62,26 @@ const diffStat = runGit(projectRoot, 'diff', '--stat', 'HEAD')
 const changedFiles = splitLines(runGit(projectRoot, 'diff', '--name-only', 'HEAD'))
 
 const selectedScope = scope as CheckScope
+
+// ── facts 子命令：只返回确定性事实，不触发 AI ─────────────────────────────────
+if (selectedScope === ('facts' as CheckScope)) {
+  const factsGates = loadGates(projectRoot)
+  const activeGates = GATE_ORDER.filter((gate) => factsGates[gate])
+
+  console.log(JSON.stringify({
+    ok: true,
+    feature: feature ?? null,
+    scope: 'facts',
+    gates: Object.fromEntries(activeGates.map((g) => [g, factsGates[g]])),
+    branchCheck: checkBranchName(projectRoot),
+    diffStat,
+    changedFiles,
+    reviewChecklist,
+    goldenRules,
+  }, null, 2))
+  process.exit(0)
+}
+
 const doReview = selectedScope === 'review' || selectedScope === 'all'
 const doQa = selectedScope === 'qa' || selectedScope === 'all'
 const doClean = selectedScope === 'clean' || selectedScope === 'all'
@@ -90,20 +110,18 @@ const clean = doClean
 
 // qa 失败 → pipeline 阻塞
 const qaFailed = !qa.ok
-// review/clean 需要 AI 判断 → actionRequired
-const needsAi = (review.actionRequired || clean.actionRequired) && qa.ok
+// review/clean 提供上下文供 AI 分析
+const needsAi = (review.needsAiReview || clean.needsAiReview) && qa.ok
 
 const ok = !qaFailed && !needsAi
 
 printSummary({
   ok,
-  actionRequired: needsAi,
   feature: feature ?? null,
   scope: selectedScope,
   qa,
   review,
   clean,
-  nextAction: qaFailed ? buildFixCommand(feature) : needsAi ? `hx check ${feature ?? ''}`.trim() : buildMrCommand(feature),
 })
 
 process.exit(ok ? 0 : 1)
@@ -233,7 +251,7 @@ function runSemanticScope(
   return {
     enabled: true,
     ok: true,
-    actionRequired: true,
+    needsAiReview: true,
     context: {
       kind,
       feature: featureValue ?? null,
@@ -290,29 +308,18 @@ function splitLines(value: string): string[] {
     .filter(Boolean)
 }
 
-function buildFixCommand(featureValue?: string): string {
-  return featureValue ? `hx fix ${featureValue}` : 'hx fix'
-}
-
-function buildMrCommand(featureValue?: string): string {
-  return featureValue ? `hx mr ${featureValue}` : 'hx mr'
-}
-
 function printSummary(summary: {
   ok: boolean
-  actionRequired?: boolean
   feature: string | null
   scope: CheckScope
   qa: ScopeResult & { gates?: GateResult[]; branchCheck?: BranchCheckResult | null }
   review: ScopeResult
   clean: ScopeResult
-  nextAction: string
 }) {
   console.log(
     JSON.stringify(
       {
         ok: summary.ok,
-        actionRequired: summary.actionRequired ?? false,
         feature: summary.feature,
         scope: summary.scope,
         qa: {
@@ -326,7 +333,7 @@ function printSummary(summary: {
         review: {
           enabled: summary.review.enabled,
           ok: summary.review.ok,
-          actionRequired: summary.review.actionRequired ?? false,
+          needsAiReview: summary.review.needsAiReview ?? false,
           context: summary.review.context ?? null,
           summary: summary.review.summary ?? null,
           reason: summary.review.reason ?? null,
@@ -334,12 +341,11 @@ function printSummary(summary: {
         clean: {
           enabled: summary.clean.enabled,
           ok: summary.clean.ok,
-          actionRequired: summary.clean.actionRequired ?? false,
+          needsAiReview: summary.clean.needsAiReview ?? false,
           context: summary.clean.context ?? null,
           summary: summary.clean.summary ?? null,
           reason: summary.clean.reason ?? null,
         },
-        nextAction: summary.nextAction,
       },
       null,
       2,

@@ -148,7 +148,7 @@ describe('hx cli integration', () => {
   it('runs local workflow commands through the CLI entrypoint', () => {
     const projectRoot = createTempDir('hx-go-entry-')
     const entryPath = resolve(process.cwd(), 'bin', 'hx.js')
-    const result = spawnSync(process.execPath, [entryPath, 'go', 'AUTH-001'], {
+    const result = spawnSync(process.execPath, [entryPath, 'go', 'next', 'AUTH-001'], {
       cwd: projectRoot,
       encoding: 'utf8',
     })
@@ -156,15 +156,12 @@ describe('hx cli integration', () => {
     expect(result.status).toBe(0)
     const parsed = JSON.parse(result.stdout)
     expect(parsed).toMatchObject({
-      ok: false,
-      actionRequired: true,
+      ok: true,
       feature: 'AUTH-001',
-      pipeline: 'default',
-      startStep: 'doc',
-      blockedStep: 'doc',
+      nextStep: 'doc',
     })
-    expect(parsed.executedSteps).toHaveLength(1)
-    expect(parsed.executedSteps[0]).toMatchObject({ id: 'doc', ok: true })
+    expect(parsed.command).toBeDefined()
+    expect(Array.isArray(parsed.state)).toBe(true)
   })
 
   it('reports unknown commands', () => {

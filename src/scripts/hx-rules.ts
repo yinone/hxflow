@@ -75,27 +75,23 @@ function runUpdate() {
 
   console.log(JSON.stringify({
     ok: true,
-    actionRequired: true,
     mode: 'update',
-    context: {
-      projectRoot,
-      projectFacts,
-      configPath,
-      configContent: existsSync(configPath) ? readFileSync(configPath, 'utf8') : null,
-      ruleFiles: ruleFiles.map((f) => ({ path: f, content: readFileSync(f, 'utf8'), ...describeRuleFile(f) })),
-      templates: templates.map((f) => ({
-        name: basename(f),
-        content: readFileSync(f, 'utf8'),
-      })),
-      blockStructure: {
-        autoStart: AUTO_START,
-        autoEnd: AUTO_END,
-        manualStart: MANUAL_START,
-        manualEnd: MANUAL_END,
-        instruction: 'Only replace content between hx:auto:start and hx:auto:end. Never modify hx:manual blocks.',
-      },
+    projectRoot,
+    projectFacts,
+    configPath,
+    configContent: existsSync(configPath) ? readFileSync(configPath, 'utf8') : null,
+    ruleFiles: ruleFiles.map((f) => ({ path: f, content: readFileSync(f, 'utf8'), ...describeRuleFile(f) })),
+    templates: templates.map((f) => ({
+      name: basename(f),
+      content: readFileSync(f, 'utf8'),
+    })),
+    blockStructure: {
+      autoStart: AUTO_START,
+      autoEnd: AUTO_END,
+      manualStart: MANUAL_START,
+      manualEnd: MANUAL_END,
+      instruction: 'Only replace content between hx:auto:start and hx:auto:end. Never modify hx:manual blocks.',
     },
-    nextAction: 'hx rules view',
   }, null, 2))
 }
 

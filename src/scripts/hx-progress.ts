@@ -127,6 +127,56 @@ switch (sub) {
     break
   }
 
+  case 'inspect': {
+    const [rawPath] = rest
+    if (!rawPath) err('用法：hx progress inspect <progressFile>')
+
+    const filePath = resolveFilePath(rawPath)
+    const result = validateProgressFile(filePath)
+
+    if (!result.valid) {
+      console.log(JSON.stringify({ ok: false, valid: false, errors: result.errors }, null, 2))
+      process.exit(1)
+    }
+
+    const data = result.data
+    const total = data.tasks.length
+    const done = data.tasks.filter((t) => t.status === 'done').length
+    const inProgress = data.tasks.filter((t) => t.status === 'in-progress').length
+    const pending = total - done - inProgress
+    const batch = getScheduledBatch(data)
+
+    out({
+      ok: true,
+      valid: true,
+      feature: data.feature,
+      requirementDoc: data.requirementDoc,
+      planDoc: data.planDoc,
+      createdAt: data.createdAt,
+      updatedAt: data.updatedAt,
+      completedAt: data.completedAt,
+      lastRun: data.lastRun,
+      summary: { total, done, inProgress, pending },
+      nextBatch: {
+        mode: batch.mode,
+        parallel: batch.parallel,
+        tasks: batch.tasks.map((t) => ({ id: t.id, name: t.name })),
+      },
+      tasks: data.tasks.map((t) => ({
+        id: t.id,
+        name: t.name,
+        status: t.status,
+        dependsOn: t.dependsOn,
+        parallelizable: t.parallelizable,
+        output: t.output || null,
+        startedAt: t.startedAt,
+        completedAt: t.completedAt,
+        durationSeconds: t.durationSeconds,
+      })),
+    })
+    break
+  }
+
   default:
-    err(`未知子命令 "${sub}"，可用：next / start / done / fail / validate`)
+    err(`未知子命令 "${sub ?? ''}"，可用：next / start / done / fail / validate / inspect`)
 }

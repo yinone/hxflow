@@ -55,32 +55,24 @@ function writeRequirementDoc(projectRoot: string) {
 }
 
 describe('hx-go script', () => {
-  it('blocks on doc step with actionRequired when requirementDoc is missing', () => {
+  it('next subcommand returns doc step when requirementDoc is missing', () => {
     const projectRoot = createProject()
-    const result = spawnSync('bun', [SCRIPT_PATH, 'AUTH-001'], {
+    const result = spawnSync('bun', [SCRIPT_PATH, 'next', 'AUTH-001'], {
       cwd: projectRoot,
       encoding: 'utf8',
     })
 
     expect(result.status).toBe(0)
     const parsed = JSON.parse(result.stdout)
-    expect(parsed).toMatchObject({
-      ok: false,
-      actionRequired: true,
-      feature: 'AUTH-001',
-      pipeline: 'default',
-      startStep: 'doc',
-      blockedStep: 'doc',
-    })
-    expect(parsed.executedSteps).toHaveLength(1)
-    expect(parsed.executedSteps[0]).toMatchObject({
-      id: 'doc',
-      ok: true,
-      result: expect.objectContaining({ ok: true, actionRequired: true, feature: 'AUTH-001', docType: 'feature' }),
-    })
+    expect(parsed.ok).toBe(true)
+    expect(parsed.feature).toBe('AUTH-001')
+    expect(parsed.nextStep).toBe('doc')
+    expect(parsed.command).toBe('hx doc')
+    expect(Array.isArray(parsed.state)).toBe(true)
+    expect(parsed.state[0]).toMatchObject({ id: 'doc', status: 'pending' })
   })
 
-  it('advances past plan and run when all files exist and blocks at check with actionRequired', () => {
+  it('next subcommand with --from plan returns check step when doc/plan/run are done', () => {
     const projectRoot = createProject()
     writeRequirementDoc(projectRoot)
     // Pre-create plan + progress with all tasks done (simulates AI having completed these steps)
@@ -116,27 +108,48 @@ describe('hx-go script', () => {
       'utf8',
     )
 
-    const result = spawnSync('bun', [SCRIPT_PATH, 'AUTH-001', '--from', 'plan'], {
+    const result = spawnSync('bun', [SCRIPT_PATH, 'next', 'AUTH-001', '--from', 'plan'], {
       cwd: projectRoot,
       encoding: 'utf8',
     })
 
-    // hx-go exits 0 when it blocks on actionRequired
     expect(result.status).toBe(0)
     const summary = JSON.parse(result.stdout)
-    expect(summary.ok).toBe(false)
-    expect(summary.actionRequired).toBe(true)
+    expect(summary.ok).toBe(true)
     expect(summary.feature).toBe('AUTH-001')
-    expect(summary.pipeline).toBe('default')
-    expect(summary.startStep).toBe('plan')
-    expect(summary.blockedStep).toBe('check')
+    // --from plan forces start at plan step
+    expect(summary.nextStep).toBe('plan')
+    expect(summary.command).toBe('hx plan')
 
-    // plan and run completed, check blocked with actionRequired
-    const steps = summary.executedSteps.map((s: { id: string; ok: boolean }) => [s.id, s.ok])
-    expect(steps).toEqual([
-      ['plan', true],
-      ['run', true],
-      ['check', false],
-    ])
+    // state reflects doc/plan/run done, check/mr rerun
+    const stateMap = Object.fromEntries(
+      summary.state.map((s: { id: string; status: string }) => [s.id, s.status]),
+    )
+    expect(stateMap.doc).toBe('done')
+    expect(stateMap.plan).toBe('done')
+    expect(stateMap.run).toBe('done')
+    expect(stateMap.check).toBe('rerun')
+    expect(stateMap.mr).toBe('rerun')
+  })
+
+  it('state subcommand returns full pipeline state', () => {
+    const projectRoot = createProject()
+    writeRequirementDoc(projectRoot)
+
+    const result = spawnSync('bun', [SCRIPT_PATH, 'state', 'AUTH-001'], {
+      cwd: projectRoot,
+      encoding: 'utf8',
+    })
+
+    expect(result.status).toBe(0)
+    const summary = JSON.parse(result.stdout)
+    expect(summary.ok).toBe(true)
+    expect(summary.feature).toBe('AUTH-001')
+    expect(summary.allDone).toBe(false)
+    expect(summary.nextStep).toBe('plan')
+    expect(Array.isArray(summary.steps)).toBe(true)
+    expect(summary.steps).toHaveLength(5)
+    expect(summary.steps[0]).toMatchObject({ id: 'doc', status: 'done' })
+    expect(summary.steps[1]).toMatchObject({ id: 'plan', status: 'pending' })
   })
 })

@@ -87,7 +87,6 @@ const frameworkRulesDir = resolve(FRAMEWORK_ROOT, 'templates', 'rules')
 
 console.log(JSON.stringify({
   ok: true,
-  actionRequired: true,
   status: 'partial',
   missing: remainingMissing,
   written,

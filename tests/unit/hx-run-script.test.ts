@@ -119,7 +119,7 @@ afterEach(() => {
 describe('hx-run script', () => {
   it('outputs next-batch context for AI when tasks are pending', () => {
     const projectRoot = setupProject()
-    const result = spawnSync('bun', [SCRIPT_PATH, 'AUTH-001'], {
+    const result = spawnSync('bun', [SCRIPT_PATH, 'next', 'AUTH-001'], {
       cwd: projectRoot,
       encoding: 'utf8',
     })
@@ -127,23 +127,20 @@ describe('hx-run script', () => {
     expect(result.status).toBe(0)
     const summary = JSON.parse(result.stdout)
     expect(summary.ok).toBe(true)
-    expect(summary.actionRequired).toBe(true)
     expect(summary.completed).toBe(false)
     expect(summary.feature).toBe('AUTH-001')
     expect(summary.mode).toBe('run')
     expect(summary.tasks).toEqual([
       { id: 'TASK-1', name: '实现登录接口', status: 'pending', dependsOn: ['TASK-0'] },
     ])
-    expect(summary.context).toBeDefined()
-    expect(summary.context.progressManagement.startTask).toContain('hx progress start')
-    expect(summary.context.progressManagement.completeTask).toContain('hx progress done')
-    expect(summary.context.progressManagement.failTask).toContain('hx progress fail')
-    expect(summary.nextAction).toBe('hx run AUTH-001')
+    expect(summary.tasksContext).toBeDefined()
+    expect(Array.isArray(summary.tasksContext)).toBe(true)
+    expect(summary.tasksContext.length).toBe(1)
   })
 
   it('rejects --plan-task for a done task', () => {
     const projectRoot = setupProject()
-    const result = spawnSync('bun', [SCRIPT_PATH, 'AUTH-001', '--plan-task', 'TASK-0'], {
+    const result = spawnSync('bun', [SCRIPT_PATH, 'next', 'AUTH-001', '--plan-task', 'TASK-0'], {
       cwd: projectRoot,
       encoding: 'utf8',
     })

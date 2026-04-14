@@ -1,11 +1,15 @@
 #!/usr/bin/env node
 
 /**
- * hx-doc.ts — 需求文档 orchestrator
+ * hx-doc.ts — 需求文档事实工具
  *
- * 阶段一（文档不存在）：收集模板和上下文，actionRequired:true，AI 写文件。
- * 阶段二（文档已存在）：校验头部 5 字段，completed:true。
- * --force：跳过阶段二，重新进入阶段一。
+ * 用法：
+ *   hx doc context <feature> [--type feature|bugfix] [--source-file <path>] [--force]
+ *       收集生成需求文档所需的模板、规则、已有头部等事实
+ *   hx doc validate <feature> [--type feature|bugfix]
+ *       校验已存在的需求文档头部是否合规
+ *
+ * 所有子命令输出 JSON 到 stdout，失败时 exit 1。
  */
 
 import { existsSync, readFileSync } from 'fs'
@@ -21,96 +25,94 @@ type DocType = (typeof VALID_TYPES)[number]
 const REQUIRED_HEADER_FIELDS = ['Feature', 'Display Name', 'Source ID', 'Source Fingerprint', 'Type'] as const
 
 const argv = process.argv.slice(2)
-const { positional, options } = parseArgs(argv)
+const [sub, ...rest] = argv
+const { positional, options } = parseArgs(rest)
 const [feature] = positional
 
-if (!feature) {
-  console.error('用法: hx doc <feature> [--type <feature|bugfix>] [--source-file <path>] [--force]')
-  process.exit(1)
+function out(data: unknown) {
+  console.log(JSON.stringify(data, null, 2))
 }
 
-const rawType = options.type ?? 'feature'
-if (!VALID_TYPES.includes(rawType as DocType)) {
-  console.error(`❌ --type "${rawType}" 无效，有效值: ${VALID_TYPES.join(', ')}`)
+function err(message: string): never {
+  console.error(JSON.stringify({ ok: false, error: message }))
   process.exit(1)
 }
-const docType = rawType as DocType
-const sourceFile = options['source-file'] ?? null
-const force = options.force !== undefined
 
 const projectRoot = findProjectRoot(getSafeCwd())
-const requirementDoc = getRequirementDocPath(projectRoot, feature)
 
-// ── 阶段二：文档已存在且非 force → 校验 header ───────────────────────────────
-if (existsSync(requirementDoc) && !force) {
-  const content = readFileSync(requirementDoc, 'utf8')
-  let headerFields: Record<string, string>
-  try {
-    headerFields = validateDocHeader(content, feature, docType)
-  } catch (err) {
-    console.log(JSON.stringify({
-      ok: false,
-      actionRequired: false,
-      completed: false,
+switch (sub) {
+  case 'context': {
+    if (!feature) err('用法：hx doc context <feature> [--type feature|bugfix] [--source-file <path>] [--force]')
+
+    const rawType = options.type ?? 'feature'
+    if (!VALID_TYPES.includes(rawType as DocType)) err(`--type "${rawType}" 无效，有效值: ${VALID_TYPES.join(', ')}`)
+    const docType = rawType as DocType
+    const sourceFile = options['source-file'] ?? null
+    const force = options.force !== undefined
+
+    const requirementDoc = getRequirementDocPath(projectRoot, feature)
+    const docExists = existsSync(requirementDoc)
+
+    const existingHeader = docExists
+      ? parseHeaderFields(readFileSync(requirementDoc, 'utf8'))
+      : null
+
+    const sourceContent = sourceFile ? readSourceFile(sourceFile) : null
+
+    const templateName = docType === 'bugfix' ? 'bugfix-requirement-template.md' : 'requirement-template.md'
+    const projectTemplate = resolve(projectRoot, '.hx', 'rules', templateName)
+    const frameworkTemplate = resolve(FRAMEWORK_ROOT, 'templates', 'rules', templateName)
+    const templatePath = existsSync(projectTemplate) ? projectTemplate : frameworkTemplate
+    const templateContent = readFileSync(templatePath, 'utf8')
+
+    const goldenRules = resolveRuleFile(projectRoot, 'golden-rules.md')
+    const featureContractPath = resolve(FRAMEWORK_ROOT, 'contracts', 'feature-contract.md')
+    const featureContract = existsSync(featureContractPath) ? readFileSync(featureContractPath, 'utf8') : null
+
+    out({
+      ok: true,
       feature,
       docType,
       requirementDoc,
-      reason: err instanceof Error ? err.message : String(err),
-      nextAction: `hx doc ${feature} --force`,
-    }, null, 2))
-    process.exit(1)
+      docExists,
+      overwrite: force && existingHeader !== null,
+      templateContent,
+      goldenRules,
+      featureContract,
+      sourceContent,
+      existingHeader,
+      requiredHeaderFields: [...REQUIRED_HEADER_FIELDS],
+    })
+    break
   }
 
-  console.log(JSON.stringify({
-    ok: true,
-    actionRequired: false,
-    completed: true,
-    feature,
-    docType,
-    requirementDoc,
-    headerFields,
-    nextAction: `hx plan ${feature}`,
-  }, null, 2))
-  process.exit(0)
+  case 'validate': {
+    if (!feature) err('用法：hx doc validate <feature> [--type feature|bugfix]')
+
+    const rawType = options.type ?? 'feature'
+    if (!VALID_TYPES.includes(rawType as DocType)) err(`--type "${rawType}" 无效，有效值: ${VALID_TYPES.join(', ')}`)
+    const docType = rawType as DocType
+
+    const requirementDoc = getRequirementDocPath(projectRoot, feature)
+    if (!existsSync(requirementDoc)) {
+      out({ ok: false, feature, docType, requirementDoc, exists: false, errors: ['需求文档不存在'] })
+      process.exit(1)
+    }
+
+    const content = readFileSync(requirementDoc, 'utf8')
+    try {
+      const headerFields = validateDocHeader(content, feature, docType)
+      out({ ok: true, feature, docType, requirementDoc, exists: true, headerFields, errors: [] })
+    } catch (error) {
+      out({ ok: false, feature, docType, requirementDoc, exists: true, errors: [error instanceof Error ? error.message : String(error)] })
+      process.exit(1)
+    }
+    break
+  }
+
+  default:
+    err(`未知子命令 "${sub ?? ''}"，可用：context / validate`)
 }
-
-// ── 阶段一：收集上下文，供 AI 生成文档 ──────────────────────────────────────
-const existingHeader = existsSync(requirementDoc) && force
-  ? parseHeaderFields(readFileSync(requirementDoc, 'utf8'))
-  : null
-
-const sourceContent = sourceFile ? readSourceFile(sourceFile) : null
-
-const templateName = docType === 'bugfix' ? 'bugfix-requirement-template.md' : 'requirement-template.md'
-const projectTemplate = resolve(projectRoot, '.hx', 'rules', templateName)
-const frameworkTemplate = resolve(FRAMEWORK_ROOT, 'templates', 'rules', templateName)
-const templatePath = existsSync(projectTemplate) ? projectTemplate : frameworkTemplate
-const templateContent = readFileSync(templatePath, 'utf8')
-
-const goldenRules = resolveRuleFile(projectRoot, 'golden-rules.md')
-const featureContractPath = resolve(FRAMEWORK_ROOT, 'contracts', 'feature-contract.md')
-const featureContract = existsSync(featureContractPath) ? readFileSync(featureContractPath, 'utf8') : null
-
-console.log(JSON.stringify({
-  ok: true,
-  actionRequired: true,
-  completed: false,
-  feature,
-  docType,
-  requirementDoc,
-  context: {
-    feature,
-    docType,
-    templateContent,
-    goldenRules,
-    featureContract,
-    sourceContent,
-    existingHeader,
-    overwrite: force && existingHeader !== null,
-    requiredHeaderFields: REQUIRED_HEADER_FIELDS,
-  },
-  nextAction: `hx doc ${feature}`,
-}, null, 2))
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -151,10 +153,7 @@ function validateDocHeader(content: string, expectedFeature: string, expectedTyp
 
 function readSourceFile(filePath: string): string {
   const absPath = resolve(filePath)
-  if (!existsSync(absPath)) {
-    console.error(`❌ --source-file 路径不存在: ${absPath}`)
-    process.exit(1)
-  }
+  if (!existsSync(absPath)) err(`--source-file 路径不存在: ${absPath}`)
   return readFileSync(absPath, 'utf8')
 }
 

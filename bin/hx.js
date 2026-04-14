@@ -29,18 +29,21 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const SCRIPTS_DIR = resolve(__dirname, '..', 'src', 'scripts')
 const FRAMEWORK_COMMAND_DIR = resolve(__dirname, '..', 'src', 'commands')
 const PACKAGE_JSON_PATH = resolve(__dirname, '..', 'package.json')
-const BUILTIN_WORKFLOW_COMMANDS = ['progress', 'feature', 'archive', 'restore', 'status', 'plan', 'run', 'check', 'mr', 'go']
+const BUILTIN_WORKFLOW_COMMANDS = ['progress', 'feature', 'archive', 'restore', 'status', 'plan', 'run', 'check', 'mr', 'go', 'task', 'git', 'pipeline']
 const BUILTIN_SCRIPTS = {
   setup: 'hx-setup.ts',
   migrate: 'hx-migrate.ts',
   upgrade: 'hx-upgrade.ts',
   uninstall: 'hx-uninstall.ts',
-  // 确定性工具命令（代码实现，供 AI agent 调用）
+  // 确定性事实工具（供 AI agent 调用获取事实）
   progress: 'hx-progress.ts',
   feature: 'hx-feature.ts',
   archive: 'hx-archive.ts',
   restore: 'hx-restore.ts',
   status: 'hx-status.ts',
+  task: 'hx-task.ts',
+  git: 'hx-git.ts',
+  pipeline: 'hx-pipeline.ts',
   // 编排命令（状态机，代码驱动，输出精确 AI 指令）
   run: 'hx-run.ts',
   plan: 'hx-plan.ts',
