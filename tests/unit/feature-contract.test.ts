@@ -99,6 +99,6 @@ describe('feature contract', () => {
     expect(hxRunScript).toContain('resolveProgressFile')
     expect(hxMrScript).toContain('parseFeatureHeaderFile')
     // hx-go 不解析 feature 头部（调度各子命令，子命令各自解析）
-    expect(hxGoScript).toContain('PIPELINE_STEPS')
+    expect(hxGoScript).toContain('getPipelineFullState')
   })
 })

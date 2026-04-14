@@ -67,9 +67,9 @@ describe('hx-go script', () => {
     expect(parsed.ok).toBe(true)
     expect(parsed.feature).toBe('AUTH-001')
     expect(parsed.nextStep).toBe('doc')
-    expect(parsed.command).toBe('hx doc')
-    expect(Array.isArray(parsed.state)).toBe(true)
-    expect(parsed.state[0]).toMatchObject({ id: 'doc', status: 'pending' })
+    expect(parsed.toolScript).toBe('src/tools/doc.ts')
+    expect(Array.isArray(parsed.steps)).toBe(true)
+    expect(parsed.steps[0]).toMatchObject({ id: 'doc', status: 'pending' })
   })
 
   it('next subcommand with --from plan returns check step when doc/plan/run are done', () => {
@@ -119,11 +119,11 @@ describe('hx-go script', () => {
     expect(summary.feature).toBe('AUTH-001')
     // --from plan forces start at plan step
     expect(summary.nextStep).toBe('plan')
-    expect(summary.command).toBe('hx plan')
+    expect(summary.toolScript).toBe('src/tools/plan.ts')
 
-    // state reflects doc/plan/run done, check/mr rerun
+    // steps reflects doc/plan/run done, check/mr rerun
     const stateMap = Object.fromEntries(
-      summary.state.map((s: { id: string; status: string }) => [s.id, s.status]),
+      summary.steps.map((s: { id: string; status: string }) => [s.id, s.status]),
     )
     expect(stateMap.doc).toBe('done')
     expect(stateMap.plan).toBe('done')

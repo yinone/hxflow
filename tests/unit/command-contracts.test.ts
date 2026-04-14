@@ -326,8 +326,8 @@ describe('command contracts', () => {
     expect(hxGo).toContain('bun src/tools/go.ts state')
     // 流水线状态机在 go.ts 脚本中
     const hxGoScript = readFileSync(resolve(TOOLS_DIR, 'go.ts'), 'utf8')
-    expect(hxGoScript).toContain('getPipelineState')
-    expect(hxGoScript).toContain('resolvePipelineStartStep')
+    expect(hxGoScript).toContain('getPipelineFullState')
+    expect(hxGoScript).toContain('resolveStartStep')
     expect(hxGoScript).toContain("case 'next'")
     expect(hxGoScript).toContain("case 'state'")
 
