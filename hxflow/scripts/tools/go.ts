@@ -14,12 +14,15 @@ import { exitWithJsonError as err, printJson as out } from '../lib/json-cli.ts'
 import { getPipelineFullState, resolveStartStep } from '../lib/pipeline-runner.ts'
 import { createToolContext } from '../lib/tool-cli.ts'
 
+const NEXT_USAGE = '用法：bun scripts/tools/go.ts next <feature> [--from <step>]（无 bun 时：npx tsx scripts/tools/go.ts next <feature> [--from <step>]）'
+const STATE_USAGE = '用法：bun scripts/tools/go.ts state <feature>（无 bun 时：npx tsx scripts/tools/go.ts state <feature>）'
+
 const { sub, positional, options, projectRoot } = createToolContext()
 const [feature] = positional
 
 switch (sub) {
   case 'next': {
-    if (!feature) err('用法：bun scripts/tools/go.ts next <feature> [--from <step>]（无 bun 时：npx tsx scripts/tools/go.ts next <feature> [--from <step>]）')
+    if (!feature) err(NEXT_USAGE)
 
     const fromStep = (options.from as string) ?? null
 
@@ -51,7 +54,7 @@ switch (sub) {
   }
 
   case 'state': {
-    if (!feature) err('用法：bun scripts/tools/go.ts state <feature>（无 bun 时：npx tsx scripts/tools/go.ts state <feature>）')
+    if (!feature) err(STATE_USAGE)
 
     const state = getPipelineFullState(projectRoot, feature)
     if (!state) err('Pipeline "default" 未找到')
