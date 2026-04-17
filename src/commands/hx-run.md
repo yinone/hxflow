@@ -28,13 +28,11 @@ hooks:
 
 ## 执行步骤
 
-1. 解析参数并确定目标 `feature`，定位 `requirementDoc`、`planDoc`、`progressFile` 和 `gates.*`；若 `docs/plans/{feature}.md` 或 `docs/plans/{feature}-progress.json` 不存在，自动检查 `docs/archive/{feature}/` 并将文件还原至 `docs/plans/` 后继续。
-2. 先校验 `requirementDoc`、`planDoc`、`progressFile`、规则文件和 `gates` 是否完整，再读取 `src/contracts/feature-contract.md`、`src/contracts/progress-contract.md`、`rules/golden-rules.md`、需求文档、计划文件和进度文件。
-3. 在进入调度前调用 `validateProgressFile(progressFile)`；若当前文件无效，立即停止，不得在坏状态的 `progressFile` 上继续执行。
-4. 先识别 `recoverable` 的 `in-progress` task；若存在可恢复任务，优先恢复并保留原有 `startedAt`，不重复执行阶段一。
-5. 若没有恢复任务，则只按 `progressFile` 的 `dependsOn` 和 `parallelizable` 解析可运行的 pending task；传入 `--plan-task` 时，仅执行该计划任务后停止，否则进入自动循环：每批 task 完成后重新识别下一批可运行的 pending task，直到无剩余 pending task 或出现阻断；同一批内所有 task 的 `parallelizable` 均为 `true` 时，为每个 task 各开一个子 agent 并行执行，否则串行执行；并行回写规则以 `src/contracts/progress-contract.md` 的并行写入隔离规则为准。
-6. 按 `src/contracts/progress-contract.md` 的两阶段写入要求回写 `progressFile`：执行前写 `in-progress`，执行后写结果和 `lastRun`，且每次写回后都重新校验。
-7. 所有 task 完成后，新开一个质量复查子 agent，检查边界条件、实现完整性和回归风险；主 agent 必须根据复查结论补齐必要修正。
+1. 解析参数并确定目标 `feature`，定位 `requirementDoc`、`planDoc`、`progressFile` 和 `gates.*`；若计划文件被归档到 `docs/archive/{feature}/`，先还原到 `docs/plans/`。
+2. 校验输入是否完整并读取 `src/contracts/feature-contract.md`、`src/contracts/progress-contract.md`、`rules/golden-rules.md` 与对应文档。
+3. 按 `src/contracts/progress-contract.md` 的恢复与调度规则执行 task：优先恢复 `recoverable`，再执行可运行的 pending task；`--plan-task` 仅执行指定任务。
+4. 按 progress contract 与脚本实现回写 `progressFile`，确保 `lastRun` 与 task 状态一致，并在每次回写后完成校验。
+5. 所有 task 完成后，新开一个质量复查子 agent，检查边界条件、实现完整性和回归风险；主 agent 必须根据复查结论补齐必要修正。
 
 ## 成功结果
 
@@ -56,9 +54,7 @@ hooks:
 - 调度前的输入完整性校验是固定步骤，不是独立命令，也不能被项目覆盖移除
 - 默认执行整个 feature；`--plan-task` 仅用于调试和恢复单个计划任务
 - `feature` 只允许续接已有需求上下文，不允许在执行阶段生成或修改；续接时须遵守固定头部解析规则
-- 进入调度前必须先执行 `validateProgressFile(progressFile)`；调度规则、回写规则和字段约束以 `src/contracts/progress-contract.md` 为准
-- 断点恢复时必须优先处理 `recoverable` 的 `in-progress` task
-- `lastRun` 与 task 状态必须保持一致
-- 每次回写 `progressFile` 后都必须执行 `validateProgressFile`
+- 调度规则、回写规则和字段约束以 `src/contracts/progress-contract.md` 与对应脚本实现为准
+- 断点恢复时必须优先处理 `recoverable` 的 `in-progress` task，并保持 `lastRun` 与 task 状态一致
 - 所有 task 执行完成后，必须新开一个质量复查子 agent 做复查，主 agent 根据复查结果补齐必要修正后才能输出
 - 执行阶段只读取现有 `feature`，不生成、不改写、不重算
