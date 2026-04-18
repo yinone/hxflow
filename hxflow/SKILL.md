@@ -11,7 +11,7 @@ metadata:
 
 ## 路由
 
-根据 `$ARGUMENTS` 的第一个词匹配命令。匹配后先执行 `bun scripts/lib/hook.ts resolve <command>`；若无 bun 则执行 `npx tsx scripts/lib/hook.ts resolve <command>`。若返回了 `preHooks`，先读取这些 hook 文件，再读取对应命令文件执行（剩余参数原样透传）：
+根据 `$ARGUMENTS` 的第一个词匹配命令。匹配后先执行 `bun scripts/lib/hook.ts resolve <command>`；若无 bun 则执行 `npx tsx scripts/lib/hook.ts resolve <command>`。命令命中后先应用全局约束，再读取对应命令文件执行（剩余参数原样透传）；若返回了 `preHooks`，先读取这些 hook 文件：
 
 | 命令 | 文件 | 说明 |
 |------|------|------|
@@ -25,3 +25,8 @@ metadata:
 | status | [commands/hx-status.md](commands/hx-status.md) | 查看任务进度 |
 
 无参数时默认执行 `go`。未匹配到命令时提示可用命令列表。
+
+## 全局约束
+
+- 执行 `scripts/tools/*.ts` 或 `scripts/lib/*.ts` 时统一优先使用 `bun`；无 bun 时改用 `npx tsx`
+- 进入任一命令前先应用该约束，不在单个 `hx-*.md` 内重复展开
