@@ -83,7 +83,7 @@ jobs:
                 total,
               },
               lastRun: {
-                status: exitCode === 0 ? 'passed' : 'failed',
+                status: exitCode === null ? 'unknown' : (exitCode === 0 ? 'passed' : 'failed'),
                 exitCode,
                 parseWarning,
               },
