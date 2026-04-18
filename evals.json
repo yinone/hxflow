@@ -1,0 +1,15 @@
+{
+  "name": "hxflow-test-accuracy",
+  "version": 1,
+  "updatedAt": null,
+  "metrics": {
+    "accuracy": 0,
+    "passed": 0,
+    "failed": 0,
+    "total": 0
+  },
+  "lastRun": {
+    "status": "unknown",
+    "exitCode": null
+  }
+}
