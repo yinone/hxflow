@@ -1,12 +1,44 @@
 {
-  "name": "hxflow-test-accuracy",
-  "version": 1,
+  "name": "hxflow-ai-evals",
+  "version": 2,
   "updatedAt": null,
   "metrics": {
     "accuracy": null,
     "passed": null,
     "failed": null,
     "total": null
+  },
+  "suite": {
+    "runner": "scenario",
+    "cases": [
+      {
+        "id": "unit-regression",
+        "description": "Regression baseline on unit-level behaviors",
+        "command": [
+          "npm",
+          "run",
+          "hx:test:unit"
+        ],
+        "expect": {
+          "exitCode": 0
+        },
+        "weight": 0.4
+      },
+      {
+        "id": "integration-regression",
+        "description": "End-to-end workflow baseline on integration behaviors",
+        "command": [
+          "npm",
+          "run",
+          "hx:test:integration"
+        ],
+        "expect": {
+          "exitCode": 0
+        },
+        "weight": 0.6
+      }
+    ],
+    "results": []
   },
   "lastRun": {
     "status": "unknown",

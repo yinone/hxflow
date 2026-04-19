@@ -23,55 +23,77 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Run hx tests
-        id: run_tests
-        shell: bash
-        run: |
-          set +e
-          npm run hx:test 2>&1 | tee /tmp/hx-test-output.log
-          status=${PIPESTATUS[0]}
-          echo "exit_code=${status}" >> "$GITHUB_OUTPUT"
-          exit 0
-
-      - name: Update evals.json
-        env:
-          TEST_EXIT_CODE: ${{ steps.run_tests.outputs.exit_code }}
+      - name: Run eval scenarios and update evals.json
+        id: run_evals
         run: |
           node <<'NODE'
           const fs = require('node:fs')
           const path = require('node:path')
-
-          function findSummaryCount(logText, kind) {
-            const lines = logText.split('\n').map((line) => line.trim()).filter(Boolean)
-            const pattern = kind === 'pass'
-              ? /^(\d+)\s+pass(?:ed)?\b/i
-              : /^(\d+)\s+fail(?:ed)?\b/i
-
-            for (let index = lines.length - 1; index >= 0; index -= 1) {
-              const match = lines[index].match(pattern)
-              if (match) return Number(match[1])
-            }
-            return null
-          }
+          const childProcess = require('node:child_process')
 
           try {
             const root = process.cwd()
             const evalsPath = path.join(root, 'evals.json')
-            const logPath = '/tmp/hx-test-output.log'
 
             const base = JSON.parse(fs.readFileSync(evalsPath, 'utf8'))
-            const log = fs.existsSync(logPath) ? fs.readFileSync(logPath, 'utf8') : ''
+            const suite = base.suite && typeof base.suite === 'object' ? base.suite : {}
+            const cases = Array.isArray(suite.cases) ? suite.cases : []
+            const hasCases = cases.length > 0
 
-            const passed = findSummaryCount(log, 'pass')
-            const failed = findSummaryCount(log, 'fail')
-            const total = passed !== null && failed !== null ? passed + failed : null
-            const accuracy = total && total > 0 ? Number(((passed / total) * 100).toFixed(2)) : null
+            let weightedPassed = 0
+            let weightedTotal = 0
+            let passed = 0
+            let failed = 0
+            const results = []
 
-            const rawExitCode = process.env.TEST_EXIT_CODE
-            const exitCode = rawExitCode === undefined || rawExitCode === '' ? null : Number(rawExitCode)
-            const parseWarning = total === null
-              ? 'Unable to parse final test pass/fail summary from bun output'
+            for (const testCase of cases) {
+              const command = Array.isArray(testCase.command) ? testCase.command : []
+              if (command.length === 0 || typeof command[0] !== 'string') {
+                failed += 1
+                results.push({
+                  id: testCase.id ?? null,
+                  passed: false,
+                  reason: 'invalid-command',
+                  expectedExitCode: testCase.expect?.exitCode ?? 0,
+                  actualExitCode: null,
+                })
+                weightedTotal += typeof testCase.weight === 'number' ? testCase.weight : 1
+                continue
+              }
+
+              const expectedExitCode = Number.isInteger(testCase.expect?.exitCode) ? testCase.expect.exitCode : 0
+              const weight = typeof testCase.weight === 'number' && testCase.weight > 0 ? testCase.weight : 1
+              const run = childProcess.spawnSync(command[0], command.slice(1), {
+                cwd: root,
+                encoding: 'utf8',
+              })
+
+              const actualExitCode = typeof run.status === 'number' ? run.status : null
+              const runPassed = actualExitCode === expectedExitCode
+
+              if (runPassed) {
+                passed += 1
+                weightedPassed += weight
+              } else {
+                failed += 1
+              }
+
+              weightedTotal += weight
+              results.push({
+                id: testCase.id ?? null,
+                passed: runPassed,
+                expectedExitCode,
+                actualExitCode,
+              })
+            }
+
+            const total = hasCases ? passed + failed : null
+            const accuracy = hasCases && weightedTotal > 0
+              ? Number(((weightedPassed / weightedTotal) * 100).toFixed(2))
               : null
+            const hasFailures = hasCases && failed > 0
+            const exitCode = hasCases ? (hasFailures ? 1 : 0) : null
+            const parseWarning = hasCases ? null : 'No eval scenarios configured in evals.json suite.cases'
 
             const updated = {
               ...base,
@@ -82,6 +104,11 @@ jobs:
                 failed,
                 total,
               },
+              suite: {
+                ...suite,
+                runner: 'scenario',
+                results,
+              },
               lastRun: {
                 status: exitCode === null ? 'unknown' : (exitCode === 0 ? 'passed' : 'failed'),
                 exitCode,
@@ -90,6 +117,11 @@ jobs:
             }
 
             fs.writeFileSync(evalsPath, `${JSON.stringify(updated, null, 2)}\n`, 'utf8')
+            if (process.env.GITHUB_OUTPUT) {
+              fs.appendFileSync(process.env.GITHUB_OUTPUT, `exit_code=${exitCode === null ? '' : String(exitCode)}\n`)
+            } else {
+              console.log(`exit_code=${exitCode === null ? '' : String(exitCode)}`)
+            }
           } catch (error) {
             console.error('Failed to update evals.json:', error)
             process.exit(1)
@@ -109,8 +141,8 @@ jobs:
           git commit -m "chore: update evals accuracy"
           git push
 
-      - name: Fail if tests failed
-        if: steps.run_tests.outputs.exit_code != '0'
+      - name: Fail if evals failed
+        if: steps.run_evals.outputs.exit_code != '0'
         run: |
-          echo "hx:test failed"
+          echo "Eval scenarios failed"
           exit 1
