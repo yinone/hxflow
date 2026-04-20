@@ -15,7 +15,7 @@ import {
   getActivePlanDocPath,
   getActiveProgressFilePath,
 } from '../lib/file-paths.ts'
-import { parseFeatureHeaderFile } from '../lib/feature-header.ts'
+import { parseFeatureHeaderFile, parseRequirementHeaderFields } from '../lib/feature-header.ts'
 import { exitWithJsonError as err, printJson as out } from '../lib/json-cli.ts'
 import { loadValidatedProgressFile } from '../lib/progress-context.ts'
 import { resolveRequiredRuleTemplatePath } from '../lib/rule-resolver.ts'
@@ -31,16 +31,33 @@ switch (sub) {
     const requirementDoc = getRequirementDocPath(projectRoot, feature)
     if (!existsSync(requirementDoc)) err(`需求文档不存在: ${requirementDoc}，请先运行 hx doc context ${feature}`)
 
-    let parsedHeader
-    try {
-      parsedHeader = parseFeatureHeaderFile(requirementDoc)
-    } catch (error) {
-      err(`需求文档头部解析失败: ${error instanceof Error ? error.message : String(error)}`)
+    const reqContent = readFileSync(requirementDoc, 'utf8')
+    const rawFields = parseRequirementHeaderFields(reqContent)
+    const missingLegacyFields = ['Feature', 'Display Name', 'Source ID', 'Source Fingerprint']
+      .filter((key) => !rawFields[key]?.trim())
+
+    if (missingLegacyFields.length > 0) {
+      err(`需求文档头部解析失败: 缺少字段 ${missingLegacyFields.map((key) => `"${key}"`).join(', ')}`)
     }
 
-    const reqContent = readFileSync(requirementDoc, 'utf8')
-    const typeMatch = reqContent.match(/^>\s*Type:\s*(.+)$/m)
-    const docType = typeMatch ? typeMatch[1].trim().toLowerCase() : 'feature'
+    let parsedHeader
+    if (rawFields.Type?.trim()) {
+      try {
+        parsedHeader = parseFeatureHeaderFile(requirementDoc)
+      } catch (error) {
+        err(`需求文档头部解析失败: ${error instanceof Error ? error.message : String(error)}`)
+      }
+    } else {
+      parsedHeader = {
+        feature: rawFields.Feature.trim(),
+        displayName: rawFields['Display Name'].trim(),
+        sourceId: rawFields['Source ID'].trim(),
+        sourceFingerprint: rawFields['Source Fingerprint'].trim(),
+        type: 'feature' as const,
+      }
+    }
+
+    const docType = parsedHeader.type
 
     const templatePath = resolveRequiredRuleTemplatePath(projectRoot, docType === 'bugfix' ? 'bugfixPlan' : 'plan')
 

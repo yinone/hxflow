@@ -30,3 +30,7 @@ metadata:
 
 - 命令契约中的 `bun scripts/...` 统一表示运行时脚本入口；若环境未安装 bun，则全局改用 `npx tsx scripts/...`
 - 这条运行时回退规则只在 Skill 入口维护，各 `hx-*.md` 不重复展开同一约束
+
+## 典型流程
+
+`init` → `doc` → `plan` → `run` → `check` → `mr`
