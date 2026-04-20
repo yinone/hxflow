@@ -38,7 +38,13 @@ describe('command contracts', () => {
 
       const headings = Array.from(content.matchAll(/^##\s+(.+)$/gm), (match) => match[1])
       expect(headings[0]).toBe('执行步骤')
+      expect(headings[headings.length - 1]).toBe('约束')
       expect(headings.every((heading) => ['执行步骤', '下一步', '约束'].includes(heading))).toBe(true)
+      if (headings.includes('下一步')) {
+        expect(headings).toEqual(['执行步骤', '下一步', '约束'])
+      } else {
+        expect(headings).toEqual(['执行步骤', '约束'])
+      }
     }
   })
 
@@ -69,7 +75,7 @@ describe('command contracts', () => {
     const hxDoc = readFileSync(resolve(COMMANDS_DIR, 'hx-doc.md'), 'utf8')
 
     expect(hxDoc).toContain('先复用后生成')
-    expect(hxDoc).toContain('displayName')
+    expect(hxDoc).toContain('sourceId')
     expect(hxDoc).not.toContain('contracts/feature-contract.md')
     expect(hxGo).not.toContain('contracts/resolution-contract.md')
   })
@@ -88,13 +94,14 @@ describe('command contracts', () => {
     expect(hxDoc).toContain('bun scripts/tools/doc.ts context <feature>')
     expect(hxDoc).not.toContain('npx tsx')
     expect(hxDoc).toContain('先复用后生成')
-    expect(hxDoc).toContain('displayName')
-    expect(hxDoc).toContain('新开一个子 agent')
+    expect(hxDoc).toContain('## 下一步')
+    expect(hxDoc).toContain('`hx plan <feature>`')
 
     expect(hxPlan).toContain('bun scripts/tools/plan.ts context <feature>')
     expect(hxPlan).not.toContain('npx tsx')
     expect(hxPlan).toContain('不重算')
     expect(hxPlan).toContain('每个 task 保持独立可实现、可验证')
+    expect(hxPlan).toContain('`hx run <feature>`')
     const hxPlanScript = readFileSync(resolve(TOOLS_DIR, 'plan.ts'), 'utf8')
     expect(hxPlanScript).toContain('parseFeatureHeaderFile')
     expect(hxPlanScript).toContain('loadValidatedProgressFile')
@@ -104,6 +111,7 @@ describe('command contracts', () => {
     expect(hxCheck).toContain('bun scripts/tools/check.ts')
     expect(hxCheck).not.toContain('npx tsx')
     expect(hxCheck).toContain('qa')
+    expect(hxCheck).not.toContain('## 下一步')
     expect(hxCheck).not.toContain('review-checklist.md')
     expect(hxCheck).not.toContain('hx fix')
     const hxCheckScript = readFileSync(resolve(TOOLS_DIR, 'check.ts'), 'utf8')
@@ -117,6 +125,7 @@ describe('command contracts', () => {
     expect(hxRun).toContain('bun scripts/lib/progress.ts')
     expect(hxRun).not.toContain('npx tsx')
     expect(hxRun).toContain('显式指定的 task')
+    expect(hxRun).toContain('`hx check <feature>`')
     expect(hxRun).not.toContain('golden-rules.md')
     const hxRunScript = readFileSync(resolve(TOOLS_DIR, 'run.ts'), 'utf8')
     expect(hxRunScript).toContain('getScheduledBatch')
@@ -130,8 +139,6 @@ describe('command contracts', () => {
     expect(hxGo).toContain('bun scripts/tools/go.ts next <feature>')
     expect(hxGo).not.toContain('npx tsx')
     expect(hxGo).toContain('不得跳过最早未完成 step')
-    expect(hxGo).toContain('`.hx/config.yaml`')
-    expect(hxGo).toContain('`default`')
     expect(hxGo).not.toContain('## 下一步')
     const hxGoScript = readFileSync(resolve(TOOLS_DIR, 'go.ts'), 'utf8')
     expect(hxGoScript).toContain('getPipelineFullState')
@@ -144,7 +151,7 @@ describe('command contracts', () => {
     expect(hxInit).not.toContain('npx tsx')
     expect(hxInit).toContain('直接完成当前初始化阶段')
     expect(hxInit).not.toContain('## 下一步')
-    expect(hxInit).not.toContain('## 约束')
+    expect(hxInit).toContain('只做初始化')
     expect((hxInit.match(/\n1\./g) ?? []).length).toBe(1)
     expect(hxInit).not.toContain('\n2.')
 
@@ -162,11 +169,12 @@ describe('command contracts', () => {
     const hxStatus = readFileSync(resolve(COMMANDS_DIR, 'hx-status.md'), 'utf8')
     expect(hxStatus).toContain('bun scripts/tools/status.ts [<feature>]')
     expect(hxStatus).not.toContain('## 下一步')
-    expect(hxStatus).not.toContain('## 约束')
+    expect(hxStatus).toContain('不推测未记录状态')
 
     const skill = readFileSync(resolve(process.cwd(), 'hxflow', 'SKILL.md'), 'utf8')
     expect(skill).toContain('npx tsx scripts/')
     expect(skill).toContain('全局规则')
+    expect(skill).toContain('命令正文只保留')
 
     expect(readme).toContain('hx')
     expect(readme).not.toContain('| `fix` |')

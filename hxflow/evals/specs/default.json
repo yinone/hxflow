@@ -1,0 +1,8 @@
+{
+  "name": "hxflow-agent-regression",
+  "datasets": ["core", "edge", "regressions"],
+  "thresholds": {
+    "passRate": 0.85,
+    "regressionPassRate": 1
+  }
+}

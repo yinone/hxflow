@@ -9,8 +9,6 @@
 
 ## 约束
 
-- 流水线步骤定义、状态解析和下一步计算由 `scripts/lib/pipeline-runner.ts` 实现
-- 流水线配置从 `.hx/config.yaml` 读取，默认使用 `default` 流水线
 - 自动恢复不得跳过最早未完成 step
-- 下一步、完整状态和 `preHooks` 统一以脚本返回事实为准
-- `--from <step>` 必须是有效 step 名称
+- 只按脚本返回的下一步推进
+- `--from <step>` 只用于从该步重启

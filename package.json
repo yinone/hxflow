@@ -13,6 +13,8 @@
   "scripts": {
     "pack:dry-run": "bun pm pack --dry-run",
     "release:pack": "bun pm pack",
+    "hx:evals:validate": "bun hxflow/scripts/lib/evals.ts validate",
+    "hx:evals:report": "bun hxflow/scripts/lib/evals.ts report",
     "hx:test:unit": "bun test tests/unit",
     "hx:test:integration": "bun test tests/integration",
     "hx:test": "bun test"

@@ -29,4 +29,12 @@ describe('package manifest', () => {
     expect(content).toContain('npx tsx scripts/...')
     expect(content).toContain('全局规则')
   })
+
+  it('exposes eval scripts for local and CI usage', () => {
+    const pkg = JSON.parse(readFileSync(PACKAGE_JSON_PATH, 'utf8'))
+
+    expect(pkg.scripts['hx:evals:validate']).toBe('bun hxflow/scripts/lib/evals.ts validate')
+    expect(pkg.scripts['hx:evals:report']).toBe('bun hxflow/scripts/lib/evals.ts report')
+    expect(pkg.scripts['hx:evals:ci']).toBeUndefined()
+  })
 })

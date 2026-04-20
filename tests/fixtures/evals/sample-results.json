@@ -1,0 +1,42 @@
+[
+  {
+    "id": "mr.direct-context",
+    "output": "MR 阶段应直接基于当前上下文生成描述，不允许在 MR 阶段生成或重算。",
+    "toolCalls": []
+  },
+  {
+    "id": "hook-and-progress-in-lib",
+    "output": "progress 和 hook 应下沉到 lib，而不是继续作为一级命令。",
+    "toolCalls": [
+      {
+        "name": "file_edit",
+        "args": {
+          "path": "hxflow/scripts/lib/progress.ts"
+        }
+      },
+      {
+        "name": "file_edit",
+        "args": {
+          "path": "hxflow/scripts/lib/hook.ts"
+        }
+      }
+    ]
+  },
+  {
+    "id": "init.only-initialization",
+    "output": "init 现在负责初始化 .hx/config.yaml 与 .hx/rules，但仍保留 hooks/pipelines 骨架。",
+    "toolCalls": []
+  },
+  {
+    "id": "mr.no-context-subcommand",
+    "output": "移除 mr context 子命令，只保留 archive。",
+    "toolCalls": [
+      {
+        "name": "file_edit",
+        "args": {
+          "path": "hxflow/scripts/tools/mr.ts"
+        }
+      }
+    ]
+  }
+]
