@@ -126,6 +126,10 @@ steps:
       expect(commandToToolScript('hx-plan')).toBe('scripts/tools/plan.ts')
     })
 
+    it('should map hx-reset to scripts/tools/reset.ts', () => {
+      expect(commandToToolScript('hx-reset')).toBe('scripts/tools/reset.ts')
+    })
+
     it('should handle "hx run" format', () => {
       expect(commandToToolScript('hx run')).toBe('scripts/tools/run.ts')
     })

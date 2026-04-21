@@ -264,3 +264,38 @@ export function failTask(
     return { ok: true, data }
   })
 }
+
+/**
+ * 将 progressFile 的执行态回退为“未开始”。
+ *
+ * 规则：
+ *   - 所有 task.status → 'pending'
+ *   - 清空 task 的 startedAt / completedAt / durationSeconds / output
+ *   - 顶层 completedAt / lastRun → null
+ *   - 顶层 updatedAt → 当前时刻
++ *
+ * @param {string} filePath
+ * @returns {{ ok: true, data: object }}
+ */
+export function resetExecutionState(filePath: string): ProgressMutationResult {
+  return withProgressLock(filePath, () => {
+    const data = readProgress(filePath)
+    const now = ISO_NOW()
+
+    for (const task of data.tasks) {
+      task.status = 'pending'
+      task.output = ''
+      task.startedAt = null
+      task.completedAt = null
+      task.durationSeconds = null
+    }
+
+    data.updatedAt = now
+    data.completedAt = null
+    data.lastRun = null
+
+    writeProgress(filePath, data)
+
+    return { ok: true, data }
+  })
+}

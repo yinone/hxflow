@@ -1,11 +1,26 @@
 import { spawnSync } from 'child_process'
 
+export interface GitCommandResult {
+  ok: boolean
+  stdout: string
+  stderr: string
+}
+
+export function runGitCommand(cwd: string, ...args: string[]): GitCommandResult {
+  const result = spawnSync('git', args, { cwd, encoding: 'utf8' })
+  return {
+    ok: result.status === 0,
+    stdout: result.stdout.trim(),
+    stderr: result.stderr.trim(),
+  }
+}
+
 /**
  * 在指定目录执行 git 命令，返回 stdout（成功）或 null（失败）。
  */
 export function runGit(cwd: string, ...args: string[]): string | null {
-  const result = spawnSync('git', args, { cwd, encoding: 'utf8' })
-  return result.status === 0 ? result.stdout.trim() : null
+  const result = runGitCommand(cwd, ...args)
+  return result.ok ? result.stdout : null
 }
 
 /**

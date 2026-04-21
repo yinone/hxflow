@@ -23,6 +23,7 @@ metadata:
 | go | [commands/hx-go.md](commands/hx-go.md) | 全自动流水线 |
 | init | [commands/hx-init.md](commands/hx-init.md) | 初始化项目 |
 | status | [commands/hx-status.md](commands/hx-status.md) | 查看任务进度 |
+| reset | [commands/hx-reset.md](commands/hx-reset.md) | 重置需求或计划产物 |
 
 无参数时默认执行 `go`。未匹配到命令时提示可用命令列表。
 

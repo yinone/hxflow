@@ -31,6 +31,7 @@ Harness Workflow — Agent Skill for requirement-to-delivery pipeline.
 /hx run feature-name        # 执行需求
 /hx check feature-name      # 质量检查
 /hx mr feature-name         # 创建 MR
+/hx reset feature-name [plan|doc|code]  # 不带参数时重置 code、doc、plan
 ```
 
 ## 命令
@@ -45,6 +46,7 @@ Harness Workflow — Agent Skill for requirement-to-delivery pipeline.
 | `mr` | Phase 08 | 创建 Merge Request |
 | `init` | 初始化 | 生成 `.hx/config.yaml` 与 `.hx/rules/*.md` |
 | `status` | 状态 | 查看任务进度 |
+| `reset` | 维护 | 重置需求、计划或执行状态 |
 
 ## 架构
 
@@ -91,6 +93,10 @@ hxflow/
 ## 环境要求
 
 - Bun >= 1.0.0；若未安装 Bun，也可使用 Node.js 运行并通过 `npx tsx` 执行 `hxflow/scripts/**/*.ts`
+
+## 发布参考
+
+- GitHub Packages npm registry: https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry
 
 ## 测试
 
