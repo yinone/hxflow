@@ -40,6 +40,10 @@ function writeHxConfig(projectRoot: string, testGateCommand: string) {
   )
 }
 
+function configureGitIdentity(projectRoot: string) {
+  spawnSync('git', ['config', 'user.name', 'Test User'], { cwd: projectRoot })
+  spawnSync('git', ['config', 'user.email', 'test@example.com'], { cwd: projectRoot })
+}
 
 function setupGitProject(branch: string, testGateCommand = 'echo qa-pass') {
   const projectRoot = mkdtempSync(join(tmpdir(), 'hx-check-branch-'))
@@ -47,8 +51,7 @@ function setupGitProject(branch: string, testGateCommand = 'echo qa-pass') {
 
   // init a real git repo on the desired branch
   spawnSync('git', ['init', '-b', branch], { cwd: projectRoot })
-  spawnSync('git', ['config', 'user.name', 'Test User'], { cwd: projectRoot })
-  spawnSync('git', ['config', 'user.email', 'test@example.com'], { cwd: projectRoot })
+  configureGitIdentity(projectRoot)
   spawnSync('git', ['commit', '--allow-empty', '-m', 'init'], { cwd: projectRoot })
 
   writeHxConfig(projectRoot, testGateCommand)
@@ -61,6 +64,7 @@ function setupUnbornGitProject(branch: string, testGateCommand = 'echo qa-pass')
   tempDirs.push(projectRoot)
 
   spawnSync('git', ['init', '-b', branch], { cwd: projectRoot })
+  configureGitIdentity(projectRoot)
 
   writeHxConfig(projectRoot, testGateCommand)
 
