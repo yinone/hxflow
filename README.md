@@ -70,6 +70,10 @@ hxflow/
   templates/            # Rule templates
 ```
 
+The installed skill entry is `hxflow/SKILL.md`. It routes `/hx <command>` to the
+matching command contract, resolves hooks first, and asks the agent to read only
+the files needed for the current command.
+
 Project scaffold:
 
 ```text
@@ -86,6 +90,15 @@ Project scaffold:
 ```
 
 `hx-init` copies rule templates into `.hx/rules/` and registers them in `config.yaml` (or `workspace.yaml`) under `rules.templates`; the runtime reads only from config.
+
+---
+
+## Agent Runtime
+
+Long-running work can continue in background agent or shell sessions. Use
+`list_agents` and `read_agent` to inspect agent work, and `write_agent` only when
+an idle agent is waiting for more input. Use `list_bash`, `read_bash`, and
+`write_bash` for shell sessions; keep the two session types separate.
 
 ---
 
