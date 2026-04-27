@@ -179,9 +179,5 @@ function buildWorkspaceYaml(candidates: InitCandidate[]): string {
     candidates.length > 0 ? 'projects:' : 'projects: []',
     ...(candidates.length > 0 ? projectLines : []),
     '',
-    'defaults:',
-    '  runMode: next',
-    '  mrMode: ready',
-    '',
   ].join('\n')
 }
