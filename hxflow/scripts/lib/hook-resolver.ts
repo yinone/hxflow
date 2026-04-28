@@ -2,7 +2,7 @@ import { readRuntimeConfig } from './runtime-config.ts'
 
 export interface HookFile {
   scope: 'project'
-  phase: 'pre'
+  phase: 'pre' | 'post'
   path: string
 }
 
@@ -36,9 +36,15 @@ export function resolveCommandHooks(projectRoot: string, command: string): Resol
     path,
   }))
 
+  const postHooks: HookFile[] = commandHooks.post.map((path) => ({
+    scope: 'project',
+    phase: 'post',
+    path,
+  }))
+
   return {
     command: normalizedCommand,
     preHooks,
-    postHooks: [],
+    postHooks,
   }
 }

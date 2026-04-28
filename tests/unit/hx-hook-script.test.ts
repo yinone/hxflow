@@ -63,6 +63,32 @@ describe('hx-hook script', () => {
     expect(parsed.postHooks).toEqual([])
   })
 
+  it('resolves configured post-hook for doc', () => {
+    const projectRoot = createProject()
+    writeFileSync(
+      join(projectRoot, '.hx', 'config.yaml'),
+      `runtime:
+  hooks:
+    doc:
+      post:
+        - .hx/hooks/post_doc.md
+`,
+      'utf8',
+    )
+    const result = spawnSync('bun', [SCRIPT_PATH, 'resolve', 'doc'], {
+      cwd: projectRoot,
+      encoding: 'utf8',
+    })
+
+    expect(result.status).toBe(0)
+    const parsed = JSON.parse(result.stdout)
+    expect(parsed.ok).toBe(true)
+    expect(parsed.preHooks).toEqual([])
+    expect(parsed.postHooks).toEqual([
+      { scope: 'project', phase: 'post', path: '.hx/hooks/post_doc.md' },
+    ])
+  })
+
   it('rejects hx-prefixed command names', () => {
     const projectRoot = createProject()
     const result = spawnSync('bun', [SCRIPT_PATH, 'resolve', 'hx-doc'], {

@@ -2,7 +2,7 @@
  * go.ts — 流水线事实工具
  *
  * 用法：
- *   bun scripts/tools/go.ts next <feature> [--from <step>]    返回下一步、裸脚本及 preHooks
+ *   bun scripts/tools/go.ts next <feature> [--from <step>]    返回下一步、裸脚本及当前 step 的 preHooks/postHooks
  *   bun scripts/tools/go.ts state <feature>                   返回流水线完整状态
  *   未安装 bun 时可改用 npx tsx scripts/tools/go.ts ...
  *
@@ -24,7 +24,7 @@ switch (sub) {
     const projectRoot = resolveFeatureArtifactRoot(initialProjectRoot, feature)
     const fromStep = (options.from as string) ?? null
 
-    let result: { stepId: string; toolScript: string; pipeline: string; preHooks: string[] }
+    let result: { stepId: string; toolScript: string; pipeline: string; preHooks: string[]; postHooks: string[] }
     try {
       result = resolveStartStep(projectRoot, feature, fromStep)
     } catch (error) {
@@ -39,6 +39,7 @@ switch (sub) {
       nextStep: result.stepId,
       toolScript: result.toolScript,
       preHooks: result.preHooks,
+      postHooks: result.postHooks,
       pipeline: result.pipeline,
       steps: state?.steps.map((s) => ({
         id: s.id,
@@ -46,6 +47,7 @@ switch (sub) {
         status: s.status,
         toolScript: s.toolScript,
         preHooks: s.preHooks,
+        postHooks: s.postHooks,
       })),
     })
     break

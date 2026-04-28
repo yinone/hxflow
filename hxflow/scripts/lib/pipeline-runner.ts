@@ -40,6 +40,7 @@ export interface PipelineStepStatus {
   command: string
   toolScript: string
   preHooks: string[]
+  postHooks: string[]
   status: 'done' | 'pending' | 'rerun'
   checkpoint?: { message: string }
 }
@@ -158,6 +159,7 @@ export function getPipelineFullState(
       command: step.command,
       toolScript: commandToToolScript(step.command),
       preHooks: hooks.preHooks.map((hook) => hook.path),
+      postHooks: hooks.postHooks.map((hook) => hook.path),
       status: resolveStepStatus(step, projectRoot, feature),
       ...(step.checkpoint ? { checkpoint: step.checkpoint } : {}),
     }
@@ -230,7 +232,7 @@ export function resolveStartStep(
   feature: string,
   requestedStep?: string | null,
   pipelineName = 'default',
-): { stepId: string; toolScript: string; pipeline: string; preHooks: string[] } {
+): { stepId: string; toolScript: string; pipeline: string; preHooks: string[]; postHooks: string[] } {
   const pipeline = loadPipeline(pipelineName, projectRoot)
   if (!pipeline) {
     throw new Error(`Pipeline "${pipelineName}" 未找到（请在 .hx/config.yaml 的 runtime.pipelines 中注册）`)
@@ -242,22 +244,26 @@ export function resolveStartStep(
       const validIds = pipeline.steps.map((s) => s.id).join(', ')
       throw new Error(`--from "${requestedStep}" 不是有效的 step，可选：${validIds}`)
     }
+    const hooks = resolveCommandHooks(projectRoot, step.command)
     return {
       stepId: step.id,
       toolScript: commandToToolScript(step.command),
       pipeline: pipeline.name,
-      preHooks: resolveCommandHooks(projectRoot, step.command).preHooks.map((hook) => hook.path),
+      preHooks: hooks.preHooks.map((hook) => hook.path),
+      postHooks: hooks.postHooks.map((hook) => hook.path),
     }
   }
 
   for (const step of pipeline.steps) {
     const status = resolveStepStatus(step, projectRoot, feature)
     if (status !== 'done') {
+      const hooks = resolveCommandHooks(projectRoot, step.command)
       return {
         stepId: step.id,
         toolScript: commandToToolScript(step.command),
         pipeline: pipeline.name,
-        preHooks: resolveCommandHooks(projectRoot, step.command).preHooks.map((hook) => hook.path),
+        preHooks: hooks.preHooks.map((hook) => hook.path),
+        postHooks: hooks.postHooks.map((hook) => hook.path),
       }
     }
   }
@@ -265,11 +271,13 @@ export function resolveStartStep(
   // 全部完成，从最后一个 rerun 步骤开始
   const lastRerun = [...pipeline.steps].reverse().find((s) => resolveStepStatus(s, projectRoot, feature) === 'rerun')
   const fallback = lastRerun ?? pipeline.steps[pipeline.steps.length - 1]
+  const hooks = resolveCommandHooks(projectRoot, fallback.command)
 
   return {
     stepId: fallback.id,
     toolScript: commandToToolScript(fallback.command),
     pipeline: pipeline.name,
-    preHooks: resolveCommandHooks(projectRoot, fallback.command).preHooks.map((hook) => hook.path),
+    preHooks: hooks.preHooks.map((hook) => hook.path),
+    postHooks: hooks.postHooks.map((hook) => hook.path),
   }
 }

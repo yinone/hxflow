@@ -11,7 +11,11 @@ metadata:
 
 ## 路由
 
-根据 `$ARGUMENTS` 的第一个词匹配命令。匹配后先执行 `bun scripts/lib/hook.ts resolve <command>`；若返回了 `preHooks`，先读取这些 hook 文件，再读取对应命令文件执行（剩余参数原样透传）：
+根据 `$ARGUMENTS` 的第一个词匹配命令。匹配后先执行 `bun scripts/lib/hook.ts resolve <command>`；按以下顺序执行（剩余参数原样透传）：
+
+1. 读取 `preHooks` 中的文件（命令前置上下文）
+2. 读取并执行对应命令文件
+3. 读取 `postHooks` 中的文件（命令后置处理）
 
 | 命令 | 文件 | 说明 |
 |------|------|------|
