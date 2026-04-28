@@ -24,7 +24,15 @@ gates:
 
 # 运行时注册。
 runtime:
-  # 命令级 hook 中间件链。
+  # 命令级 hook。pre 在命令执行前注入，post 在命令执行后注入。
+  # 每个条目为 Markdown 文件路径，AI 会在对应阶段读取其内容。
+  # 示例：
+  #   hooks:
+  #     doc:
+  #       pre:
+  #         - .hx/hooks/pre_doc.md
+  #       post:
+  #         - .hx/hooks/post_doc.md
   hooks: {}
   # pipeline 名称到文件路径的映射。
   pipelines:

@@ -62,6 +62,8 @@ After installation, run `/hx init` in your project to initialize.
 
 ## Architecture
 
+The skill entry is `hxflow/SKILL.md`. It routes `/hx <command>` to the matching command contract, resolves hooks, and loads only the files needed for the current command.
+
 ```text
 hxflow/
   SKILL.md              # Skill entry point — routes /hx <command>
@@ -111,6 +113,12 @@ When the repo contains multiple sub-services, `hx init` scans candidates and gen
 - Root `workspace.yaml` holds the coordination layer: `paths`, `gates`, `runtime`, `rules.templates`, `projects`
 - Sub-projects can have their own `config.yaml` to override only `cwd`, `src`, and gates; everything else inherits from workspace
 - Requirement and plan docs are maintained at the workspace root; task-level changes are scoped to the target service
+
+---
+
+## Agent Sessions
+
+Long-running work continues in background agent or shell sessions. Use `list_agents` and `read_agent` to inspect agent output, `write_agent` only when an idle agent is waiting for input. Use `list_bash`, `read_bash`, and `write_bash` for shell sessions; keep the two session types separate.
 
 ---
 
