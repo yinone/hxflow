@@ -1,11 +1,5 @@
 # 获取需求并创建需求文档
 
-## 参数
-
-- `<feature>`：功能标识，必填
-- `--requirement <RQ-id>`：关联需求 ID，可选
-
-
 ## 执行步骤
 
 1. 执行 `bun scripts/tools/doc.ts context <feature>`，读取需求来源、模板和现有文档事实。

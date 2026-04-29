@@ -5,6 +5,7 @@ import { resolveExecutionConfig, type ExecutionConfig } from './execution-config
 import { getWorkspaceProjects, type WorkspaceProject } from './file-paths.ts'
 import { extractTaskSection, readTaskField } from './plan-utils.ts'
 import { summarizeRequirement } from './requirement-summary.ts'
+import { GATE_ORDER, type GateName } from './runtime-config.ts'
 import type { ProgressData, ProgressTask } from './types.ts'
 
 export interface TaskDependencyContext {
@@ -39,6 +40,16 @@ export interface TaskContextPayload {
     projects: WorkspaceProject[]
   } | null
   execution: ExecutionConfig
+  doneCriteria: {
+    requiredEvidence: string[]
+    scope: string[]
+    verificationCommands: string[]
+    gateCommands: Array<{
+      name: GateName
+      command: string
+      source: 'project' | 'workspace'
+    }>
+  }
   dependencies: TaskDependencyContext[]
 }
 
@@ -66,6 +77,12 @@ export function buildTaskContext(input: BuildTaskContextInput): TaskContextPaylo
   const requirementDoc = resolve(input.projectRoot, input.progressData.requirementDoc)
   const planSection = existsSync(planDoc) ? extractTaskSection(readFileSync(planDoc, 'utf8'), task.id) : ''
   const taskCwd = readTaskField(planSection, TASK_FIELD_LABELS.cwd)
+  const goal = readTaskField(planSection, TASK_FIELD_LABELS.goal)
+  const taskScope = splitListField(readTaskField(planSection, TASK_FIELD_LABELS.scope))
+  const implementationNotes = splitListField(readTaskField(planSection, TASK_FIELD_LABELS.implementationNotes))
+  const acceptance = splitListField(readTaskField(planSection, TASK_FIELD_LABELS.acceptance))
+  const verification = splitListField(readTaskField(planSection, TASK_FIELD_LABELS.verification))
+  const execution = resolveExecutionConfig(input.projectRoot, taskCwd)
   const requirementSummary = existsSync(requirementDoc)
     ? summarizeRequirement(readFileSync(requirementDoc, 'utf8'))
     : ''
@@ -79,20 +96,21 @@ export function buildTaskContext(input: BuildTaskContextInput): TaskContextPaylo
     task: {
       id: task.id,
       name: task.name,
-      goal: readTaskField(planSection, TASK_FIELD_LABELS.goal),
+      goal,
       service: readTaskField(planSection, TASK_FIELD_LABELS.service),
       cwd: taskCwd,
-      scope: splitListField(readTaskField(planSection, TASK_FIELD_LABELS.scope)),
-      implementationNotes: splitListField(readTaskField(planSection, TASK_FIELD_LABELS.implementationNotes)),
-      acceptance: splitListField(readTaskField(planSection, TASK_FIELD_LABELS.acceptance)),
-      verification: splitListField(readTaskField(planSection, TASK_FIELD_LABELS.verification)),
+      scope: taskScope,
+      implementationNotes,
+      acceptance,
+      verification,
       rawPlanSection: planSection,
     },
     requirement: {
       summary: requirementSummary,
     },
     workspace: buildWorkspaceContext(input.projectRoot),
-    execution: resolveExecutionConfig(input.projectRoot, taskCwd),
+    execution,
+    doneCriteria: buildDoneCriteria(goal, taskScope, implementationNotes, acceptance, verification, execution),
     dependencies: task.dependsOn
       .map((dependencyId) => input.progressData.tasks.find((candidate) => candidate.id === dependencyId))
       .filter((item): item is ProgressTask => item !== undefined)
@@ -102,6 +120,37 @@ export function buildTaskContext(input: BuildTaskContextInput): TaskContextPaylo
         status: dependencyTask.status,
         output: dependencyTask.output,
       })),
+  }
+}
+
+function buildDoneCriteria(
+  goal: string,
+  scope: string[],
+  implementationNotes: string[],
+  acceptance: string[],
+  verificationCommands: string[],
+  execution: ExecutionConfig,
+): TaskContextPayload['doneCriteria'] {
+  const gateCommands = GATE_ORDER
+    .filter((gate) => execution.gates[gate])
+    .map((gate) => ({
+      name: gate,
+      command: execution.gates[gate] as string,
+      source: execution.gateSources[gate] ?? execution.source,
+    }))
+
+  return {
+    requiredEvidence: [
+      goal ? '目标已实现' : 'plan 未声明目标，需先补齐或说明',
+      implementationNotes.length > 0 ? '实施要点已逐条完成' : 'plan 未声明实施要点，需先补齐或说明',
+      acceptance.length > 0 ? '验收标准已逐条满足' : 'plan 未声明验收标准，需先补齐或说明',
+      verificationCommands.length > 0 ? '验证方式中的命令已执行且通过' : 'plan 未声明验证方式，需先补齐或说明',
+      'execution.gates 中配置的质量门已执行且通过',
+      scope.length > 0 ? 'git diff 的变更文件落在修改范围内；范围外变更必须有明确说明' : 'plan 未声明修改范围，需先补齐或说明',
+    ],
+    scope,
+    verificationCommands,
+    gateCommands,
   }
 }
 
@@ -125,4 +174,3 @@ function splitListField(value: string): string[] {
     .map((item) => item.trim())
     .filter(Boolean)
 }
-

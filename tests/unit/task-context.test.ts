@@ -164,6 +164,25 @@ runtime:
       },
       source: 'project',
     })
+    expect(context.doneCriteria).toEqual({
+      requiredEvidence: [
+        '目标已实现',
+        '实施要点已逐条完成',
+        '验收标准已逐条满足',
+        '验证方式中的命令已执行且通过',
+        'execution.gates 中配置的质量门已执行且通过',
+        'git diff 的变更文件落在修改范围内；范围外变更必须有明确说明',
+      ],
+      scope: ['src/api/auth.ts', 'src/services/auth.ts'],
+      verificationCommands: ['bun test tests/unit/auth.test.ts'],
+      gateCommands: [
+        {
+          name: 'test',
+          command: 'npm test',
+          source: 'project',
+        },
+      ],
+    })
     expect(readFileSync(resolve(projectRoot, context.planDoc), 'utf8')).toContain('### TASK-1')
   })
 })

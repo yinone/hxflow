@@ -136,6 +136,12 @@ describe('hx-run script', () => {
     expect(summary.tasksContext).toBeDefined()
     expect(Array.isArray(summary.tasksContext)).toBe(true)
     expect(summary.tasksContext.length).toBe(1)
+    expect(summary.tasksContext[0].doneCriteria).toMatchObject({
+      scope: ['src/api/auth.ts'],
+      verificationCommands: ['bun test tests/unit/auth.test.ts'],
+      gateCommands: [],
+    })
+    expect(summary.tasksContext[0].doneCriteria.requiredEvidence).toContain('验证方式中的命令已执行且通过')
   })
 
   it('rejects --plan-task for a done task', () => {
